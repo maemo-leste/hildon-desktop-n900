@@ -1,3 +1,9 @@
+hildon-desktop (1:2.2.200) unstable; urgency=medium
+
+  * Fix warning: signal 'key-pressed-event' is invalid
+
+ -- Arthur Demchenkov <spinal.by@gmail.com>  Mon, 23 Mar 2020 16:27:32 +0300
+
 hildon-desktop (1:2.2.163) unstable; urgency=medium
 
   * Fix maemo-launcher support
