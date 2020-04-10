@@ -484,6 +484,11 @@ hd_wm_current_app_is (MBWindowManager *wm, Window xid)
                   wm->atoms[MBWM_ATOM_MB_CURRENT_APP_WINDOW],
                   XA_WINDOW, 32, PropModeReplace,
                   (unsigned char *)&xid, 1);
+  
+  
+  XSetInputFocus(wm->xdpy, xid, RevertToNone, CurrentTime);
+  
+  
 
   mb_wm_util_async_trap_x_errors (wm->xdpy);
   /* Remove the mirrored property from the previous window */
