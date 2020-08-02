@@ -175,7 +175,7 @@ hd_orientation_lock_gconf_value_changed (GConfClient *client,
        * to portrait mode, the priv->portrait variable is set to TRUE. */
       if (STATE_IS_PORTRAIT (hd_render_manager_get_state ()) && !value)
         {
-          hd_app_mgr_mce_activate_accel_if_needed (FALSE);
+          hd_app_mgr_activate_accel_if_needed (FALSE);
           hd_app_mgr_update_orientation ();
         }
   }

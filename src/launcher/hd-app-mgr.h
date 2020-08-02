@@ -102,7 +102,8 @@ void hd_app_mgr_set_render_manager (GObject *rendermgr);
 gboolean hd_app_mgr_execute (const gchar *exec, GPid *pid, gboolean auto_reap);
 
 gboolean hd_app_mgr_check_show_callui(void);
-void hd_app_mgr_mce_activate_accel_if_needed(gboolean update_portraitness);
+
+void hd_app_mgr_activate_accel_if_needed (gboolean update_portraitness);
 
 extern gboolean conf_enable_ctrl_backspace;
 extern gboolean conf_enable_preset_shift_ctrl;

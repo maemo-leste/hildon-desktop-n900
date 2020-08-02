@@ -51,6 +51,7 @@
 #include "hd-transition.h"
 #include "hd-wm.h"
 #include "hd-orientation-lock.h"
+#include "util/iio-dbus.h"
 
 #undef  G_LOG_DOMAIN
 #define G_LOG_DOMAIN "hd-app-mgr"
@@ -299,6 +300,7 @@ static gboolean hd_app_mgr_init_done_timeout (HdAppMgr *self);
 
 static void hd_app_mgr_kill_all_prestarted (void);
 
+
 /* The HdLauncher singleton */
 static HdAppMgr *the_app_mgr = NULL;
 
@@ -442,7 +444,7 @@ hd_app_mgr_init (HdAppMgr *self)
                                NULL, NULL);
 
       /* We don't call
-      hd_app_mgr_mce_activate_accel_if_needed ();
+      hd_app_mgr_activate_accel_if_needed ();
       here because hdrm is not ready yet. */
       gconf_client_add_dir (priv->gconf_client, GCONF_OSSO_HILDON_DESKTOP_DIR,
                             GCONF_CLIENT_PRELOAD_NONE, NULL);
@@ -1645,7 +1647,7 @@ hd_app_mgr_hdrm_state_change (gpointer hdrm,
     }
 
   /* Also check if we should enable the accelerometer. */
-  hd_app_mgr_mce_activate_accel_if_needed (TRUE);
+  hd_app_mgr_activate_accel_if_needed (TRUE);
 }
 
 static void
@@ -2046,6 +2048,40 @@ hd_app_mgr_update_portraitness(HdAppMgr *self)
   hd_comp_mgr_portrait_or_not_portrait (MB_WM_COMP_MGR (hmgr), NULL);
 }
 
+
+static void hd_app_mgr_portrait_if_required(gboolean portrait, gboolean slide_closed, HdAppMgr *self)
+{
+    /* CallUI shouldn't appear when in LAUNCHER AND TL can rotate, but
+    * should appear when TL cannot rotate. */
+    if (hd_app_mgr_check_show_callui ())
+      {
+        hd_app_mgr_update_portraitness(self);
+      }
+    else if (hd_app_mgr_ui_can_rotate () &&
+        STATE_IS_LAUNCHER (hd_render_manager_get_state ()))
+      {
+        /* we can go to portrait only if device's portraited and the HKB
+          * slide is closed. */
+        HDRMStateEnum state = (portrait && slide_closed ?
+            HDRM_STATE_LAUNCHER_PORTRAIT : HDRM_STATE_LAUNCHER);
+
+        hd_render_manager_set_state (state);
+      }
+    else if ( STATE_IS_TASK_NAV (hd_render_manager_get_state ()))
+      {
+        /* we can go to portrait only if device's portraited and the HKB
+          * slide is closed. */
+        HDRMStateEnum state = (portrait && slide_closed ?
+            HDRM_STATE_TASK_NAV_PORTRAIT : HDRM_STATE_TASK_NAV);
+
+        hd_render_manager_set_state (state);
+      }
+    else
+      {
+        hd_app_mgr_update_portraitness(self);
+      }
+}
+
 static DBusHandlerResult
 hd_app_mgr_dbus_signal_handler (DBusConnection *conn,
                            DBusMessage *msg,
@@ -2091,40 +2127,27 @@ hd_app_mgr_dbus_signal_handler (DBusConnection *conn,
                                   MCE_DEVICE_ORIENTATION_SIG) &&
                !_hd_app_mgr_dbus_check_value (msg,MCE_ORIENTATION_UNKNOWN) )
         {
+          g_debug ("got mce orientation");
           if (hd_orientation_lock_is_locked_to_portrait ())
             priv->portrait = TRUE;
           else
             priv->portrait = _hd_app_mgr_dbus_check_value (msg,
                                              MCE_ORIENTATION_PORTRAIT);
 
-          /* CallUI shouldn't appear when in LAUNCHER AND TL can rotate, but
-           * should appear when TL cannot rotate. */
-          if (hd_app_mgr_check_show_callui ())
+          hd_app_mgr_portrait_if_required(priv->portrait, priv->slide_closed, self);
+        }
+        else if (dbus_message_is_signal(msg, FDO_PROPERTIES_IFACE,"PropertiesChanged"))
+        {
+          int orientation = dbus_parse_orientation_property_changed(msg);
+          if(orientation > 0)
             {
-              hd_app_mgr_update_portraitness(self);
-            }
-          else if (hd_app_mgr_ui_can_rotate () &&
-              STATE_IS_LAUNCHER (hd_render_manager_get_state ()))
-            {
-              /* we can go to portrait only if device's portraited and the HKB
-               * slide is closed. */
-              HDRMStateEnum state = (priv->portrait && priv->slide_closed ?
-                  HDRM_STATE_LAUNCHER_PORTRAIT : HDRM_STATE_LAUNCHER);
-
-              hd_render_manager_set_state (state);
-            }
-          else if ( STATE_IS_TASK_NAV (hd_render_manager_get_state ()))
-            {
-              /* we can go to portrait only if device's portraited and the HKB
-               * slide is closed. */
-              HDRMStateEnum state = (priv->portrait && priv->slide_closed ?
-                  HDRM_STATE_TASK_NAV_PORTRAIT : HDRM_STATE_TASK_NAV);
-
-              hd_render_manager_set_state (state);
-            }
-          else
-            {
-              hd_app_mgr_update_portraitness(self);
+              g_debug ("got iio-dbus-proxy orientation: %i", orientation);
+              if (hd_orientation_lock_is_locked_to_portrait ())
+                priv->portrait = TRUE;
+              else
+                priv->portrait = orientation == ORIENTATION_LEFT_UP;
+              
+              hd_app_mgr_portrait_if_required(priv->portrait, priv->slide_closed, self);
             }
         }
     }
@@ -2135,28 +2158,18 @@ hd_app_mgr_dbus_signal_handler (DBusConnection *conn,
   return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }
 
-
-/* Activate the accelerometer when
- * - The user has activated rotate-to-callui.
- * - HDRM is in a state that shows callui.
- * - We are showing an app, and all visible windows support portrait mode
- */
-void
-hd_app_mgr_mce_activate_accel_if_needed (gboolean update_portraitness)
+static gboolean hd_app_mgr_accel_needed(HdAppMgrPrivate *priv)
 {
-  HdAppMgrPrivate *priv = HD_APP_MGR_GET_PRIVATE (the_app_mgr);
-  DBusConnection *conn = NULL;
-  DBusMessage *msg = NULL;
+	/* conditions for which the accellerometer will be activated:
+	* 1) CallUI is fired by the rotation (enabled by configuration) and we are
+	*    in a state which allows this transistion
+	* 2) Rotation is enabled (by conf) and we are in a state allowing
+	*    this transition (HOME , LAUNCHER , TASKNAV )
+	* 3) an application, so task navigator can follow orientation  */
+  
   HDRMStateEnum state = hd_render_manager_get_state();
-
-  /* conditions for which the accellerometer will be activated:
-   * 1) CallUI is fired by the rotation (enabled by configuration) and we are
-   *    in a state which allows this transistion
-   * 2) Rotation is enabled (by conf) and we are in a state allowing
-   *    this transition (HOME , LAUNCHER , TASKNAV )
-   * 3) an application, so task navigator can follow orientation  */
-  gboolean activate = (
-                  (!priv->disable_callui && STATE_SHOW_CALLUI (state)) ||
+  
+	return (!priv->disable_callui && STATE_SHOW_CALLUI (state)) ||
                    (hd_app_mgr_ui_can_rotate () &&
                     (
                       STATE_IS_TASK_NAV (state) ||
@@ -2164,35 +2177,68 @@ hd_app_mgr_mce_activate_accel_if_needed (gboolean update_portraitness)
                       STATE_IS_HOME (state) ||
                       STATE_IS_EDIT_MODE (state) ||
                       STATE_IS_APP(state) )
-                    )
                     );
+}
 
-  PORTRAIT("priv->accel_enabled: %d", priv->accel_enabled);
+static int 
+hd_app_mgr_iio_activate_accel (gboolean activate)
+{
+  /*TODO: Read rotation state on activation and return it*/
+  DBusConnection *conn = NULL;
+  DBusMessage *msg = NULL;
+  int ret = -1;
+  static gboolean activated = FALSE;
+  
+  if(activate == activated)
+    return -1;
+  
+  conn = dbus_bus_get (DBUS_BUS_SYSTEM, NULL);
+  if (!conn)
+    {
+      g_warning ("%s: Couldn't connect to session bus.", __FUNCTION__);
+      return -1;
+    }
+  
+  if(activate)
+    msg = dbus_message_new_method_call(IIO_PROXY_IFACE, IIO_PROXY_PATH, IIO_PROXY_IFACE, "ClaimAccelerometer");
+  else
+    msg = dbus_message_new_method_call(IIO_PROXY_IFACE, IIO_PROXY_PATH, IIO_PROXY_IFACE, "ReleaseAccelerometer");
+  
+  if(!dbus_connection_send(conn, msg, NULL)) 
+    goto exit;
+  
+  dbus_connection_flush(conn);
+  
+  if(activate)
+    hd_app_mgr_dbus_add_signal_match (conn, FDO_PROPERTIES_IFACE, "PropertiesChanged");
+  else
+    hd_app_mgr_dbus_remove_signal_match (conn, FDO_PROPERTIES_IFACE, "PropertiesChanged");
+  
+  activated = activate;
+  
+  ret = 0;
+  
+  exit:
+  dbus_message_unref(msg);
+  return ret;
+}
 
-  if (priv->accel_enabled == activate)
-    return;
+static int
+hd_app_mgr_mce_activate_accel (gboolean activate)
+{
+  DBusConnection *conn = NULL;
+  DBusMessage *msg = NULL;
+  int ret = -1;
+  static gboolean activated = FALSE;
+  
+  if(activate == activated)
+    return -1;
 
   conn = dbus_bus_get (DBUS_BUS_SYSTEM, NULL);
   if (!conn)
     {
       g_warning ("%s: Couldn't connect to session bus.", __FUNCTION__);
-      return;
-    }
-
-  /* We're only interested in these signals if we're going to rotate. */
-  if (activate)
-    {
-      hd_app_mgr_dbus_add_signal_match (conn, MCE_SIGNAL_IF,
-                                        MCE_TKLOCK_MODE_SIG);
-      hd_app_mgr_dbus_add_signal_match (conn, MCE_SIGNAL_IF,
-                                        MCE_DEVICE_ORIENTATION_SIG);
-    }
-  else
-    {
-      hd_app_mgr_dbus_remove_signal_match (conn, MCE_SIGNAL_IF,
-                                           MCE_TKLOCK_MODE_SIG);
-      hd_app_mgr_dbus_remove_signal_match (conn, MCE_SIGNAL_IF,
-                                           MCE_DEVICE_ORIENTATION_SIG);
+      return -1;
     }
 
   msg = dbus_message_new_method_call (
@@ -2205,7 +2251,7 @@ hd_app_mgr_mce_activate_accel_if_needed (gboolean update_portraitness)
   if (!msg)
     {
       g_warning ("%s: Couldn't create message.", __FUNCTION__);
-      return;
+      return -1;
     }
 
   dbus_message_set_auto_start (msg, TRUE);
@@ -2220,14 +2266,14 @@ hd_app_mgr_mce_activate_accel_if_needed (gboolean update_portraitness)
           if (STATE_IS_PORTRAIT (hd_render_manager_get_state ()) &&
                 _hd_app_mgr_dbus_check_value (reply, MCE_ORIENTATION_UNKNOWN))
             {
-              priv->portrait = TRUE;
+              ret = 0;
             }
           else
             {
               if (hd_orientation_lock_is_locked_to_portrait ())
-                priv->portrait = TRUE;
+                ret = 1;
               else
-                priv->portrait = _hd_app_mgr_dbus_check_value (reply,
+                ret = _hd_app_mgr_dbus_check_value (reply,
                                                     MCE_ORIENTATION_PORTRAIT);
             }
           dbus_message_unref (reply);
@@ -2242,6 +2288,65 @@ hd_app_mgr_mce_activate_accel_if_needed (gboolean update_portraitness)
       if (!dbus_connection_send (conn, msg, NULL))
         g_warning ("%s: Couldn't send message.", __FUNCTION__);
       dbus_message_unref (msg);
+    }
+    
+    
+  /* We're only interested in these signals if we're going to rotate. */
+  if(ret > -1)
+  {
+    activated = activate;
+    if (activate)
+      {
+        hd_app_mgr_dbus_add_signal_match (conn, MCE_SIGNAL_IF,
+                                          MCE_TKLOCK_MODE_SIG);
+        hd_app_mgr_dbus_add_signal_match (conn, MCE_SIGNAL_IF,
+                                          MCE_DEVICE_ORIENTATION_SIG);
+      }
+    else
+      {
+        hd_app_mgr_dbus_remove_signal_match (conn, MCE_SIGNAL_IF,
+                                            MCE_TKLOCK_MODE_SIG);
+        hd_app_mgr_dbus_remove_signal_match (conn, MCE_SIGNAL_IF,
+                                            MCE_DEVICE_ORIENTATION_SIG);
+      }
+  }
+
+   return ret;
+}
+
+/* Activate the accelerometer when
+ * - The user has activated rotate-to-callui.
+ * - HDRM is in a state that shows callui.
+ * - We are showing an app, and all visible windows support portrait mode
+ */
+void
+hd_app_mgr_activate_accel_if_needed (gboolean update_portraitness)
+{
+  HdAppMgrPrivate *priv = HD_APP_MGR_GET_PRIVATE (the_app_mgr);
+  int orientation = -1;
+
+  gboolean activate = hd_app_mgr_accel_needed(priv);
+
+  PORTRAIT("priv->accel_enabled: %d", priv->accel_enabled);
+
+  if (priv->accel_enabled == activate)
+    return;
+
+  orientation = hd_app_mgr_iio_activate_accel (activate);
+  
+  if(orientation < 0)
+    {
+      g_debug ("Using mce accelerometer");
+      orientation = hd_app_mgr_mce_activate_accel (activate);
+    }
+  else
+    {
+      g_debug ("Using iio_sensor_proxy accelerometer");
+    }
+    
+  if(orientation > -1)
+    {
+      priv->portrait = (orientation == 1);
     }
 
   g_debug ("%s: %s", __FUNCTION__, activate ? "enabled" : "disabled");
@@ -2348,7 +2453,7 @@ hd_app_mgr_gconf_value_changed (GConfClient *client,
       priv->disable_callui = value;
 
       /* Check if h-d needs to track the orientation. */
-      hd_app_mgr_mce_activate_accel_if_needed (TRUE);
+      hd_app_mgr_activate_accel_if_needed (TRUE);
     }
   else if (!g_strcmp0 (gconf_entry_get_key (entry),
                   GCONF_UI_CAN_ROTATE_KEY))
@@ -2356,7 +2461,7 @@ hd_app_mgr_gconf_value_changed (GConfClient *client,
       priv->ui_can_rotate = value;
 
       /* Check if h-d needs to track the orientation. */
-      hd_app_mgr_mce_activate_accel_if_needed (TRUE);
+      hd_app_mgr_activate_accel_if_needed (TRUE);
     }
 
   return;
