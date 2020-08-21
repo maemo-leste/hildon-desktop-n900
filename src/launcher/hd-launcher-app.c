@@ -143,6 +143,8 @@ hd_launcher_app_parse_service_name (gchar *name)
   return res;
 }
 
+/* remvoe %* parameters in accorance to https://specifications.freedesktop.org/desktop-entry-spec/latest/ar01s07.html 
+ * TODO: dose not currently support escaping % via %% but only matches a couple of letters so eh */
 static gchar* hd_launcher_strip_exec(gchar *exec)
 {
   gchar* loc;
