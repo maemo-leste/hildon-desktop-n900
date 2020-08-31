@@ -71,6 +71,7 @@ struct _HdLauncherItemClass
   /* Virtual methods */
   gboolean (* parse_key_file) (HdLauncherItem *item,
                                GKeyFile *key_file,
+                               gboolean hildon_key_file,
                                GError **error);
 };
 
@@ -80,6 +81,7 @@ GType              hd_launcher_item_get_type      (void) G_GNUC_CONST;
 HdLauncherItem *   hd_launcher_item_new_from_keyfile (const gchar *id,
                                                       const gchar *category,
                                                       GKeyFile *key_file,
+                                                      gboolean hildon_key_file,
                                                       GError   **error);
 const gchar *      hd_launcher_item_get_id           (HdLauncherItem *item);
 GQuark             hd_launcher_item_get_id_quark     (HdLauncherItem *item);

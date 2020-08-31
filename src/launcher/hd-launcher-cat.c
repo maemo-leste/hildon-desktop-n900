@@ -37,7 +37,7 @@ hd_launcher_cat_finalize (GObject *gobject)
 
 static gboolean
 hd_launcher_cat_parse_keyfile (HdLauncherItem *item,
-                               GKeyFile *key_file,
+                               GKeyFile *key_file, gboolean hildon_app,
                                GError **error)
 {
   return TRUE;

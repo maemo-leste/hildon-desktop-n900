@@ -42,6 +42,7 @@
 #define HD_DESKTOP_ENTRY_SWITCHER_ICON  "X-Maemo-Switcher-Icon"
 #define HD_DESKTOP_ENTRY_IGNORE_LOWMEM  "X-Maemo-Ignore-Lowmem"
 #define HD_DESKTOP_ENTRY_IGNORE_LOAD    "X-Maemo-Prestarted-Ignore-Load"
+#define HD_DESKTOP_ENTRY_HILDON_APP     "X-Maemo-Hildon-Integration"
 
 /* DBus names */
 #define OSSO_BUS_ROOT          "com.nokia"
@@ -63,6 +64,7 @@ struct _HdLauncherAppPrivate
   gint priority;
   gboolean ignore_lowmem;
   gboolean ignore_load;
+  gboolean hildon_app;
 };
 
 G_DEFINE_TYPE_WITH_CODE (HdLauncherApp,
@@ -72,6 +74,7 @@ G_DEFINE_TYPE_WITH_CODE (HdLauncherApp,
 
 gboolean hd_launcher_app_parse_keyfile (HdLauncherItem  *item,
                                         GKeyFile        *key_file,
+                                        gboolean        hildon_key_file,
                                         GError          **error);
 
 static void
@@ -220,6 +223,7 @@ static gchar* hd_launcher_strip_exec(gchar *exec)
 gboolean
 hd_launcher_app_parse_keyfile (HdLauncherItem *item,
                                GKeyFile       *key_file,
+                               gboolean hildon_key_file,
                                GError         **error)
 {
   HdLauncherAppPrivate *priv;
@@ -280,6 +284,15 @@ hd_launcher_app_parse_keyfile (HdLauncherItem *item,
                                               HD_DESKTOP_ENTRY_GROUP,
                                               HD_DESKTOP_ENTRY_IGNORE_LOAD,
                                               NULL);
+
+  if (g_key_file_has_key(key_file, HD_DESKTOP_ENTRY_GROUP, HD_DESKTOP_ENTRY_HILDON_APP, NULL)) {
+    priv->hildon_app = g_key_file_get_boolean (key_file,
+                                          HD_DESKTOP_ENTRY_GROUP,
+                                          HD_DESKTOP_ENTRY_HILDON_APP,
+                                          NULL);
+  } else {
+    priv->hildon_app = hildon_key_file;
+  }
 
   return TRUE;
 }
@@ -382,4 +395,11 @@ gboolean hd_launcher_app_match_window (HdLauncherApp *app,
     return TRUE;
 
   return FALSE;
+}
+
+gboolean
+hd_launcher_app_get_is_hildon_app (HdLauncherApp *app)
+{
+  HdLauncherAppPrivate *priv = HD_LAUNCHER_APP_GET_PRIVATE (app);
+  return priv->hildon_app;
 }

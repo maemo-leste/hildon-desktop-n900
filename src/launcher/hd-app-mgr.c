@@ -51,6 +51,7 @@
 #include "hd-transition.h"
 #include "hd-wm.h"
 #include "hd-orientation-lock.h"
+#include "hd-launcher-env.h"
 
 #undef  G_LOG_DOMAIN
 #define G_LOG_DOMAIN "hd-app-mgr"
@@ -997,7 +998,8 @@ hd_app_mgr_start (HdRunningApp *app)
       if (exec)
         {
           GPid pid = 0;
-          result = hd_app_mgr_execute (exec, &pid, FALSE);
+          gchar **env = hd_launcher_get_env(hd_launcher_app_get_is_hildon_app (launcher));
+          result = hd_app_mgr_execute (exec, &pid, env, FALSE);
           if (result)
             {
               hd_running_app_set_pid (app, pid);
@@ -1420,7 +1422,7 @@ _hd_app_mgr_child_setup(gpointer user_data)
 }
 
 gboolean
-hd_app_mgr_execute (const gchar *exec, GPid *pid, gboolean auto_reap)
+hd_app_mgr_execute (const gchar *exec, GPid *pid, gchar ** env, gboolean auto_reap)
 {
   gboolean res = FALSE;
   gchar *space = strchr (exec, ' ');
@@ -1452,7 +1454,7 @@ hd_app_mgr_execute (const gchar *exec, GPid *pid, gboolean auto_reap)
   }
 
   res = g_spawn_async (NULL,
-                       argv, NULL,
+                       argv, env,
                        auto_reap ? 0 : G_SPAWN_DO_NOT_REAP_CHILD,
                        _hd_app_mgr_child_setup, NULL,
                        pid,
