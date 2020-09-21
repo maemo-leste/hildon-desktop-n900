@@ -457,6 +457,8 @@ hd_util_change_screen_orientation_real (MBWindowManager *wm,
           goto err_crtc_info;
         }
 
+      XSync(wm->xdpy, FALSE);
+
       /* We must call glFinish here in order to be sure that OpenGL won't be
        * trying to render stuff while we do the transition - as this sometimes
        * causes rubbish to be displayed. */
