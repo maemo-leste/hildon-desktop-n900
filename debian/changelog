@@ -1,3 +1,9 @@
+hildon-desktop (1:2.2.176) unstable; urgency=medium
+
+  * Hopefully fix orientation problems on droid4 omap ddx
+
+ -- Merlijn Wajer <merlijn@wizzup.org>  Tue, 22 Sep 2020 09:58:57 +0200
+
 hildon-desktop (1:2.2.175) unstable; urgency=medium
 
   * Fix rotation of display sometimes causing black screens
