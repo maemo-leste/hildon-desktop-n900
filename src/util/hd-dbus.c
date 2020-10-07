@@ -1,11 +1,11 @@
 #include <unistd.h>
 
-#include "hd-dbus.h"
 #include "hd-switcher.h"
 #include "hd-title-bar.h"
 #include "hd-render-manager.h"
 #include "hd-volume-profile.h"
 #include "hd-task-navigator.h"
+#include "hd-dbus.h"
 
 #include <glib.h>
 #include <mce/dbus-names.h>
@@ -152,6 +152,31 @@ hd_dbus_signal_handler (DBusConnection *conn, DBusMessage *msg, void *data)
 
   return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }
+
+void hd_dbus_open_vkb (void)
+{
+  DBusMessage *msg;
+  DBusMessageIter args;
+  dbus_bool_t b;
+  dbus_bool_t visible = TRUE;
+
+  msg = dbus_message_new_signal("/org/maemo/him", "org.maemo.him", "set_visible");
+
+  dbus_message_iter_init_append(msg, &args);
+  if (!dbus_message_iter_append_basic(&args, DBUS_TYPE_BOOLEAN, &visible)) {
+    g_warning("Out Of Memory!"); 
+    return;
+  }
+
+  b = dbus_connection_send(connection, msg, NULL);
+  if (!b) {
+    g_warning ("%s: dbus_connection_send() failed", __func__);
+  } else {
+    dbus_connection_flush(connection);
+  }
+  dbus_message_unref(msg);
+}
+
 
 static DBusHandlerResult
 hd_dbus_system_bus_signal_handler (DBusConnection *conn,
