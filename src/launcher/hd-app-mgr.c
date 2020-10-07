@@ -220,16 +220,10 @@ G_DEFINE_TYPE_WITH_CODE (HdAppMgr,
 #define GCONF_VIEWS_CURRENT_DIR "/apps/osso/hildon-desktop/views"
 #define GCONF_VIEWS_CURRENT_KEY "/apps/osso/hildon-desktop/views/current"
 
-gboolean conf_enable_ctrl_backspace;
-gboolean conf_enable_preset_shift_ctrl;
-gboolean conf_enable_dbus_shift_ctrl;
 gboolean conf_enable_home_contacts_phone;
 gboolean conf_enable_launcher_navigator_accel;
 gboolean conf_enable_dbus_launcher_navigator;
 gboolean conf_default_launcher_positions;
-gboolean conf_dbus_shortcuts_use_fn;
-gboolean conf_dbus_ctrl_shortcuts;
-gint conf_ctrl_backspace_in_tasknav; 
 gboolean conf_disable_edit;
 #define GCONF_UI_CAN_ROTATE_KEY "/apps/osso/hildon-desktop/ui_can_rotate"
 
@@ -462,12 +456,6 @@ hd_app_mgr_init (HdAppMgr *self)
                                (gpointer) self,
                                NULL, NULL);
       if(gconf_client_dir_exists(priv->gconf_client, GCONF_KEY_ACTIONS_DIR, NULL)) {
-	      conf_enable_ctrl_backspace = gconf_client_get_bool(priv->gconf_client, 
-			      GCONF_KEY_ACTIONS_DIR "/ctrl_backspace", NULL);
-	      conf_enable_preset_shift_ctrl = gconf_client_get_bool(priv->gconf_client, 
-			      GCONF_KEY_ACTIONS_DIR "/preset_shift_ctrl", NULL);
-	      conf_enable_dbus_shift_ctrl = gconf_client_get_bool(priv->gconf_client, 
-			      GCONF_KEY_ACTIONS_DIR "/dbus_shift_ctrl", NULL);
 	      conf_enable_home_contacts_phone = gconf_client_get_bool(priv->gconf_client, 
 			      GCONF_KEY_ACTIONS_DIR "/home_contacts_phone", NULL);
 	      conf_enable_launcher_navigator_accel = gconf_client_get_bool(priv->gconf_client, 
@@ -476,12 +464,6 @@ hd_app_mgr_init (HdAppMgr *self)
 			      GCONF_KEY_ACTIONS_DIR "/dbus_launcher_navigator", NULL);
 	      conf_default_launcher_positions = gconf_client_get_bool(priv->gconf_client, 
 			      GCONF_KEY_ACTIONS_DIR "/default_launcher_positions", NULL);
-	      conf_ctrl_backspace_in_tasknav = gconf_client_get_int(priv->gconf_client, 
-			      GCONF_KEY_ACTIONS_DIR "/ctrl_backspace_in_tasknav", NULL);
-	      conf_dbus_shortcuts_use_fn = gconf_client_get_bool(priv->gconf_client, 
-			      GCONF_KEY_ACTIONS_DIR "/dbus_shortcuts_use_fn", NULL);
-	      conf_dbus_ctrl_shortcuts = gconf_client_get_bool(priv->gconf_client, 
-			      GCONF_KEY_ACTIONS_DIR "/dbus_ctrl_shortcuts", NULL);
 	      conf_disable_edit = gconf_client_get_bool(priv->gconf_client, 
 			      GCONF_KEY_ACTIONS_DIR "/disable_edit", NULL);
       }
@@ -2318,12 +2300,6 @@ hd_app_mgr_gconf_value_changed (GConfClient *client,
         hd_app_mgr_update_portraitness(self);
     }
       if(gconf_client_dir_exists(priv->gconf_client, GCONF_KEY_ACTIONS_DIR, NULL)) {
-	      conf_enable_ctrl_backspace = gconf_client_get_bool(priv->gconf_client, 
-			      GCONF_KEY_ACTIONS_DIR "/ctrl_backspace", NULL);
-//	      conf_enable_preset_shift_ctrl = gconf_client_get_bool(priv->gconf_client, 
-//			      GCONF_KEY_ACTIONS_DIR "/preset_shift_ctrl", NULL);
-//	      conf_enable_dbus_shift_ctrl = gconf_client_get_bool(priv->gconf_client, 
-//			      GCONF_KEY_ACTIONS_DIR "/dbus_shift_ctrl", NULL);
 	      conf_enable_home_contacts_phone = gconf_client_get_bool(priv->gconf_client, 
 			      GCONF_KEY_ACTIONS_DIR "/home_contacts_phone", NULL);
 	      conf_enable_launcher_navigator_accel = gconf_client_get_bool(priv->gconf_client, 
@@ -2332,12 +2308,6 @@ hd_app_mgr_gconf_value_changed (GConfClient *client,
 			      GCONF_KEY_ACTIONS_DIR "/dbus_launcher_navigator", NULL);
 	      conf_default_launcher_positions = gconf_client_get_bool(priv->gconf_client, 
 			      GCONF_KEY_ACTIONS_DIR "/default_launcher_positions", NULL);
-	      conf_ctrl_backspace_in_tasknav = gconf_client_get_int(priv->gconf_client, 
-			      GCONF_KEY_ACTIONS_DIR "/ctrl_backspace_in_tasknav", NULL);
-	      conf_dbus_shortcuts_use_fn = gconf_client_get_bool(priv->gconf_client, 
-			      GCONF_KEY_ACTIONS_DIR "/dbus_shortcuts_use_fn", NULL);
-	      conf_dbus_ctrl_shortcuts = gconf_client_get_bool(priv->gconf_client, 
-			      GCONF_KEY_ACTIONS_DIR "/dbus_ctrl_shortcuts", NULL);
 	      conf_disable_edit = gconf_client_get_bool(priv->gconf_client, 
 			      GCONF_KEY_ACTIONS_DIR "/disable_edit", NULL);
       }

@@ -29,6 +29,7 @@
 #include <signal.h>
 #include <sys/time.h>
 
+#include <matchbox/core/mb-wm.h>
 #include <matchbox/mb-wm-config.h>
 #include <matchbox/core/mb-wm-object.h>
 #include <matchbox/comp-mgr/mb-wm-comp-mgr.h>
@@ -54,21 +55,11 @@
 #include "hd-transition.h"
 #include "hd-orientation-lock.h"
 #include "hd-home.h"
+#include "hd-shortcuts.h"
 
 #ifndef DISABLE_A11Y
 #include "hildon-desktop-a11y.h"
 #endif
-
-enum {
-  KEY_ACTION_TOGGLE_SWITCHER = 1,
-  KEY_ACTION_TOGGLE_NON_COMP_MODE,
-  KEY_ACTION_TAKE_SCREENSHOT,
-  KEY_ACTION_XTERMINAL,
-  KEY_ACTION_TOGGLE_PORTRAITABLE,
-  KEY_ACTION_SEND_DBUS,
-};
-
-#define GCONF_SCREENSHOT_PATH "/apps/osso/hildon-desktop/screenshot_path"
 
 #ifdef MBWM_DEB_VERSION
 asm(".section .rodata");
@@ -77,7 +68,6 @@ asm(".previous");
 #endif
 
 gboolean hd_debug_mode_set = FALSE;
-MBWindowManager *hd_mb_wm = NULL;
 static int hd_clutter_mutex_enabled = FALSE;
 static int hd_clutter_mutex_do_unlock_after_disabling = FALSE;
 static GMutex hd_clutter_mutex;
@@ -131,77 +121,6 @@ hd_mutex_init (void)
   clutter_threads_set_lock_functions (hd_mutex_lock, hd_mutex_unlock);
 }
 
-/* Take screenshot */
-static void
-take_screenshot (void)
-{
-  char *path, *filename;
-  char *mydocsdir;
-  static gchar datestamp[255];
-  static time_t secs = 0;
-  struct tm *tm = NULL;
-  GdkDrawable *window;
-  int width, height;
-  GdkPixbuf *image;
-  GError *error = NULL;
-  gboolean ret;
-  GConfClient *client;
-
-  /* limit the rate of screenshots to avoid jamming HD when the key
-   * is pressed all the time */
-  if (time (NULL) - secs < 5)
-    return;
-
-  client = gconf_client_get_default ();
-  mydocsdir = g_strdup (getenv ("MYDOCSDIR"));
-
-  path = gconf_client_get_string (client, GCONF_SCREENSHOT_PATH, NULL);
-
-  if (!path || !*path) {
-    if (!mydocsdir) {
-      g_warning ("Screenshot failed, environment variable MYDOCSDIR missing"
-		 "or gconf option \'%s\' not set", GCONF_SCREENSHOT_PATH);
-      g_free (path);
-      return;
-    } else {
-      path = g_strdup_printf ("%s/.images/Screenshots", mydocsdir);
-    }
-  }
-
-  g_free (mydocsdir);
-  g_object_unref (client);
-
-  g_mkdir_with_parents (path, 0770);
-
-  secs = time(NULL);
-  tm = localtime(&secs);
-  strftime (datestamp, 255, "%Y%m%d-%H%M%S", tm);
-
-  filename = g_strdup_printf ("%s/Screenshot-%s.png",
-			      path,
-			      datestamp);
-  g_free (path);
-
-  window = gdk_get_default_root_window();
-  gdk_drawable_get_size(window, &width, &height);
-  image = gdk_pixbuf_get_from_drawable(NULL,
-				       window,
-				       gdk_drawable_get_colormap(window),
-				       0, 0,
-				       0, 0,
-				       width, height);
-  ret = gdk_pixbuf_save (image, filename, "png", &error, NULL);
-  g_object_unref(image);
-
-  if (ret) {
-    g_debug ("Screenshot '%s' saved.", filename);
-  } else if (error) {
-    g_warning ("%s: Image saving failed: %s", __func__, error->message);
-    g_error_free (error);
-  }
-  g_free (filename);
-}
-
 static unsigned int
 theme_type_func (const char *theme_name, void *data)
 {
@@ -235,131 +154,6 @@ theme_button_type_func (const char *type_name,
     return HdHomeThemeButtonBack;
 
   return 0;
-}
-
-/* Toggle the portrait-capable flag on and off on the topmost window */
-static void
-toggle_portraitable(MBWindowManager   *wm)
-{
-  MBWindowManagerClient *c;
-  for (c=wm->stack_top;c;c=c->stacked_below)
-    {
-      MBWMClientType c_type = MB_WM_CLIENT_CLIENT_TYPE (c);
-      if (c_type == MBWMClientTypeApp || c_type == MBWMClientTypeDesktop)
-        {
-          /* actually set the portrait property to the opposite now */
-          gboolean new_supports = !hd_comp_mgr_client_supports_portrait(c);
-          guint value = new_supports ? 1 : 0;
-          mb_wm_util_async_trap_x_errors (wm->xdpy);
-          XChangeProperty(wm->xdpy, c->window->xwindow,
-                          wm->atoms[MBWM_ATOM_HILDON_PORTRAIT_MODE_SUPPORT],
-                          XA_CARDINAL, 32, PropModeReplace,
-                          (unsigned char *)&value, 1);
-          mb_wm_util_async_untrap_x_errors ();
-        }
-    }
-}
-
-static void
-key_binding_func (MBWindowManager   *wm,
-		  MBWMKeyBinding    *binding,
-		  void              *userdata)
-{
-  int action;
-
-  action = GPOINTER_TO_INT (userdata);
-
-  switch (action)
-    {
-    case KEY_ACTION_TOGGLE_SWITCHER:
-      {
-        int state = hd_render_manager_get_state ();
-        int portrait=STATE_IS_PORTRAIT(state);
-        /* don't go to the switcher if we are showing a system-modal */
-        if (STATE_IS_TASK_NAV(state) )
-          {
-            switch(conf_ctrl_backspace_in_tasknav)
-              {
-                case 1:
-                  hd_render_manager_set_state (portrait?HDRM_STATE_HOME_PORTRAIT:HDRM_STATE_HOME);
-                  break;
-                case 2:
-                  hd_render_manager_set_state (portrait?HDRM_STATE_LAUNCHER_PORTRAIT:HDRM_STATE_LAUNCHER);
-                  break;
-                case 3:
-                  hd_task_navigator_activate(-2, -2, 0);
-                  break;
-                case 4:
-                  hd_task_navigator_activate(-1, -2, 0);
-                  break;
-                case 5:
-                  in_alt_tab = TRUE;
-                  hd_task_navigator_rotate_thumbs();
-                  break;
-                case 0:
-                default:
-                  break;
-              }
-          }
-        else
-          {
-            if (!hd_wm_has_modal_blockers (hd_mb_wm))
-              hd_render_manager_set_state (portrait?HDRM_STATE_TASK_NAV_PORTRAIT:HDRM_STATE_TASK_NAV);
-            if(conf_ctrl_backspace_in_tasknav==5)
-              {
-                in_alt_tab = TRUE;
-                hd_task_navigator_sort_thumbs();
-                hd_task_navigator_rotate_thumbs();
-              }
-          }
-      }
-    break;
-    case KEY_ACTION_TOGGLE_NON_COMP_MODE:
-      /* printf(" ### KEY_ACTION_TOGGLE_NON_COMP_MODE ###\n"); */
-      if (hd_render_manager_get_state () == HDRM_STATE_NON_COMPOSITED)
-        hd_render_manager_set_state (HDRM_STATE_APP);
-      else if (hd_render_manager_get_state () == HDRM_STATE_NON_COMP_PORT)
-        hd_render_manager_set_state (HDRM_STATE_APP_PORTRAIT);
-      else if (hd_render_manager_get_state () == HDRM_STATE_APP)
-        {
-          hd_render_manager_set_state (HDRM_STATE_NON_COMPOSITED);
-          /* render manager does not unredirect non-fullscreen apps,
-           * so do it here */
-          hd_comp_mgr_unredirect_topmost_client (hd_mb_wm, TRUE);
-        }
-      else if (hd_render_manager_get_state () == HDRM_STATE_APP_PORTRAIT)
-        {
-          hd_render_manager_set_state (HDRM_STATE_NON_COMP_PORT);
-          hd_comp_mgr_unredirect_topmost_client (hd_mb_wm, TRUE);
-        }
-      break;
-    case KEY_ACTION_TAKE_SCREENSHOT:
-        take_screenshot();
-	break;
-    case KEY_ACTION_XTERMINAL:
-      {
-        GPid pid;
-        if (hd_app_mgr_execute ("/usr/bin/osso-xterm", &pid, TRUE))
-          g_spawn_close_pid (pid);
-        break;
-      }
-    case KEY_ACTION_TOGGLE_PORTRAITABLE:
-        toggle_portraitable(wm);
-        break;
-    }
-}
-static void
-key_binding_func_key (MBWindowManager   *wm,
-		  MBWMKeyBinding    *binding,
-		  void              *userdata)
-{
-  int action;
-  char s[32];
-
-  action = GPOINTER_TO_INT (userdata);
-  sprintf(s,"%i",action);
-
-  hd_dbus_send_event (s);
 }
 
 /* Close all input devices previously opened */
@@ -433,13 +227,6 @@ enumerate_input_devices (Display *dpy)
 
                   xi_dev->is_ts = (vi->mode & DeviceMode) == Absolute;
                   xi_dev->dev = dev;
-#if 0
-                  g_warning ("### %d/%u. %s(%d):%s.%d ax:%d t:%d c:%d\n", i,
-                             eclass->len, info.name, (int)info.id,
-                             XGetAtomName(dpy, info.type), xi_dev->is_ts,
-                             (int)vi->num_axes, xi_motion_ev_type,
-                             (int)ev_class);
-#endif
                   break;
                 }
               ci = (XAnyClassPtr)((char *)ci + ci->length);
@@ -721,7 +508,6 @@ main (int argc, char **argv)
   Display * dpy = NULL;
   MBWindowManager *wm;
   HdAppMgr *app_mgr;
-  char keys1[32], c; 
 
   signal (SIGUSR1, dump_debug_info_sighand);
   signal (SIGHUP,  relaunch);
@@ -729,12 +515,6 @@ main (int argc, char **argv)
 
   /* fast float calculations */
   hd_fpu_set_mode (OSSO_FPU_FAST);
-
-  /*
-  g_log_set_always_fatal (G_LOG_LEVEL_ERROR    |
-			  G_LOG_LEVEL_CRITICAL |
-			  G_LOG_LEVEL_WARNING);
-                          */
 
   setlocale (LC_ALL, "");
   bindtextdomain (GETTEXT_PACKAGE, "/usr/share/locale");
@@ -798,113 +578,8 @@ main (int argc, char **argv)
   hd_util_display_portraitness_init(wm);
   mb_wm_init (wm);
   g_assert (mb_wm_comp_mgr_enabled (wm->comp_mgr));
-
-  if(conf_enable_ctrl_backspace) {
-  mb_wm_keys_binding_add_with_spec (wm,
-				    "<ctrl>BackSpace",
-				    key_binding_func,
-				    NULL,
-				    (void*)KEY_ACTION_TOGGLE_SWITCHER);
-  }
-  if(conf_enable_preset_shift_ctrl) {
-  mb_wm_keys_binding_add_with_spec (wm,
-				    "<shift><ctrl>x",
-				    key_binding_func,
-				    NULL,
-				    (void*)KEY_ACTION_XTERMINAL);
-  mb_wm_keys_binding_add_with_spec (wm,
-				    "<shift><ctrl>n",
-				    key_binding_func,
-				    NULL,
-				    (void*)KEY_ACTION_TOGGLE_NON_COMP_MODE);
-  mb_wm_keys_binding_add_with_spec (wm,
-				    "<shift><ctrl>p",
-				    key_binding_func,
-				    NULL,
-				    (void*)KEY_ACTION_TAKE_SCREENSHOT);
-  mb_wm_keys_binding_add_with_spec (wm,
-                                    "<shift><ctrl>r",
-                                    key_binding_func,
-                                    NULL,
-                                    (void*)KEY_ACTION_TOGGLE_PORTRAITABLE);
-  }
-
-  if(conf_enable_dbus_shift_ctrl) {
-      if(conf_dbus_shortcuts_use_fn) {
-          mb_wm_keys_binding_add_with_spec (wm,
-                           "<ctrl><mod5>Space",
-                           key_binding_func_key,
-                           NULL,
-                           (void*)(192+32));
-          mb_wm_keys_binding_add_with_spec (wm,
-                           "<ctrl><mod5>comma",
-                           key_binding_func_key,
-                           NULL,
-                           (void*)(192+33));
-          mb_wm_keys_binding_add_with_spec (wm,
-                           "<ctrl><mod5>period",
-                           key_binding_func_key,
-                           NULL,
-                           (void*)(192+34));
-      } else {
-          mb_wm_keys_binding_add_with_spec (wm,
-                           "<shift><ctrl>Space",
-                           key_binding_func_key,
-                           NULL,
-                           (void*)(192+32));
-          mb_wm_keys_binding_add_with_spec (wm,
-                           "<shift><ctrl>comma",
-                           key_binding_func_key,
-                           NULL,
-                           (void*)(192+33));
-          mb_wm_keys_binding_add_with_spec (wm,
-                           "<shift><ctrl>period",
-                           key_binding_func_key,
-                           NULL,
-                           (void*)(192+34));
-      }
-	  if(conf_dbus_ctrl_shortcuts) {
-		  mb_wm_keys_binding_add_with_spec (wm,
-							"<ctrl>F7",
-							key_binding_func_key,
-							NULL,
-							(void*)247);
-		  mb_wm_keys_binding_add_with_spec (wm,
-							"<ctrl>F8",
-							key_binding_func_key,
-							NULL,
-							(void*)248);
-		  mb_wm_keys_binding_add_with_spec (wm,
-						   "<ctrl>Space",
-						   key_binding_func_key,
-						   NULL,
-						   (void*)(192+36));
-		  mb_wm_keys_binding_add_with_spec (wm,
-						   "<ctrl>comma",
-						   key_binding_func_key,
-						   NULL,
-						   (void*)(192+37));
-		  mb_wm_keys_binding_add_with_spec (wm,
-						   "<ctrl>period",
-						   key_binding_func_key,
-						   NULL,
-						   (void*)(192+38));
-	  }
-
-	  if(conf_dbus_shortcuts_use_fn) {
-		  strcpy(keys1,"<ctrl><mod5>a");
-	  } else {
-		  strcpy(keys1,"<shift><ctrl>a");
-	  }
-	  for(c='a';c<='z';c++) if(!conf_enable_preset_shift_ctrl || conf_dbus_shortcuts_use_fn || ((c!='n') && (c!='p') && (c!='x') && (c!='h'))){
-		  keys1[strlen(keys1)-1]=c;
-		  mb_wm_keys_binding_add_with_spec (wm,
-						keys1,
-						key_binding_func_key,
-						NULL,
-						GINT_TO_POINTER (192 + c - 'a' + 1));
-	  }
-  }
+  
+  hd_shortcuts_setup(wm);
 
   /* Register for input devices changes events, needed for cursor visibility */
   XEventClass class_presence;

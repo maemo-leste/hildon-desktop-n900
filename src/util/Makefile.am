@@ -12,7 +12,8 @@ util_c = 	hd-util.c		\
 		hd-gtk-style.c		\
 		hd-gtk-utils.c		\
 		hd-volume-profile.c		\
-		hd-transition.c
+		hd-transition.c \
+		hd-shortcuts.c
 
 noinst_LTLIBRARIES = libutil.la
 

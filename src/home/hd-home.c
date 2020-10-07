@@ -1062,13 +1062,6 @@ hd_home_desktop_key_release (XKeyEvent *xev, void *userdata)
       (priv->key_sent == KEY_SENT_NONE) && (!STATE_IS_TASK_NAV(hd_render_manager_get_state())))
       return;
 
-  if((XkbKeycodeToKeysym(clutter_x11_get_default_display(), xev->keycode, 0, 0) == GDK_Control_L) &&
-	(STATE_IS_TASK_NAV(hd_render_manager_get_state())) &&
-	(conf_ctrl_backspace_in_tasknav==5) && in_alt_tab) {
-	  in_alt_tab=FALSE;
-	  hd_task_navigator_activate(0, 0, 0);
-  }
-
   if(xev->state & ControlMask) {
 	  priv->fn_state = FN_STATE_NONE;
 	  priv->shift_state = FN_STATE_NONE;
