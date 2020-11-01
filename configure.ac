@@ -68,6 +68,7 @@ AC_ARG_ENABLE(maemo-launcher,
 if test "x$enable_maemo_launcher" = "xyes"; then
   PKG_CHECK_MODULES(MAEMO_LAUNCHER, [maemo-launcher-app])
   AC_SUBST(MAEMO_LAUNCHER_CFLAGS)
+  MAEMO_LAUNCHER_LIBS="-Xcompiler \"$MAEMO_LAUNCHER_LIBS\""
   AC_SUBST(MAEMO_LAUNCHER_LIBS)
 fi
 
