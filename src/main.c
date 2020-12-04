@@ -339,7 +339,7 @@ key_binding_func (MBWindowManager   *wm,
     case KEY_ACTION_XTERMINAL:
       {
         GPid pid;
-        if (hd_app_mgr_execute ("/usr/bin/osso-xterm", &pid, TRUE))
+        if (hd_app_mgr_execute ("/usr/bin/osso-xterm", &pid, NULL, TRUE))
           g_spawn_close_pid (pid);
         break;
       }

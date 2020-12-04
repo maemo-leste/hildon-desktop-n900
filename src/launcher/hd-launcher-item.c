@@ -102,6 +102,7 @@ G_DEFINE_ABSTRACT_TYPE_WITH_CODE (HdLauncherItem,
 /* Forward declarations */
 gboolean hd_launcher_item_parse_keyfile (HdLauncherItem *item,
                                          GKeyFile *key_file,
+                                         gboolean hildon_key_file,
                                          GError **error);
 
 static void
@@ -307,6 +308,7 @@ hd_launcher_item_get_category (HdLauncherItem *item)
 gboolean
 hd_launcher_item_parse_keyfile (HdLauncherItem *item,
                                 GKeyFile *key_file,
+                                gboolean hildon_key_file,
                                 GError **error)
 {
   HdLauncherItemPrivate *priv = HD_LAUNCHER_ITEM_GET_PRIVATE (item);
@@ -315,6 +317,8 @@ hd_launcher_item_parse_keyfile (HdLauncherItem *item,
                                       HD_DESKTOP_ENTRY_GROUP,
                                       HD_DESKTOP_ENTRY_NAME,
                                       NULL);
+  (void)hildon_key_file;
+  
   if (!priv->name)
     {
       g_free (priv->name);
@@ -344,6 +348,7 @@ HdLauncherItem *
 hd_launcher_item_new_from_keyfile (const gchar *id,
                                    const gchar *category,
                                    GKeyFile *key_file,
+                                   gboolean hildon_key_file,
                                    GError **error)
 {
   HdLauncherItem *result;
@@ -410,14 +415,14 @@ hd_launcher_item_new_from_keyfile (const gchar *id,
   result->priv->item_type = type_value->value;
   result->priv->id = g_strdup (id);
   result->priv->id_quark = g_quark_from_string (result->priv->id);
-  if (!hd_launcher_item_parse_keyfile (result, key_file, error))
+  if (!hd_launcher_item_parse_keyfile (result, key_file, hildon_key_file, error))
     {
       g_object_unref (result);
       return NULL;
     }
 
   if (!(HD_LAUNCHER_ITEM_GET_CLASS (result))->parse_key_file
-            (result, key_file, error))
+            (result, key_file, hildon_key_file, error))
     {
       g_object_unref (result);
       return NULL;

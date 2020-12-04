@@ -84,6 +84,8 @@ gboolean hd_launcher_app_match_window (HdLauncherApp *app,
                                        const gchar *res_name,
                                        const gchar *res_class);
 
+gboolean hd_launcher_app_get_is_hildon_app (HdLauncherApp *app);
+
 G_END_DECLS
 
 #endif /* __HD_LAUNCHER_APP_H__ */

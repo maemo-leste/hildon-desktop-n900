@@ -237,7 +237,7 @@ walk_thread_func (gpointer user_data)
       if (key_file) {
         item = hd_launcher_item_new_from_keyfile (id,
                   gmenu_tree_directory_get_menu_id (data->root),
-                  key_file, NULL);
+                  key_file, strstr(key_file_path, "hildon") != NULL, NULL);
 	g_key_file_free (key_file);
       }
       if (item)
