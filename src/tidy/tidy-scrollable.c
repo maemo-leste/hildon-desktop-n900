@@ -22,66 +22,50 @@
 
 #include "tidy-scrollable.h"
 
-static void
-tidy_scrollable_base_init (gpointer g_iface)
+static void tidy_scrollable_base_init(gpointer g_iface)
 {
-  static gboolean initialized = FALSE;
+	static gboolean initialized = FALSE;
 
-  if (!initialized)
-    {
-      g_object_interface_install_property (g_iface,
-                                   g_param_spec_object ("hadjustment",
-                                                        "TidyAdjustment",
-                                                        "Horizontal adjustment",
-                                                        TIDY_TYPE_ADJUSTMENT,
-                                                        G_PARAM_READWRITE));
+	if (!initialized) {
+		g_object_interface_install_property(g_iface,
+						    g_param_spec_object("hadjustment",
+									"TidyAdjustment",
+									"Horizontal adjustment",
+									TIDY_TYPE_ADJUSTMENT, G_PARAM_READWRITE));
 
-      g_object_interface_install_property (g_iface,
-                                   g_param_spec_object ("vadjustment",
-                                                        "TidyAdjustment",
-                                                        "Vertical adjustment",
-                                                        TIDY_TYPE_ADJUSTMENT,
-                                                        G_PARAM_READWRITE));
+		g_object_interface_install_property(g_iface,
+						    g_param_spec_object("vadjustment",
+									"TidyAdjustment",
+									"Vertical adjustment",
+									TIDY_TYPE_ADJUSTMENT, G_PARAM_READWRITE));
 
-      initialized = TRUE;
-    }
+		initialized = TRUE;
+	}
 }
 
-GType
-tidy_scrollable_get_type (void)
+GType tidy_scrollable_get_type(void)
 {
-  static GType type = 0;
-  if (type == 0)
-    {
-      static const GTypeInfo info =
-        {
-          sizeof (TidyScrollableInterface),
-          tidy_scrollable_base_init,        /* base_init */
-          NULL,
-        };
-      type = g_type_register_static (G_TYPE_INTERFACE,
-                                     "TidyScrollable", &info, 0);
-    }
-  return type;
+	static GType type = 0;
+	if (type == 0) {
+		static const GTypeInfo info = {
+			sizeof(TidyScrollableInterface),
+			tidy_scrollable_base_init,	/* base_init */
+			NULL,
+		};
+		type = g_type_register_static(G_TYPE_INTERFACE, "TidyScrollable", &info, 0);
+	}
+	return type;
 }
 
 void
-tidy_scrollable_set_adjustments (TidyScrollable *scrollable,
-                                 TidyAdjustment *hadjustment,
-                                 TidyAdjustment *vadjustment)
+tidy_scrollable_set_adjustments(TidyScrollable * scrollable, TidyAdjustment * hadjustment, TidyAdjustment * vadjustment)
 {
-  TIDY_SCROLLABLE_GET_INTERFACE (scrollable)->set_adjustments (scrollable,
-                                                               hadjustment,
-                                                               vadjustment);
+	TIDY_SCROLLABLE_GET_INTERFACE(scrollable)->set_adjustments(scrollable, hadjustment, vadjustment);
 }
 
 void
-tidy_scrollable_get_adjustments (TidyScrollable *scrollable,
-                                 TidyAdjustment **hadjustment,
-                                 TidyAdjustment **vadjustment)
+tidy_scrollable_get_adjustments(TidyScrollable * scrollable,
+				TidyAdjustment ** hadjustment, TidyAdjustment ** vadjustment)
 {
-  TIDY_SCROLLABLE_GET_INTERFACE (scrollable)->get_adjustments (scrollable,
-                                                               hadjustment,
-                                                               vadjustment);
+	TIDY_SCROLLABLE_GET_INTERFACE(scrollable)->get_adjustments(scrollable, hadjustment, vadjustment);
 }
-

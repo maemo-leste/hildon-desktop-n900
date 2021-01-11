@@ -31,11 +31,8 @@
 #include "hda-home.h"
 
 /* factories initialization*/
-HDA_ACCESSIBLE_FACTORY (HDA_TYPE_HOME, hda_home, hda_home_new)
-
-void
-hda_home_accessibility_init (void)
+HDA_ACCESSIBLE_FACTORY(HDA_TYPE_HOME, hda_home, hda_home_new)
+void hda_home_accessibility_init(void)
 {
-  HDA_ACTOR_SET_FACTORY (HD_TYPE_HOME, hda_home);
+	HDA_ACTOR_SET_FACTORY(HD_TYPE_HOME, hda_home);
 }
-

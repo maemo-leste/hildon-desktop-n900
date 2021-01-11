@@ -29,41 +29,35 @@
 #include <matchbox/core/mb-wm-decor.h>
 #include <clutter/clutter.h>
 
-typedef struct HdDecorClass   HdDecorClass;
-typedef struct HdDecor        HdDecor;
+typedef struct HdDecorClass HdDecorClass;
+typedef struct HdDecor HdDecor;
 
 #define HD_DECOR(c)       ((HdDecor*)(c))
 #define HD_DECOR_CLASS(c) ((HdDecorClass*)(c))
 #define HD_TYPE_DECOR     (hd_decor_class_type ())
 #define HD_IS_DECOR(obj)  (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HD_TYPE_DECOR))
 
-struct HdDecorClass
-{
-  MBWMDecorClass    parent;
+struct HdDecorClass {
+	MBWMDecorClass parent;
 };
 
-struct HdDecor
-{
-  MBWMDecor     parent;
+struct HdDecor {
+	MBWMDecor parent;
 
-
-  /* private? */
-  ClutterActor          *title_bar_actor;
-  ClutterActor          *title_actor;
-  ClutterActor          *progress_texture;
-  ClutterTimeline       *progress_timeline;
+	/* private? */
+	ClutterActor *title_bar_actor;
+	ClutterActor *title_actor;
+	ClutterActor *progress_texture;
+	ClutterTimeline *progress_timeline;
 };
 
-int hd_decor_class_type (void);
+int hd_decor_class_type(void);
 
-HdDecor* hd_decor_new (MBWindowManager      *wm,
-                       MBWMDecorType         type);
+HdDecor *hd_decor_new(MBWindowManager * wm, MBWMDecorType type);
 
-void hd_decor_sync(HdDecor   *decor);
+void hd_decor_sync(HdDecor * decor);
 
-gboolean
-hd_decor_window_is_waiting (MBWindowManager *wm, Window w);
-gboolean
-hd_decor_window_has_menu_indicator (MBWindowManager *wm, Window w);
+gboolean hd_decor_window_is_waiting(MBWindowManager * wm, Window w);
+gboolean hd_decor_window_has_menu_indicator(MBWindowManager * wm, Window w);
 
 #endif

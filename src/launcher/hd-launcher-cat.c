@@ -27,34 +27,28 @@
 
 #include "hd-launcher-cat.h"
 
-G_DEFINE_TYPE (HdLauncherCat, hd_launcher_cat, HD_TYPE_LAUNCHER_ITEM);
+G_DEFINE_TYPE(HdLauncherCat, hd_launcher_cat, HD_TYPE_LAUNCHER_ITEM);
 
-static void
-hd_launcher_cat_finalize (GObject *gobject)
+static void hd_launcher_cat_finalize(GObject * gobject)
 {
-  G_OBJECT_CLASS (hd_launcher_cat_parent_class)->finalize (gobject);
+	G_OBJECT_CLASS(hd_launcher_cat_parent_class)->finalize(gobject);
 }
 
-static gboolean
-hd_launcher_cat_parse_keyfile (HdLauncherItem *item,
-                               GKeyFile *key_file,
-                               GError **error)
+static gboolean hd_launcher_cat_parse_keyfile(HdLauncherItem * item, GKeyFile * key_file, GError ** error)
 {
-  return TRUE;
+	return TRUE;
 }
 
-static void
-hd_launcher_cat_class_init (HdLauncherCatClass *klass)
+static void hd_launcher_cat_class_init(HdLauncherCatClass * klass)
 {
-  GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
-  HdLauncherItemClass *launcher_class = HD_LAUNCHER_ITEM_CLASS (klass);
+	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
+	HdLauncherItemClass *launcher_class = HD_LAUNCHER_ITEM_CLASS(klass);
 
-  gobject_class->finalize = hd_launcher_cat_finalize;
+	gobject_class->finalize = hd_launcher_cat_finalize;
 
-  launcher_class->parse_key_file = hd_launcher_cat_parse_keyfile;
+	launcher_class->parse_key_file = hd_launcher_cat_parse_keyfile;
 }
 
-static void
-hd_launcher_cat_init (HdLauncherCat *launcher)
+static void hd_launcher_cat_init(HdLauncherCat * launcher)
 {
 }

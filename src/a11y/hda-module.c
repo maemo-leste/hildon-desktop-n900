@@ -27,34 +27,28 @@
 #include "home/hda-home-init.h"
 #include "tail/tail.h"
 
-void
-hda_accessibility_module_init                   (void);
+void hda_accessibility_module_init(void);
 
-extern void
-gnome_accessibility_module_init                 (void);
+extern void gnome_accessibility_module_init(void);
 
-extern void
-gnome_accessibility_module_shutdown             (void);
+extern void gnome_accessibility_module_shutdown(void);
 
 static int hda_initialized = FALSE;
 
-void
-hda_accessibility_module_init(void)
+void hda_accessibility_module_init(void)
 {
-  if (hda_initialized)
-    {
-      return;
-    }
-  hda_initialized = TRUE;
+	if (hda_initialized) {
+		return;
+	}
+	hda_initialized = TRUE;
 
-  /* init individual libraries  */
-  hda_launcher_accessibility_init ();
-  hda_home_accessibility_init ();
-  tail_accessibility_init ();
+	/* init individual libraries  */
+	hda_launcher_accessibility_init();
+	hda_home_accessibility_init();
+	tail_accessibility_init();
 
-  g_message ("Hildon Desktop Accessibility Module initialized");
+	g_message("Hildon Desktop Accessibility Module initialized");
 }
-
 
 /**
  * gnome_accessibility_module_init:
@@ -62,10 +56,9 @@ hda_accessibility_module_init(void)
  *
  * Common gnome hook to be used in order to activate the module
  **/
-void
-gnome_accessibility_module_init                 (void)
+void gnome_accessibility_module_init(void)
 {
-  hda_accessibility_module_init ();
+	hda_accessibility_module_init();
 }
 
 /**
@@ -74,15 +67,12 @@ gnome_accessibility_module_init                 (void)
  *
  * Common gnome hook to be used in order to de-activate the module
  **/
-void
-gnome_accessibility_module_shutdown             (void)
+void gnome_accessibility_module_shutdown(void)
 {
-  if (!hda_initialized)
-    {
-      return;
-    }
-  hda_initialized = FALSE;
+	if (!hda_initialized) {
+		return;
+	}
+	hda_initialized = FALSE;
 
-  g_message ("Hildon Desktop Accessibility Module shutdown");
+	g_message("Hildon Desktop Accessibility Module shutdown");
 }
-

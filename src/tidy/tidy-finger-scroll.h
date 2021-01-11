@@ -27,14 +27,12 @@
 #include <tidy/tidy-scroll-view.h>
 
 G_BEGIN_DECLS
-
 #define TIDY_TYPE_FINGER_SCROLL            (tidy_finger_scroll_get_type())
 #define TIDY_FINGER_SCROLL(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), TIDY_TYPE_FINGER_SCROLL, TidyFingerScroll))
 #define TIDY_IS_FINGER_SCROLL(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), TIDY_TYPE_FINGER_SCROLL))
 #define TIDY_FINGER_SCROLL_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), TIDY_TYPE_FINGER_SCROLL, TidyFingerScrollClass))
 #define TIDY_IS_FINGER_SCROLL_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), TIDY_TYPE_FINGER_SCROLL))
 #define TIDY_FINGER_SCROLL_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), TIDY_TYPE_FINGER_SCROLL, TidyFingerScrollClass))
-
 /**
  * TidyFingerScrollMode:
  * @TIDY_FINGER_SCROLL_MODE_PUSH: Non-kinetic scrolling
@@ -42,37 +40,34 @@ G_BEGIN_DECLS
  *
  * Type of scrolling.
  */
-typedef enum {
-  TIDY_FINGER_SCROLL_MODE_PUSH,
-  TIDY_FINGER_SCROLL_MODE_KINETIC
+    typedef enum {
+	TIDY_FINGER_SCROLL_MODE_PUSH,
+	TIDY_FINGER_SCROLL_MODE_KINETIC
 } TidyFingerScrollMode;
 
-typedef struct _TidyFingerScroll          TidyFingerScroll;
-typedef struct _TidyFingerScrollPrivate   TidyFingerScrollPrivate;
-typedef struct _TidyFingerScrollClass     TidyFingerScrollClass;
+typedef struct _TidyFingerScroll TidyFingerScroll;
+typedef struct _TidyFingerScrollPrivate TidyFingerScrollPrivate;
+typedef struct _TidyFingerScrollClass TidyFingerScrollClass;
 
-struct _TidyFingerScroll
-{
-  /*< private >*/
-  TidyScrollView parent_instance;
+struct _TidyFingerScroll {
+	/*< private > */
+	TidyScrollView parent_instance;
 
-  TidyFingerScrollPrivate *priv;
+	TidyFingerScrollPrivate *priv;
 };
 
-struct _TidyFingerScrollClass
-{
-  TidyScrollViewClass parent_class;
+struct _TidyFingerScrollClass {
+	TidyScrollViewClass parent_class;
 };
 
-GType tidy_finger_scroll_get_type (void) G_GNUC_CONST;
+GType tidy_finger_scroll_get_type(void) G_GNUC_CONST;
 
-ClutterActor *tidy_finger_scroll_new  (TidyFingerScrollMode mode);
+ClutterActor *tidy_finger_scroll_new(TidyFingerScrollMode mode);
 
-void          tidy_finger_scroll_stop (TidyFingerScroll *scroll);
+void tidy_finger_scroll_stop(TidyFingerScroll * scroll);
 
-void          tidy_finger_scroll_show_scrollbars (ClutterActor *actor);
-void          tidy_finger_scroll_hide_scrollbars_now (ClutterActor *actor);
+void tidy_finger_scroll_show_scrollbars(ClutterActor * actor);
+void tidy_finger_scroll_hide_scrollbars_now(ClutterActor * actor);
 
 G_END_DECLS
-
-#endif /* __TIDY_FINGER_SCROLL_H__ */
+#endif				/* __TIDY_FINGER_SCROLL_H__ */

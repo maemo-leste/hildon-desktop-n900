@@ -29,36 +29,31 @@
 #include <matchbox/core/mb-wm-decor.h>
 #include <clutter/clutter.h>
 
-typedef struct HdDecorButtonClass   HdDecorButtonClass;
-typedef struct HdDecorButton        HdDecorButton;
+typedef struct HdDecorButtonClass HdDecorButtonClass;
+typedef struct HdDecorButton HdDecorButton;
 
 #define HD_DECOR_BUTTON(c)       ((HdDecorButton*)(c))
 #define HD_DECOR_BUTTON_CLASS(c) ((HdDecorButtonClass*)(c))
 #define HD_TYPE_DECOR_BUTTON     (hd_decor_button_class_type ())
 #define HD_IS_DECOR_BUTTON(obj)  (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HD_TYPE_DECOR_BUTTON))
 
-struct HdDecorButtonClass
-{
-  MBWMDecorClass    parent;
+struct HdDecorButtonClass {
+	MBWMDecorClass parent;
 };
 
-struct HdDecorButton
-{
-  MBWMDecorButton     parent;
+struct HdDecorButton {
+	MBWMDecorButton parent;
 };
 
-int hd_decor_button_class_type (void);
+int hd_decor_button_class_type(void);
 
-HdDecorButton* hd_decor_button_new (MBWindowManager               *wm,
-                                    MBWMDecorButtonType            type,
-                                    MBWMDecorButtonPack            pack,
-                                    HdDecor                       *decor,
-                                    MBWMDecorButtonPressedFunc     press,
-                                    MBWMDecorButtonReleasedFunc    release,
-                                    MBWMDecorButtonFlags           flags);
+HdDecorButton *hd_decor_button_new(MBWindowManager * wm,
+				   MBWMDecorButtonType type,
+				   MBWMDecorButtonPack pack,
+				   HdDecor * decor,
+				   MBWMDecorButtonPressedFunc press,
+				   MBWMDecorButtonReleasedFunc release, MBWMDecorButtonFlags flags);
 
-void
-hd_decor_button_sync(HdDecorButton *button);
-
+void hd_decor_button_sync(HdDecorButton * button);
 
 #endif

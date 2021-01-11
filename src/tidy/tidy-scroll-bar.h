@@ -27,47 +27,37 @@
 #include <tidy/tidy-adjustment.h>
 
 G_BEGIN_DECLS
-
 #define TIDY_TYPE_SCROLL_BAR            (tidy_scroll_bar_get_type())
 #define TIDY_SCROLL_BAR(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), TIDY_TYPE_SCROLL_BAR, TidyScrollBar))
 #define TIDY_IS_SCROLL_BAR(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), TIDY_TYPE_SCROLL_BAR))
 #define TIDY_SCROLL_BAR_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), TIDY_TYPE_SCROLL_BAR, TidyScrollBarClass))
 #define TIDY_IS_SCROLL_BAR_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), TIDY_TYPE_SCROLL_BAR))
 #define TIDY_SCROLL_BAR_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), TIDY_TYPE_SCROLL_BAR, TidyScrollBarClass))
+typedef struct _TidyScrollBar TidyScrollBar;
+typedef struct _TidyScrollBarPrivate TidyScrollBarPrivate;
+typedef struct _TidyScrollBarClass TidyScrollBarClass;
 
-typedef struct _TidyScrollBar          TidyScrollBar;
-typedef struct _TidyScrollBarPrivate   TidyScrollBarPrivate;
-typedef struct _TidyScrollBarClass     TidyScrollBarClass;
+struct _TidyScrollBar {
+	/*< private > */
+	TidyActor parent_instance;
 
-struct _TidyScrollBar
-{
-  /*< private >*/
-  TidyActor parent_instance;
-  
-  TidyScrollBarPrivate *priv;
+	TidyScrollBarPrivate *priv;
 };
 
-struct _TidyScrollBarClass
-{
-  TidyActorClass parent_class;
+struct _TidyScrollBarClass {
+	TidyActorClass parent_class;
 };
 
-GType tidy_scroll_bar_get_type (void) G_GNUC_CONST;
+GType tidy_scroll_bar_get_type(void) G_GNUC_CONST;
 
-ClutterActor *  tidy_scroll_bar_new            (TidyAdjustment *adjustment);
-ClutterActor *  tidy_scroll_bar_new_with_handle(TidyAdjustment *adjustment,
-                                                ClutterActor   *handle);
-void            tidy_scroll_bar_set_adjustment (TidyScrollBar  *bar,
-                                                TidyAdjustment *adjustment);
-TidyAdjustment *tidy_scroll_bar_get_adjustment (TidyScrollBar  *bar);
-void            tidy_scroll_bar_set_handle     (TidyScrollBar  *bar, 
-                                                ClutterActor   *handle);
-ClutterActor *  tidy_scroll_bar_get_handle     (TidyScrollBar  *bar);
-void            tidy_scroll_bar_set_texture    (TidyScrollBar  *bar,
-                                                ClutterActor   *texture);
-ClutterActor *  tidy_scroll_bar_get_texture    (TidyScrollBar  *bar);
+ClutterActor *tidy_scroll_bar_new(TidyAdjustment * adjustment);
+ClutterActor *tidy_scroll_bar_new_with_handle(TidyAdjustment * adjustment, ClutterActor * handle);
+void tidy_scroll_bar_set_adjustment(TidyScrollBar * bar, TidyAdjustment * adjustment);
+TidyAdjustment *tidy_scroll_bar_get_adjustment(TidyScrollBar * bar);
+void tidy_scroll_bar_set_handle(TidyScrollBar * bar, ClutterActor * handle);
+ClutterActor *tidy_scroll_bar_get_handle(TidyScrollBar * bar);
+void tidy_scroll_bar_set_texture(TidyScrollBar * bar, ClutterActor * texture);
+ClutterActor *tidy_scroll_bar_get_texture(TidyScrollBar * bar);
 
 G_END_DECLS
-
-#endif /* __TIDY_SCROLL_BAR_H__ */
-
+#endif				/* __TIDY_SCROLL_BAR_H__ */

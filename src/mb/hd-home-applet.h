@@ -26,7 +26,7 @@
 
 #include <matchbox/core/mb-wm.h>
 
-typedef struct HdHomeApplet      HdHomeApplet;
+typedef struct HdHomeApplet HdHomeApplet;
 typedef struct HdHomeAppletClass HdHomeAppletClass;
 
 #define HD_HOME_APPLET(c) ((HdHomeApplet*)(c))
@@ -34,26 +34,22 @@ typedef struct HdHomeAppletClass HdHomeAppletClass;
 #define HD_TYPE_HOME_APPLET (hd_home_applet_class_type ())
 #define HD_IS_HOME_APPLET(c) (MB_WM_OBJECT_TYPE(c)==HD_TYPE_HOME_APPLET)
 
-struct HdHomeApplet
-{
-  MBWMClientBase    parent;
+struct HdHomeApplet {
+	MBWMClientBase parent;
 
-  char             *applet_id;
+	char *applet_id;
 
-  Bool              settings;
-  unsigned int      view_id;
-  time_t            modified;
+	Bool settings;
+	unsigned int view_id;
+	time_t modified;
 };
 
-struct HdHomeAppletClass
-{
-  MBWMClientBaseClass parent;
+struct HdHomeAppletClass {
+	MBWMClientBaseClass parent;
 };
 
-MBWindowManagerClient*
-hd_home_applet_new (MBWindowManager *wm, MBWMClientWindow *win);
+MBWindowManagerClient *hd_home_applet_new(MBWindowManager * wm, MBWMClientWindow * win);
 
-int
-hd_home_applet_class_type (void);
+int hd_home_applet_class_type(void);
 
 #endif

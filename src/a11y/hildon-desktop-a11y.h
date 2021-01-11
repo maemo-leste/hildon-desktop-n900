@@ -21,5 +21,4 @@
  *
  */
 
-void
-hildon_desktop_a11y_init (void);
+void hildon_desktop_a11y_init(void);

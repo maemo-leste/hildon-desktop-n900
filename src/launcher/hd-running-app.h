@@ -34,62 +34,55 @@
 #include "hd-launcher-app.h"
 
 G_BEGIN_DECLS
-
 #define HD_TYPE_RUNNING_APP            (hd_running_app_get_type ())
 #define HD_RUNNING_APP(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), HD_TYPE_RUNNING_APP, HdRunningApp))
 #define HD_IS_RUNNING_APP(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HD_TYPE_RUNNING_APP))
 #define HD_RUNNING_APP_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), HD_TYPE_RUNNING_APP, HdRunningAppClass))
 #define HD_IS_RUNNING_APP_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), HD_TYPE_RUNNING_APP))
 #define HD_RUNNING_APP_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), HD_TYPE_RUNNING_APP, HdRunningAppClass))
+typedef struct _HdRunningApp HdRunningApp;
+typedef struct _HdRunningAppPrivate HdRunningAppPrivate;
+typedef struct _HdRunningAppClass HdRunningAppClass;
 
-typedef struct _HdRunningApp           HdRunningApp;
-typedef struct _HdRunningAppPrivate    HdRunningAppPrivate;
-typedef struct _HdRunningAppClass      HdRunningAppClass;
+struct _HdRunningApp {
+	GObject parent_instance;
 
-struct _HdRunningApp
-{
-  GObject parent_instance;
-
-  HdRunningAppPrivate *priv;
+	HdRunningAppPrivate *priv;
 };
 
-struct _HdRunningAppClass
-{
-  GObjectClass parent_class;
+struct _HdRunningAppClass {
+	GObjectClass parent_class;
 };
 
-GType           hd_running_app_get_type (void) G_GNUC_CONST;
-HdRunningApp   *hd_running_app_new      (HdLauncherApp *launcher);
+GType hd_running_app_get_type(void) G_GNUC_CONST;
+HdRunningApp *hd_running_app_new(HdLauncherApp * launcher);
 
 typedef enum {
-  HD_APP_STATE_INACTIVE = 0,
-  HD_APP_STATE_HIBERNATED,
-  HD_APP_STATE_PRESTARTED,
-  HD_APP_STATE_LOADING,
-  HD_APP_STATE_WAKING,
-  HD_APP_STATE_SHOWN
+	HD_APP_STATE_INACTIVE = 0,
+	HD_APP_STATE_HIBERNATED,
+	HD_APP_STATE_PRESTARTED,
+	HD_APP_STATE_LOADING,
+	HD_APP_STATE_WAKING,
+	HD_APP_STATE_SHOWN
 } HdRunningAppState;
 
-HdRunningAppState hd_running_app_get_state (HdRunningApp *app);
-void              hd_running_app_set_state (HdRunningApp *app,
-                                             HdRunningAppState state);
-gboolean hd_running_app_is_executing     (HdRunningApp *app);
-gboolean hd_running_app_is_hibernating   (HdRunningApp *app);
-gboolean hd_running_app_is_inactive      (HdRunningApp *app);
+HdRunningAppState hd_running_app_get_state(HdRunningApp * app);
+void hd_running_app_set_state(HdRunningApp * app, HdRunningAppState state);
+gboolean hd_running_app_is_executing(HdRunningApp * app);
+gboolean hd_running_app_is_hibernating(HdRunningApp * app);
+gboolean hd_running_app_is_inactive(HdRunningApp * app);
 
-HdLauncherApp  *hd_running_app_get_launcher_app  (HdRunningApp *app);
-void            hd_running_app_set_launcher_app  (HdRunningApp *app,
-                                                  HdLauncherApp *launcher);
+HdLauncherApp *hd_running_app_get_launcher_app(HdRunningApp * app);
+void hd_running_app_set_launcher_app(HdRunningApp * app, HdLauncherApp * launcher);
 
-GPid hd_running_app_get_pid (HdRunningApp *app);
-void hd_running_app_set_pid (HdRunningApp *app, GPid pid);
-time_t hd_running_app_get_last_launch (HdRunningApp *app);
-void   hd_running_app_set_last_launch (HdRunningApp *app, time_t time);
+GPid hd_running_app_get_pid(HdRunningApp * app);
+void hd_running_app_set_pid(HdRunningApp * app, GPid pid);
+time_t hd_running_app_get_last_launch(HdRunningApp * app);
+void hd_running_app_set_last_launch(HdRunningApp * app, time_t time);
 
 /* Some convenience functions. */
-const gchar *hd_running_app_get_service (HdRunningApp *app);
-const gchar *hd_running_app_get_id      (HdRunningApp *app);
+const gchar *hd_running_app_get_service(HdRunningApp * app);
+const gchar *hd_running_app_get_id(HdRunningApp * app);
 
 G_END_DECLS
-
-#endif /* __HD_RUNNING_APP_H__ */
+#endif				/* __HD_RUNNING_APP_H__ */

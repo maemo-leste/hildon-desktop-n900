@@ -35,48 +35,41 @@
 #include <clutter/clutter.h>
 
 G_BEGIN_DECLS
-
 #define HD_TYPE_LAUNCHER_TILE            (hd_launcher_tile_get_type ())
 #define HD_LAUNCHER_TILE(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), HD_TYPE_LAUNCHER_TILE, HdLauncherTile))
 #define HD_IS_LAUNCHER_TILE(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HD_TYPE_LAUNCHER_TILE))
 #define HD_LAUNCHER_TILE_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), HD_TYPE_LAUNCHER_TILE, HdLauncherTileClass))
 #define HD_IS_LAUNCHER_TILE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), HD_TYPE_LAUNCHER_TILE))
 #define HD_LAUNCHER_TILE_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), HD_TYPE_LAUNCHER_TILE, HdLauncherTileClass))
+typedef struct _HdLauncherTile HdLauncherTile;
+typedef struct _HdLauncherTilePrivate HdLauncherTilePrivate;
+typedef struct _HdLauncherTileClass HdLauncherTileClass;
 
-typedef struct _HdLauncherTile          HdLauncherTile;
-typedef struct _HdLauncherTilePrivate   HdLauncherTilePrivate;
-typedef struct _HdLauncherTileClass     HdLauncherTileClass;
+struct _HdLauncherTile {
+	ClutterGroup parent_instance;
 
-struct _HdLauncherTile
-{
-  ClutterGroup parent_instance;
-
-  HdLauncherTilePrivate *priv;
+	HdLauncherTilePrivate *priv;
 };
 
-struct _HdLauncherTileClass
-{
-  ClutterGroupClass parent_class;
+struct _HdLauncherTileClass {
+	ClutterGroupClass parent_class;
 };
 
-GType              hd_launcher_tile_get_type      (void) G_GNUC_CONST;
+GType hd_launcher_tile_get_type(void) G_GNUC_CONST;
 
-HdLauncherTile *hd_launcher_tile_new (const gchar *icon_name,
-                                      const gchar *text);
-const gchar *hd_launcher_tile_get_icon_name (HdLauncherTile *tile);
-const gchar *hd_launcher_tile_get_text      (HdLauncherTile *tile);
+HdLauncherTile *hd_launcher_tile_new(const gchar * icon_name, const gchar * text);
+const gchar *hd_launcher_tile_get_icon_name(HdLauncherTile * tile);
+const gchar *hd_launcher_tile_get_text(HdLauncherTile * tile);
 
-void hd_launcher_tile_set_icon_name (HdLauncherTile *tile,
-                                     const gchar *icon_name);
-void hd_launcher_tile_set_text      (HdLauncherTile *tile,
-                                     const gchar *text);
+void hd_launcher_tile_set_icon_name(HdLauncherTile * tile, const gchar * icon_name);
+void hd_launcher_tile_set_text(HdLauncherTile * tile, const gchar * text);
 
-ClutterActor *hd_launcher_tile_get_icon (HdLauncherTile *tile);
-ClutterActor *hd_launcher_tile_get_label (HdLauncherTile *tile);
+ClutterActor *hd_launcher_tile_get_icon(HdLauncherTile * tile);
+ClutterActor *hd_launcher_tile_get_label(HdLauncherTile * tile);
 
-void hd_launcher_tile_reset(HdLauncherTile *tile, gboolean hard);
+void hd_launcher_tile_reset(HdLauncherTile * tile, gboolean hard);
 
-void hd_launcher_tile_activate(ClutterActor       *actor);
+void hd_launcher_tile_activate(ClutterActor * actor);
 
 /* Fixed size */
 #define HD_LAUNCHER_TILE_HEIGHT (96)
@@ -94,5 +87,4 @@ void hd_launcher_tile_activate(ClutterActor       *actor);
 #define HD_LAUNCHER_TILE_MAX_DRAG (40)
 
 G_END_DECLS
-
-#endif /* __HD_LAUNCHER_TILE_H__ */
+#endif				/* __HD_LAUNCHER_TILE_H__ */

@@ -30,52 +30,42 @@
 #include <clutter/clutter-texture.h>
 
 G_BEGIN_DECLS
-
 #define TIDY_TYPE_HIGHLIGHT (tidy_highlight_get_type ())
-
 #define TIDY_HIGHLIGHT(obj) \
   (G_TYPE_CHECK_INSTANCE_CAST ((obj), \
   TIDY_TYPE_HIGHLIGHT, TidyHighlight))
-
 #define TIDY_HIGHLIGHT_CLASS(klass) \
   (G_TYPE_CHECK_CLASS_CAST ((klass), \
   TIDY_TYPE_HIGHLIGHT, TidyHighlightClass))
-
 #define TIDY_IS_HIGHLIGHT(obj) \
   (G_TYPE_CHECK_INSTANCE_TYPE ((obj), \
   TIDY_TYPE_HIGHLIGHT))
-
 #define TIDY_IS_HIGHLIGHT_CLASS(klass) \
   (G_TYPE_CHECK_CLASS_TYPE ((klass), \
   TIDY_TYPE_HIGHLIGHT))
-
 #define TIDY_HIGHLIGHT_GET_CLASS(obj) \
   (G_TYPE_INSTANCE_GET_CLASS ((obj), \
   TIDY_TYPE_HIGHLIGHT, TidyHighlightClass))
-
-typedef struct _TidyHighlight        TidyHighlight;
+typedef struct _TidyHighlight TidyHighlight;
 typedef struct _TidyHighlightPrivate TidyHighlightPrivate;
-typedef struct _TidyHighlightClass   TidyHighlightClass;
+typedef struct _TidyHighlightClass TidyHighlightClass;
 
-struct _TidyHighlight
-{
-  ClutterActor                 parent;
+struct _TidyHighlight {
+	ClutterActor parent;
 
-  /*< priv >*/
-  TidyHighlightPrivate    *priv;
+	/*< priv > */
+	TidyHighlightPrivate *priv;
 };
 
-struct _TidyHighlightClass
-{
-  ClutterActorClass parent_class;
+struct _TidyHighlightClass {
+	ClutterActorClass parent_class;
 };
 
-GType          tidy_highlight_get_type           (void) G_GNUC_CONST;
+GType tidy_highlight_get_type(void) G_GNUC_CONST;
 
-TidyHighlight *tidy_highlight_new                (ClutterTexture      *texture);
-void           tidy_highlight_set_amount(TidyHighlight *sub, float amount);
-void           tidy_highlight_set_color (TidyHighlight *sub, ClutterColor *col);
+TidyHighlight *tidy_highlight_new(ClutterTexture * texture);
+void tidy_highlight_set_amount(TidyHighlight * sub, float amount);
+void tidy_highlight_set_color(TidyHighlight * sub, ClutterColor * col);
 
 G_END_DECLS
-
 #endif

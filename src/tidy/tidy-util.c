@@ -10,10 +10,10 @@
  * segfault. */
 /* ------------------------------------------------ */
 typedef struct {
-  GLboolean scissor_enabled;
-  GLint scissor_box[4];
+	GLboolean scissor_enabled;
+	GLint scissor_box[4];
 
-  CoglHandle fbo;
+	CoglHandle fbo;
 } OffscreenStackEntry;
 
 /* We'd never be rendering to more that 4 buffers at once! most is 2.
@@ -35,38 +35,34 @@ static int offscreen_buffer_idx = 0;
  */
 void tidy_util_cogl_push_offscreen_buffer(CoglHandle fbo)
 {
-  g_assert(offscreen_buffer_idx+1 < G_N_ELEMENTS(offscreen_buffer_stack));
-  OffscreenStackEntry *obe = &offscreen_buffer_stack[offscreen_buffer_idx++];
+	g_assert(offscreen_buffer_idx + 1 < G_N_ELEMENTS(offscreen_buffer_stack));
+	OffscreenStackEntry *obe = &offscreen_buffer_stack[offscreen_buffer_idx++];
 
-  if ((obe->scissor_enabled = glIsEnabled (GL_SCISSOR_TEST)))
-    glGetIntegerv (GL_SCISSOR_BOX, obe->scissor_box);
+	if ((obe->scissor_enabled = glIsEnabled(GL_SCISSOR_TEST)))
+		glGetIntegerv(GL_SCISSOR_BOX, obe->scissor_box);
 
-  /* Remove scissoring as we're rendering to a texture */
-  glScissor (0, 0, 0, 0);
-  glDisable (GL_SCISSOR_TEST);
-  cogl_draw_buffer (COGL_OFFSCREEN_BUFFER, fbo);
+	/* Remove scissoring as we're rendering to a texture */
+	glScissor(0, 0, 0, 0);
+	glDisable(GL_SCISSOR_TEST);
+	cogl_draw_buffer(COGL_OFFSCREEN_BUFFER, fbo);
 
-  obe++;
-  obe->fbo = fbo;
+	obe++;
+	obe->fbo = fbo;
 }
 
 /* NOTE that the modelview matrix will NOT be saved nor restored
  *      if you're switching back from FBO to another FBO. */
 void tidy_util_cogl_pop_offscreen_buffer(void)
 {
-  g_assert(offscreen_buffer_idx > 0);
-  OffscreenStackEntry *obe = &offscreen_buffer_stack[--offscreen_buffer_idx];
+	g_assert(offscreen_buffer_idx > 0);
+	OffscreenStackEntry *obe = &offscreen_buffer_stack[--offscreen_buffer_idx];
 
-  /* Reinstate scissoring state that we saved previously */
-  if (obe->scissor_enabled)
-    {
-      glEnable (GL_SCISSOR_TEST);
-      glScissor (obe->scissor_box[0], obe->scissor_box[1],
-                 obe->scissor_box[2], obe->scissor_box[3]);
-    }
-  else
-    glDisable (GL_SCISSOR_TEST);
+	/* Reinstate scissoring state that we saved previously */
+	if (obe->scissor_enabled) {
+		glEnable(GL_SCISSOR_TEST);
+		glScissor(obe->scissor_box[0], obe->scissor_box[1], obe->scissor_box[2], obe->scissor_box[3]);
+	} else
+		glDisable(GL_SCISSOR_TEST);
 
-  cogl_draw_buffer (obe->fbo ? COGL_OFFSCREEN_BUFFER : COGL_WINDOW_BUFFER,
-                    obe->fbo);
+	cogl_draw_buffer(obe->fbo ? COGL_OFFSCREEN_BUFFER : COGL_WINDOW_BUFFER, obe->fbo);
 }

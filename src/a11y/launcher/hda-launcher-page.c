@@ -38,120 +38,99 @@
 #define HDA_LAUNCHER_PAGE_DEFAULT_NAME "Launcher Page"
 
 /* GObject */
-static void
-hda_launcher_page_class_init                    (HdaLauncherPageClass *klass);
+static void hda_launcher_page_class_init(HdaLauncherPageClass * klass);
 
-static void
-hda_launcher_page_init                          (HdaLauncherPage *root);
+static void hda_launcher_page_init(HdaLauncherPage * root);
 
 /* AtkObject.h */
 
-static void
-hda_launcher_page_initialize                    (AtkObject *obj,
-                                                 gpointer data);
-static gint
-hda_launcher_page_get_n_children                (AtkObject *obj);
+static void hda_launcher_page_initialize(AtkObject * obj, gpointer data);
+static gint hda_launcher_page_get_n_children(AtkObject * obj);
 
-static AtkObject*
-hda_launcher_page_ref_child                     (AtkObject *obj,
-                                                 gint i);
+static AtkObject *hda_launcher_page_ref_child(AtkObject * obj, gint i);
 
-static const gchar *
-hda_launcher_page_get_name                      (AtkObject *obj);
+static const gchar *hda_launcher_page_get_name(AtkObject * obj);
 
-G_DEFINE_TYPE (HdaLauncherPage, hda_launcher_page,  CAIL_TYPE_ACTOR)
-
-static void
-hda_launcher_page_class_init                            (HdaLauncherPageClass *klass)
+G_DEFINE_TYPE(HdaLauncherPage, hda_launcher_page, CAIL_TYPE_ACTOR)
+static void hda_launcher_page_class_init(HdaLauncherPageClass * klass)
 {
 /*   GObjectClass *gobject_class = G_OBJECT_CLASS (klass); */
-  AtkObjectClass *class = ATK_OBJECT_CLASS (klass);
+	AtkObjectClass *class = ATK_OBJECT_CLASS(klass);
 
-  /* AtkObject */
-  class->get_n_children = hda_launcher_page_get_n_children;
-  class->ref_child = hda_launcher_page_ref_child;
-  class->initialize = hda_launcher_page_initialize;
-  class->get_name = hda_launcher_page_get_name;
+	/* AtkObject */
+	class->get_n_children = hda_launcher_page_get_n_children;
+	class->ref_child = hda_launcher_page_ref_child;
+	class->initialize = hda_launcher_page_initialize;
+	class->get_name = hda_launcher_page_get_name;
 }
 
-static void
-hda_launcher_page_init                          (HdaLauncherPage *page)
+static void hda_launcher_page_init(HdaLauncherPage * page)
 {
-  /* nothing required */
+	/* nothing required */
 }
 
-
-AtkObject*
-hda_launcher_page_new                           (ClutterActor *page)
+AtkObject *hda_launcher_page_new(ClutterActor * page)
 {
-  GObject *object = NULL;
-  AtkObject *accessible = NULL;
+	GObject *object = NULL;
+	AtkObject *accessible = NULL;
 
-  object = g_object_new (HDA_TYPE_LAUNCHER_PAGE, NULL);
+	object = g_object_new(HDA_TYPE_LAUNCHER_PAGE, NULL);
 
-  accessible = ATK_OBJECT (object);
-  atk_object_initialize (accessible, page);
+	accessible = ATK_OBJECT(object);
+	atk_object_initialize(accessible, page);
 
-  return accessible;
+	return accessible;
 }
 
 /* AtkObject */
 
-static void
-hda_launcher_page_initialize                    (AtkObject   *obj,
-                                                 gpointer    data)
+static void hda_launcher_page_initialize(AtkObject * obj, gpointer data)
 {
-  ATK_OBJECT_CLASS (hda_launcher_page_parent_class)->initialize (obj, data);
+	ATK_OBJECT_CLASS(hda_launcher_page_parent_class)->initialize(obj, data);
 
-  obj->role = ATK_ROLE_FILLER;
+	obj->role = ATK_ROLE_FILLER;
 }
 
-static gint
-hda_launcher_page_get_n_children                (AtkObject *obj)
+static gint hda_launcher_page_get_n_children(AtkObject * obj)
 {
-  g_return_val_if_fail (HDA_IS_LAUNCHER_PAGE (obj), 0);
+	g_return_val_if_fail(HDA_IS_LAUNCHER_PAGE(obj), 0);
 
-  return 1;
+	return 1;
 }
 
-static AtkObject*
-hda_launcher_page_ref_child                     (AtkObject *obj,
-                                                 gint i)
+static AtkObject *hda_launcher_page_ref_child(AtkObject * obj, gint i)
 {
-  ClutterActor *page = NULL;
-  ClutterActor *grid = NULL;
-  AtkObject *result = NULL;
+	ClutterActor *page = NULL;
+	ClutterActor *grid = NULL;
+	AtkObject *result = NULL;
 
-  g_return_val_if_fail (HDA_IS_LAUNCHER_PAGE (obj), NULL);
+	g_return_val_if_fail(HDA_IS_LAUNCHER_PAGE(obj), NULL);
 
-  page = CLUTTER_ACTOR (atk_gobject_accessible_get_object (ATK_GOBJECT_ACCESSIBLE (obj)));
-  if (page == NULL) /* State is defunct */
-    {
-      return NULL;
-    }
-  g_return_val_if_fail (HD_IS_LAUNCHER_PAGE (page), NULL);
+	page = CLUTTER_ACTOR(atk_gobject_accessible_get_object(ATK_GOBJECT_ACCESSIBLE(obj)));
+	if (page == NULL) {	/* State is defunct */
+		return NULL;
+	}
+	g_return_val_if_fail(HD_IS_LAUNCHER_PAGE(page), NULL);
 
-  grid = hd_launcher_page_get_grid (HD_LAUNCHER_PAGE (page));
+	grid = hd_launcher_page_get_grid(HD_LAUNCHER_PAGE(page));
 
-  result = atk_gobject_accessible_for_object (G_OBJECT (grid));
+	result = atk_gobject_accessible_for_object(G_OBJECT(grid));
 
-  g_object_ref (result);
+	g_object_ref(result);
 
-  return result;
+	return result;
 }
 
-static const gchar *
-hda_launcher_page_get_name                      (AtkObject *obj)
+static const gchar *hda_launcher_page_get_name(AtkObject * obj)
 {
-  const gchar *name = NULL;
+	const gchar *name = NULL;
 
-  g_return_val_if_fail (HDA_IS_LAUNCHER_PAGE (obj), NULL);
+	g_return_val_if_fail(HDA_IS_LAUNCHER_PAGE(obj), NULL);
 
-  name = ATK_OBJECT_CLASS (hda_launcher_page_parent_class)->get_name (obj);
-  if (name == NULL)
-    {
-      name = HDA_LAUNCHER_PAGE_DEFAULT_NAME;
-    }
+	name = ATK_OBJECT_CLASS(hda_launcher_page_parent_class)->get_name(obj);
+	if (name == NULL) {
+		name = HDA_LAUNCHER_PAGE_DEFAULT_NAME;
+	}
 
-  return name;
+	return name;
 }

@@ -26,7 +26,7 @@
 
 #include <matchbox/core/mb-wm.h>
 
-typedef struct HdDesktop      HdDesktop;
+typedef struct HdDesktop HdDesktop;
 typedef struct HdDesktopClass HdDesktopClass;
 
 #define HD_DESKTOP(c) ((HdDesktop*)(c))
@@ -34,20 +34,16 @@ typedef struct HdDesktopClass HdDesktopClass;
 #define HD_TYPE_DESKTOP (hd_desktop_class_type ())
 #define HD_IS_DESKTOP(c) (MB_WM_OBJECT_TYPE(c)==HD_TYPE_DESKTOP)
 
-struct HdDesktop
-{
-  MBWMClientBase parent;
+struct HdDesktop {
+	MBWMClientBase parent;
 };
 
-struct HdDesktopClass
-{
-  MBWMClientBaseClass parent;
+struct HdDesktopClass {
+	MBWMClientBaseClass parent;
 };
 
-MBWindowManagerClient*
-hd_desktop_new(MBWindowManager *wm, MBWMClientWindow *win);
+MBWindowManagerClient *hd_desktop_new(MBWindowManager * wm, MBWMClientWindow * win);
 
-int
-hd_desktop_class_type (void);
+int hd_desktop_class_type(void);
 
 #endif

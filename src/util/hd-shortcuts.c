@@ -241,7 +241,7 @@ static void key_binding_func(MBWindowManager * wm, MBWMKeyBinding * binding, voi
 static void hd_shortcuts_add(MBWindowManager * wm, GKeyFile * file, gchar * key, unsigned int action)
 {
 	gchar *keystr = g_key_file_get_string(file, "Shortcuts", key, NULL);
-	
+
 	if (keystr)
 		mb_wm_keys_binding_add_with_spec(wm, keystr, key_binding_func, NULL, (void *)action);
 }

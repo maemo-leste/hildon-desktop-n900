@@ -38,57 +38,50 @@
                        G_PARAM_STATIC_NAME | \
                        G_PARAM_STATIC_BLURB)
 
-GType
-hd_launcher_item_type_get_type (void)
+GType hd_launcher_item_type_get_type(void)
 {
-  static GType gtype = 0;
+	static GType gtype = 0;
 
-  if (G_UNLIKELY (gtype == 0))
-    {
-      static GEnumValue values[] = {
-        { HD_APPLICATION_LAUNCHER, "HdLauncherApp", "Application" },
-        { HD_CATEGORY_LAUNCHER, "HdLauncherCat", "Directory" },
-        { 0, NULL, NULL }
-      };
+	if (G_UNLIKELY(gtype == 0)) {
+		static GEnumValue values[] = {
+			{HD_APPLICATION_LAUNCHER, "HdLauncherApp", "Application"},
+			{HD_CATEGORY_LAUNCHER, "HdLauncherCat", "Directory"},
+			{0, NULL, NULL}
+		};
 
-      gtype = g_enum_register_static (I_("HdLauncherItemType"), values);
-    }
+		gtype = g_enum_register_static(I_("HdLauncherItemType"), values);
+	}
 
-  return gtype;
+	return gtype;
 }
 
 #define HD_LAUNCHER_ITEM_GET_PRIVATE(obj)  \
   (hd_launcher_item_get_instance_private (HD_LAUNCHER_ITEM (obj)))
 
-struct _HdLauncherItemPrivate
-{
-  HdLauncherItemType item_type;
-  GQuark id_quark;
-  gchar *id;
-  gchar *name;
-  gchar *icon_name;
-  gchar *comment;
-  gchar *text_domain;
-  gboolean nodisplay;
-  gboolean cssu_force_landscape;
+struct _HdLauncherItemPrivate {
+	HdLauncherItemType item_type;
+	GQuark id_quark;
+	gchar *id;
+	gchar *name;
+	gchar *icon_name;
+	gchar *comment;
+	gchar *text_domain;
+	gboolean nodisplay;
+	gboolean cssu_force_landscape;
 
-  gchar *category;
+	gchar *category;
 };
 
-enum
-{
-  PROP_0,
+enum {
+	PROP_0,
 
-  PROP_LAUNCHER_ITEM_TYPE,
-  PROP_LAUNCHER_ITEM_ID,
-  PROP_LAUNCHER_ITEM_NAME,
-  PROP_LAUNCHER_ITEM_ICON_NAME,
+	PROP_LAUNCHER_ITEM_TYPE,
+	PROP_LAUNCHER_ITEM_ID,
+	PROP_LAUNCHER_ITEM_NAME,
+	PROP_LAUNCHER_ITEM_ICON_NAME,
 };
 
-G_DEFINE_ABSTRACT_TYPE_WITH_CODE (HdLauncherItem,
-                                  hd_launcher_item,
-                                  G_TYPE_OBJECT,
-                                  G_ADD_PRIVATE (HdLauncherItem));
+G_DEFINE_ABSTRACT_TYPE_WITH_CODE(HdLauncherItem, hd_launcher_item, G_TYPE_OBJECT, G_ADD_PRIVATE(HdLauncherItem));
 
 /* Desktop file entries */
 #define HD_DESKTOP_ENTRY_TYPE               "Type"
@@ -100,333 +93,257 @@ G_DEFINE_ABSTRACT_TYPE_WITH_CODE (HdLauncherItem,
 #define HD_DESKTOP_ENTRY_FORCE_LANDSCAPE    "X-CSSU-Force-Landscape"
 
 /* Forward declarations */
-gboolean hd_launcher_item_parse_keyfile (HdLauncherItem *item,
-                                         GKeyFile *key_file,
-                                         GError **error);
+gboolean hd_launcher_item_parse_keyfile(HdLauncherItem * item, GKeyFile * key_file, GError ** error);
 
-static void
-hd_launcher_item_finalize (GObject *gobject)
+static void hd_launcher_item_finalize(GObject * gobject)
 {
-  HdLauncherItemPrivate *priv = HD_LAUNCHER_ITEM_GET_PRIVATE (gobject);
+	HdLauncherItemPrivate *priv = HD_LAUNCHER_ITEM_GET_PRIVATE(gobject);
 
-  if (priv->name)
-    {
-      g_free (priv->name);
-      priv->name = NULL;
-    }
-  if (priv->icon_name)
-    {
-      g_free (priv->icon_name);
-      priv->icon_name = NULL;
-    }
-  if (priv->comment)
-    {
-      g_free (priv->comment);
-      priv->comment = NULL;
-    }
-  if (priv->text_domain)
-    {
-      g_free (priv->text_domain);
-      priv->text_domain = NULL;
-    }
+	if (priv->name) {
+		g_free(priv->name);
+		priv->name = NULL;
+	}
+	if (priv->icon_name) {
+		g_free(priv->icon_name);
+		priv->icon_name = NULL;
+	}
+	if (priv->comment) {
+		g_free(priv->comment);
+		priv->comment = NULL;
+	}
+	if (priv->text_domain) {
+		g_free(priv->text_domain);
+		priv->text_domain = NULL;
+	}
 
-  if (priv->category)
-    {
-      g_free (priv->category);
-      priv->category = NULL;
-    }
+	if (priv->category) {
+		g_free(priv->category);
+		priv->category = NULL;
+	}
 
-  G_OBJECT_CLASS (hd_launcher_item_parent_class)->finalize (gobject);
+	G_OBJECT_CLASS(hd_launcher_item_parent_class)->finalize(gobject);
 }
 
-static void
-hd_launcher_item_get_property (GObject    *object,
-                               guint       property_id,
-                               GValue     *value,
-                               GParamSpec *pspec)
+static void hd_launcher_item_get_property(GObject * object, guint property_id, GValue * value, GParamSpec * pspec)
 {
-  HdLauncherItem *item = HD_LAUNCHER_ITEM (object);
+	HdLauncherItem *item = HD_LAUNCHER_ITEM(object);
 
-  switch (property_id)
-    {
-    case PROP_LAUNCHER_ITEM_TYPE:
-      g_value_set_enum (value,
-          hd_launcher_item_get_item_type (item));
-      break;
+	switch (property_id) {
+	case PROP_LAUNCHER_ITEM_TYPE:
+		g_value_set_enum(value, hd_launcher_item_get_item_type(item));
+		break;
 
-    case PROP_LAUNCHER_ITEM_ID:
-      g_value_set_string (value,
-          hd_launcher_item_get_id (item));
-      break;
+	case PROP_LAUNCHER_ITEM_ID:
+		g_value_set_string(value, hd_launcher_item_get_id(item));
+		break;
 
-    case PROP_LAUNCHER_ITEM_NAME:
-      g_value_set_string (value,
-          hd_launcher_item_get_name (item));
-      break;
+	case PROP_LAUNCHER_ITEM_NAME:
+		g_value_set_string(value, hd_launcher_item_get_name(item));
+		break;
 
-    case PROP_LAUNCHER_ITEM_ICON_NAME:
-      g_value_set_string (value,
-          hd_launcher_item_get_icon_name (item));
-      break;
+	case PROP_LAUNCHER_ITEM_ICON_NAME:
+		g_value_set_string(value, hd_launcher_item_get_icon_name(item));
+		break;
 
-    default:
-      /* We don't have any other property... */
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
-      break;
-    }
+	default:
+		/* We don't have any other property... */
+		G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
+		break;
+	}
 }
 
-static void
-hd_launcher_item_class_init (HdLauncherItemClass *klass)
+static void hd_launcher_item_class_init(HdLauncherItemClass * klass)
 {
-  GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
-  GParamSpec *pspec;
+	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
+	GParamSpec *pspec;
 
-  gobject_class->get_property = hd_launcher_item_get_property;
-  gobject_class->finalize     = hd_launcher_item_finalize;
+	gobject_class->get_property = hd_launcher_item_get_property;
+	gobject_class->finalize = hd_launcher_item_finalize;
 
-  pspec = g_param_spec_enum ("launcher-type",
-                             "Launcher Type",
-                             "Type of the launcher",
-                             HD_TYPE_LAUNCHER_ITEM_TYPE,
-                             HD_APPLICATION_LAUNCHER,
-                             HD_PARAM_READ);
-  g_object_class_install_property (gobject_class, PROP_LAUNCHER_ITEM_TYPE, pspec);
-  pspec = g_param_spec_string ("id",
-                               "Id",
-                               "Unique id of the item",
-                               "Unknown",
-                               HD_PARAM_READ);
-  g_object_class_install_property (gobject_class, PROP_LAUNCHER_ITEM_ID, pspec);
-  pspec = g_param_spec_string ("name",
-                               "Name",
-                               "Name of the item, before i18n",
-                               "Unknown",
-                               HD_PARAM_READ);
-  g_object_class_install_property (gobject_class, PROP_LAUNCHER_ITEM_NAME, pspec);
-  pspec = g_param_spec_string ("icon-name",
-                               "Icon Name",
-                               "Name of the icon to display",
-                               HD_LAUNCHER_DEFAULT_ICON,
-                               HD_PARAM_READ);
-  g_object_class_install_property (gobject_class, PROP_LAUNCHER_ITEM_ICON_NAME, pspec);
+	pspec = g_param_spec_enum("launcher-type",
+				  "Launcher Type",
+				  "Type of the launcher",
+				  HD_TYPE_LAUNCHER_ITEM_TYPE, HD_APPLICATION_LAUNCHER, HD_PARAM_READ);
+	g_object_class_install_property(gobject_class, PROP_LAUNCHER_ITEM_TYPE, pspec);
+	pspec = g_param_spec_string("id", "Id", "Unique id of the item", "Unknown", HD_PARAM_READ);
+	g_object_class_install_property(gobject_class, PROP_LAUNCHER_ITEM_ID, pspec);
+	pspec = g_param_spec_string("name", "Name", "Name of the item, before i18n", "Unknown", HD_PARAM_READ);
+	g_object_class_install_property(gobject_class, PROP_LAUNCHER_ITEM_NAME, pspec);
+	pspec = g_param_spec_string("icon-name",
+				    "Icon Name",
+				    "Name of the icon to display", HD_LAUNCHER_DEFAULT_ICON, HD_PARAM_READ);
+	g_object_class_install_property(gobject_class, PROP_LAUNCHER_ITEM_ICON_NAME, pspec);
 }
 
-static void
-hd_launcher_item_init (HdLauncherItem *item)
+static void hd_launcher_item_init(HdLauncherItem * item)
 {
-  HdLauncherItemPrivate *priv;
+	HdLauncherItemPrivate *priv;
 
-  item->priv = priv = HD_LAUNCHER_ITEM_GET_PRIVATE (item);
+	item->priv = priv = HD_LAUNCHER_ITEM_GET_PRIVATE(item);
 
-  priv->item_type = HD_APPLICATION_LAUNCHER;
+	priv->item_type = HD_APPLICATION_LAUNCHER;
 }
 
-HdLauncherItemType
-hd_launcher_item_get_item_type (HdLauncherItem *item)
+HdLauncherItemType hd_launcher_item_get_item_type(HdLauncherItem * item)
 {
-  g_return_val_if_fail (HD_IS_LAUNCHER_ITEM (item), 0);
+	g_return_val_if_fail(HD_IS_LAUNCHER_ITEM(item), 0);
 
-  return item->priv->item_type;
+	return item->priv->item_type;
 }
 
-const gchar *
-hd_launcher_item_get_id (HdLauncherItem *item)
+const gchar *hd_launcher_item_get_id(HdLauncherItem * item)
 {
-  g_return_val_if_fail (HD_IS_LAUNCHER_ITEM (item), NULL);
+	g_return_val_if_fail(HD_IS_LAUNCHER_ITEM(item), NULL);
 
-  return item->priv->id;
+	return item->priv->id;
 }
 
-GQuark
-hd_launcher_item_get_id_quark (HdLauncherItem *item)
+GQuark hd_launcher_item_get_id_quark(HdLauncherItem * item)
 {
-  g_return_val_if_fail (HD_IS_LAUNCHER_ITEM (item), 0);
+	g_return_val_if_fail(HD_IS_LAUNCHER_ITEM(item), 0);
 
-  return item->priv->id_quark;
+	return item->priv->id_quark;
 }
 
-const gchar *
-hd_launcher_item_get_name (HdLauncherItem *item)
+const gchar *hd_launcher_item_get_name(HdLauncherItem * item)
 {
-  g_return_val_if_fail (HD_IS_LAUNCHER_ITEM (item), "");
+	g_return_val_if_fail(HD_IS_LAUNCHER_ITEM(item), "");
 
-  return item->priv->name;
+	return item->priv->name;
 }
 
-const gchar *
-hd_launcher_item_get_local_name (HdLauncherItem *item)
+const gchar *hd_launcher_item_get_local_name(HdLauncherItem * item)
 {
-  const gchar *domainname = hd_launcher_item_get_text_domain(item);
-  if (domainname)
-    return dgettext (domainname, hd_launcher_item_get_name (item));
-  else
-    return gettext (hd_launcher_item_get_name (item));
+	const gchar *domainname = hd_launcher_item_get_text_domain(item);
+	if (domainname)
+		return dgettext(domainname, hd_launcher_item_get_name(item));
+	else
+		return gettext(hd_launcher_item_get_name(item));
 }
 
-const gchar *
-hd_launcher_item_get_icon_name (HdLauncherItem *item)
+const gchar *hd_launcher_item_get_icon_name(HdLauncherItem * item)
 {
-  g_return_val_if_fail (HD_IS_LAUNCHER_ITEM (item), 0);
+	g_return_val_if_fail(HD_IS_LAUNCHER_ITEM(item), 0);
 
-  return item->priv->icon_name;
+	return item->priv->icon_name;
 }
 
-gboolean
-hd_launcher_item_get_cssu_force_landscape (HdLauncherItem *item)
+gboolean hd_launcher_item_get_cssu_force_landscape(HdLauncherItem * item)
 {
-  g_return_val_if_fail (HD_IS_LAUNCHER_ITEM (item), 0);
+	g_return_val_if_fail(HD_IS_LAUNCHER_ITEM(item), 0);
 
-  return item->priv->cssu_force_landscape;
+	return item->priv->cssu_force_landscape;
 }
 
-const gchar *
-hd_launcher_item_get_comment (HdLauncherItem *item)
+const gchar *hd_launcher_item_get_comment(HdLauncherItem * item)
 {
-  g_return_val_if_fail (HD_IS_LAUNCHER_ITEM (item), 0);
+	g_return_val_if_fail(HD_IS_LAUNCHER_ITEM(item), 0);
 
-  return item->priv->comment;
+	return item->priv->comment;
 }
 
-const gchar *
-hd_launcher_item_get_text_domain (HdLauncherItem *item)
+const gchar *hd_launcher_item_get_text_domain(HdLauncherItem * item)
 {
-  g_return_val_if_fail (HD_IS_LAUNCHER_ITEM (item), 0);
+	g_return_val_if_fail(HD_IS_LAUNCHER_ITEM(item), 0);
 
-  return item->priv->text_domain;
+	return item->priv->text_domain;
 }
 
-const gchar *
-hd_launcher_item_get_category (HdLauncherItem *item)
+const gchar *hd_launcher_item_get_category(HdLauncherItem * item)
 {
-  g_return_val_if_fail (HD_IS_LAUNCHER_ITEM (item), 0);
+	g_return_val_if_fail(HD_IS_LAUNCHER_ITEM(item), 0);
 
-  return item->priv->category;
+	return item->priv->category;
 }
 
-gboolean
-hd_launcher_item_parse_keyfile (HdLauncherItem *item,
-                                GKeyFile *key_file,
-                                GError **error)
+gboolean hd_launcher_item_parse_keyfile(HdLauncherItem * item, GKeyFile * key_file, GError ** error)
 {
-  HdLauncherItemPrivate *priv = HD_LAUNCHER_ITEM_GET_PRIVATE (item);
+	HdLauncherItemPrivate *priv = HD_LAUNCHER_ITEM_GET_PRIVATE(item);
 
-  priv->name = g_key_file_get_string (key_file,
-                                      HD_DESKTOP_ENTRY_GROUP,
-                                      HD_DESKTOP_ENTRY_NAME,
-                                      NULL);
-  if (!priv->name)
-    {
-      g_free (priv->name);
-      return FALSE;
-    }
+	priv->name = g_key_file_get_string(key_file, HD_DESKTOP_ENTRY_GROUP, HD_DESKTOP_ENTRY_NAME, NULL);
+	if (!priv->name) {
+		g_free(priv->name);
+		return FALSE;
+	}
 
-  priv->icon_name = g_key_file_get_string (key_file,
-                                           HD_DESKTOP_ENTRY_GROUP,
-                                           HD_DESKTOP_ENTRY_ICON,
-                                           NULL);
-  priv->comment = g_key_file_get_string (key_file,
-                                         HD_DESKTOP_ENTRY_GROUP,
-                                         HD_DESKTOP_ENTRY_COMMENT,
-                                         NULL);
-  priv->text_domain = g_key_file_get_string (key_file,
-                                             HD_DESKTOP_ENTRY_GROUP,
-                                             HD_DESKTOP_ENTRY_TEXT_DOMAIN,
-                                             NULL);
-  priv->cssu_force_landscape = g_key_file_get_boolean (key_file,
-                                             HD_DESKTOP_ENTRY_GROUP,
-                                             HD_DESKTOP_ENTRY_FORCE_LANDSCAPE,
-                                             NULL);
-  return TRUE;
+	priv->icon_name = g_key_file_get_string(key_file, HD_DESKTOP_ENTRY_GROUP, HD_DESKTOP_ENTRY_ICON, NULL);
+	priv->comment = g_key_file_get_string(key_file, HD_DESKTOP_ENTRY_GROUP, HD_DESKTOP_ENTRY_COMMENT, NULL);
+	priv->text_domain = g_key_file_get_string(key_file, HD_DESKTOP_ENTRY_GROUP, HD_DESKTOP_ENTRY_TEXT_DOMAIN, NULL);
+	priv->cssu_force_landscape = g_key_file_get_boolean(key_file,
+							    HD_DESKTOP_ENTRY_GROUP,
+							    HD_DESKTOP_ENTRY_FORCE_LANDSCAPE, NULL);
+	return TRUE;
 }
 
-HdLauncherItem *
-hd_launcher_item_new_from_keyfile (const gchar *id,
-                                   const gchar *category,
-                                   GKeyFile *key_file,
-                                   GError **error)
+HdLauncherItem *hd_launcher_item_new_from_keyfile(const gchar * id,
+						  const gchar * category, GKeyFile * key_file, GError ** error)
 {
-  HdLauncherItem *result;
-  GError *parse_error = NULL;
-  GType item_type;
-  gboolean no_display;
+	HdLauncherItem *result;
+	GError *parse_error = NULL;
+	GType item_type;
+	gboolean no_display;
 
-  g_return_val_if_fail (key_file != NULL, NULL);
+	g_return_val_if_fail(key_file != NULL, NULL);
 
-  if (!g_key_file_has_group (key_file, HD_DESKTOP_ENTRY_GROUP))
-    return FALSE;
+	if (!g_key_file_has_group(key_file, HD_DESKTOP_ENTRY_GROUP))
+		return FALSE;
 
-  if (!g_key_file_has_key (key_file,
-                           HD_DESKTOP_ENTRY_GROUP,
-                           HD_DESKTOP_ENTRY_TYPE,
-                           &parse_error))
-    {
-      g_propagate_error (error, parse_error);
-      return NULL;
-    }
+	if (!g_key_file_has_key(key_file, HD_DESKTOP_ENTRY_GROUP, HD_DESKTOP_ENTRY_TYPE, &parse_error)) {
+		g_propagate_error(error, parse_error);
+		return NULL;
+	}
 
-  if (!g_key_file_has_key (key_file,
-                           HD_DESKTOP_ENTRY_GROUP,
-                           HD_DESKTOP_ENTRY_NAME,
-                           &parse_error))
-    {
-      g_propagate_error (error, parse_error);
-      return NULL;
-    }
+	if (!g_key_file_has_key(key_file, HD_DESKTOP_ENTRY_GROUP, HD_DESKTOP_ENTRY_NAME, &parse_error)) {
+		g_propagate_error(error, parse_error);
+		return NULL;
+	}
 
-  /* skip NoDisplay entries */
-  no_display = g_key_file_get_boolean (key_file,
-                                       HD_DESKTOP_ENTRY_GROUP,
-                                       HD_DESKTOP_ENTRY_NO_DISPLAY,
-                                       &parse_error);
-  if (parse_error)
-    g_clear_error (&parse_error);
-  else if (no_display)
-    return FALSE;
+	/* skip NoDisplay entries */
+	no_display = g_key_file_get_boolean(key_file,
+					    HD_DESKTOP_ENTRY_GROUP, HD_DESKTOP_ENTRY_NO_DISPLAY, &parse_error);
+	if (parse_error)
+		g_clear_error(&parse_error);
+	else if (no_display)
+		return FALSE;
 
-  gchar *type_name = g_key_file_get_string (key_file,
-                                            HD_DESKTOP_ENTRY_GROUP,
-                                            HD_DESKTOP_ENTRY_TYPE,
-                                            NULL);
-  GTypeClass *item_type_class = g_type_class_ref (HD_TYPE_LAUNCHER_ITEM_TYPE);
-  GEnumValue *type_value = g_enum_get_value_by_nick (
-                             G_ENUM_CLASS (item_type_class),
-                             type_name);
-  g_free (type_name);
-  g_type_class_unref (item_type_class);
-  if (!type_value)
-    {
-      return NULL;
-    }
-  if (type_value->value == HD_APPLICATION_LAUNCHER)
-    item_type = HD_TYPE_LAUNCHER_APP;
-  else
-    item_type = HD_TYPE_LAUNCHER_CAT;
+	gchar *type_name = g_key_file_get_string(key_file,
+						 HD_DESKTOP_ENTRY_GROUP,
+						 HD_DESKTOP_ENTRY_TYPE,
+						 NULL);
+	GTypeClass *item_type_class = g_type_class_ref(HD_TYPE_LAUNCHER_ITEM_TYPE);
+	GEnumValue *type_value = g_enum_get_value_by_nick(G_ENUM_CLASS(item_type_class),
+							  type_name);
+	g_free(type_name);
+	g_type_class_unref(item_type_class);
+	if (!type_value) {
+		return NULL;
+	}
+	if (type_value->value == HD_APPLICATION_LAUNCHER)
+		item_type = HD_TYPE_LAUNCHER_APP;
+	else
+		item_type = HD_TYPE_LAUNCHER_CAT;
 
-  result = g_object_new (item_type, NULL);
-  if (!result)
-    return NULL;
+	result = g_object_new(item_type, NULL);
+	if (!result)
+		return NULL;
 
-  result->priv->item_type = type_value->value;
-  result->priv->id = g_strdup (id);
-  result->priv->id_quark = g_quark_from_string (result->priv->id);
-  if (!hd_launcher_item_parse_keyfile (result, key_file, error))
-    {
-      g_object_unref (result);
-      return NULL;
-    }
+	result->priv->item_type = type_value->value;
+	result->priv->id = g_strdup(id);
+	result->priv->id_quark = g_quark_from_string(result->priv->id);
+	if (!hd_launcher_item_parse_keyfile(result, key_file, error)) {
+		g_object_unref(result);
+		return NULL;
+	}
 
-  if (!(HD_LAUNCHER_ITEM_GET_CLASS (result))->parse_key_file
-            (result, key_file, error))
-    {
-      g_object_unref (result);
-      return NULL;
-    }
+	if (!(HD_LAUNCHER_ITEM_GET_CLASS(result))->parse_key_file(result, key_file, error)) {
+		g_object_unref(result);
+		return NULL;
+	}
 
-  if (category)
-    result->priv->category = g_strdup (category);
-  else
-    result->priv->category = g_strdup (HD_LAUNCHER_ITEM_TOP_CATEGORY);
+	if (category)
+		result->priv->category = g_strdup(category);
+	else
+		result->priv->category = g_strdup(HD_LAUNCHER_ITEM_TOP_CATEGORY);
 
-  return result;
+	return result;
 }

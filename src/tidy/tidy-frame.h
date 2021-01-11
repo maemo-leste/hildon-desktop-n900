@@ -27,38 +27,32 @@
 #include <tidy/tidy-actor.h>
 
 G_BEGIN_DECLS
-
 #define TIDY_TYPE_FRAME                 (tidy_frame_get_type ())
 #define TIDY_FRAME(obj)                 (G_TYPE_CHECK_INSTANCE_CAST ((obj), TIDY_TYPE_FRAME, TidyFrame))
 #define TIDY_IS_FRAME(obj)              (G_TYPE_CHECK_INSTANCE_TYPE ((obj), TIDY_TYPE_FRAME))
 #define TIDY_FRAME_CLASS(klass)         (G_TYPE_CHECK_CLASS_CAST ((klass), TIDY_TYPE_FRAME, TidyFrameClass))
 #define TIDY_IS_FRAME_CLASS(klass)      (G_TYPE_CHECK_CLASS_TYPE ((klass), TIDY_TYPE_FRAME))
 #define TIDY_FRAME_GET_CLASS(obj)       (G_TYPE_INSTANCE_GET_CLASS ((obj), TIDY_TYPE_FRAME, TidyFrameClass))
+typedef struct _TidyFrame TidyFrame;
+typedef struct _TidyFramePrivate TidyFramePrivate;
+typedef struct _TidyFrameClass TidyFrameClass;
 
-typedef struct _TidyFrame               TidyFrame;
-typedef struct _TidyFramePrivate        TidyFramePrivate;
-typedef struct _TidyFrameClass          TidyFrameClass;
+struct _TidyFrame {
+	TidyActor parent_instance;
 
-struct _TidyFrame
-{
-  TidyActor parent_instance;
-
-  TidyFramePrivate *priv;
+	TidyFramePrivate *priv;
 };
 
-struct _TidyFrameClass
-{
-  TidyActorClass parent_class;
+struct _TidyFrameClass {
+	TidyActorClass parent_class;
 };
 
-GType         tidy_frame_get_type    (void) G_GNUC_CONST;
+GType tidy_frame_get_type(void) G_GNUC_CONST;
 
-ClutterActor *tidy_frame_new         (void);
-ClutterActor *tidy_frame_get_child   (TidyFrame    *frame);
-void          tidy_frame_set_texture (TidyFrame    *frame,
-                                      ClutterActor *actor);
-ClutterActor *tidy_frame_get_texture (TidyFrame    *frame);
+ClutterActor *tidy_frame_new(void);
+ClutterActor *tidy_frame_get_child(TidyFrame * frame);
+void tidy_frame_set_texture(TidyFrame * frame, ClutterActor * actor);
+ClutterActor *tidy_frame_get_texture(TidyFrame * frame);
 
 G_END_DECLS
-
-#endif /* __TIDY_FRAME_H__ */
+#endif				/* __TIDY_FRAME_H__ */

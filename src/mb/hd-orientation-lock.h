@@ -27,39 +27,33 @@
 #include <glib-object.h>
 
 G_BEGIN_DECLS
-
 #define HD_TYPE_ORIENTATION_LOCK            (hd_orientation_lock_get_type ())
 #define HD_ORIENTATION_LOCK(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), HD_TYPE_ORIENTATION_LOCK, HdOrientationLock))
 #define HD_IS_ORIENTATION_LOCKR(obj)        (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HD_TYPE_ORIENTATION_LOCK))
 #define HD_ORIENTATION_LOCK_CLASS(klass)    (G_TYPE_CHECK_CLASS_TYPE ((klass), HD_TYPE_ORIENTATION_LOCK, HdOrientationLockClass))
 #define HD_IS_ORIENTATION_LOCK_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), HD_TYPE_ORIENTATION_LOCK))
 #define HD_ORIENTATION_LOCK_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), HD_TYPE_ORIENTATION_LOCK, HdOrientationLockClass))
-
-typedef struct _HdOrientationLock        HdOrientationLock;
+typedef struct _HdOrientationLock HdOrientationLock;
 typedef struct _HdOrientationLockPrivate HdOrientationLockPrivate;
-typedef struct _HdOrientationLockClass   HdOrientationLockClass;
+typedef struct _HdOrientationLockClass HdOrientationLockClass;
 
-struct _HdOrientationLock
-{
-  GObject parent_instance;
+struct _HdOrientationLock {
+	GObject parent_instance;
 
-  HdOrientationLockPrivate *priv;
+	HdOrientationLockPrivate *priv;
 };
 
-struct _HdOrientationLockClass
-{
-  GObjectClass parent_class;
+struct _HdOrientationLockClass {
+	GObjectClass parent_class;
 };
 
-GType hd_orientation_lock_get_type (void) G_GNUC_CONST;
+GType hd_orientation_lock_get_type(void) G_GNUC_CONST;
 
-HdOrientationLock   *hd_orientation_lock_get (void);
+HdOrientationLock *hd_orientation_lock_get(void);
 
-gboolean hd_orientation_lock_is_enabled (void);
-gboolean hd_orientation_lock_is_locked_to_landscape (void);
-gboolean hd_orientation_lock_is_locked_to_portrait (void);
+gboolean hd_orientation_lock_is_enabled(void);
+gboolean hd_orientation_lock_is_locked_to_landscape(void);
+gboolean hd_orientation_lock_is_locked_to_portrait(void);
 
 G_END_DECLS
-
-
-#endif //_HAVE_HD_ORIENTATION_LOCK_H
+#endif				//_HAVE_HD_ORIENTATION_LOCK_H

@@ -35,15 +35,12 @@
 #include "hda-launcher.h"
 
 /* factories initialization*/
-HDA_ACCESSIBLE_FACTORY (HDA_TYPE_LAUNCHER_PAGE, hda_launcher_page, hda_launcher_page_new)
-HDA_ACCESSIBLE_FACTORY (HDA_TYPE_LAUNCHER_GRID, hda_launcher_grid, hda_launcher_grid_new)
-HDA_ACCESSIBLE_FACTORY (HDA_TYPE_LAUNCHER_TILE, hda_launcher_tile, hda_launcher_tile_new)
-
-void
-hda_launcher_accessibility_init (void)
+HDA_ACCESSIBLE_FACTORY(HDA_TYPE_LAUNCHER_PAGE, hda_launcher_page, hda_launcher_page_new)
+    HDA_ACCESSIBLE_FACTORY(HDA_TYPE_LAUNCHER_GRID, hda_launcher_grid, hda_launcher_grid_new)
+    HDA_ACCESSIBLE_FACTORY(HDA_TYPE_LAUNCHER_TILE, hda_launcher_tile, hda_launcher_tile_new)
+void hda_launcher_accessibility_init(void)
 {
-  HDA_ACTOR_SET_FACTORY (HD_TYPE_LAUNCHER_PAGE, hda_launcher_page);
-  HDA_ACTOR_SET_FACTORY (HD_TYPE_LAUNCHER_GRID, hda_launcher_grid);
-  HDA_ACTOR_SET_FACTORY (HD_TYPE_LAUNCHER_TILE, hda_launcher_tile);
+	HDA_ACTOR_SET_FACTORY(HD_TYPE_LAUNCHER_PAGE, hda_launcher_page);
+	HDA_ACTOR_SET_FACTORY(HD_TYPE_LAUNCHER_GRID, hda_launcher_grid);
+	HDA_ACTOR_SET_FACTORY(HD_TYPE_LAUNCHER_TILE, hda_launcher_tile);
 }
-

@@ -28,7 +28,7 @@
 #include <matchbox/core/mb-wm.h>
 #include <matchbox/client-types/mb-wm-client-note.h>
 
-typedef struct HdStatusArea      HdStatusArea;
+typedef struct HdStatusArea HdStatusArea;
 typedef struct HdStatusAreaClass HdStatusAreaClass;
 
 #define HD_STATUS_AREA(c) ((HdStatusArea*)(c))
@@ -36,19 +36,16 @@ typedef struct HdStatusAreaClass HdStatusAreaClass;
 #define HD_TYPE_STATUS_AREA (hd_status_area_class_type ())
 #define HD_IS_STATUS_AREA(c) (MB_WM_OBJECT_TYPE(c) == HD_TYPE_STATUS_AREA)
 
-struct HdStatusArea
-{
-  MBWMClientNote  parent;
+struct HdStatusArea {
+	MBWMClientNote parent;
 };
 
-struct HdStatusAreaClass
-{
-  MBWMClientNoteClass parent;
+struct HdStatusAreaClass {
+	MBWMClientNoteClass parent;
 };
 
-MBWindowManagerClient* hd_status_area_new (MBWindowManager *wm,
-                                           MBWMClientWindow *win);
+MBWindowManagerClient *hd_status_area_new(MBWindowManager * wm, MBWMClientWindow * win);
 
-int hd_status_area_class_type (void);
+int hd_status_area_class_type(void);
 
 #endif

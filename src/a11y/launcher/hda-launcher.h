@@ -24,11 +24,7 @@
 #ifndef __HDA_LAUNCHER_H
 #define __HDA_LAUNCHER_H
 
-G_BEGIN_DECLS
-
-void
-hda_launcher_accessibility_init (void);
+G_BEGIN_DECLS void hda_launcher_accessibility_init(void);
 
 G_END_DECLS
-
-#endif /* __HDA_LAUNCHER_H */
+#endif				/* __HDA_LAUNCHER_H */

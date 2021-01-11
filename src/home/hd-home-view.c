@@ -66,1869 +66,1515 @@
 
 #define HD_HOME_VIEW_PARALLAX_AMOUNT (hd_transition_get_double("home", "parallax", 1.3))
 
-enum
-{
-  PROP_COMP_MGR = 1,
-  PROP_HOME,
-  PROP_ID,
-  PROP_ACTIVE,
-  PROP_CONTAINER
+enum {
+	PROP_COMP_MGR = 1,
+	PROP_HOME,
+	PROP_ID,
+	PROP_ACTIVE,
+	PROP_CONTAINER
 };
 
-struct _HdHomeViewPrivate
-{
-  MBWMCompMgrClutter       *comp_mgr;
-  HdHome                   *home;
-  HdHomeViewContainer      *view_container;
-  ClutterActor             *background_container;
-  ClutterActor             *applets_container;
+struct _HdHomeViewPrivate {
+	MBWMCompMgrClutter *comp_mgr;
+	HdHome *home;
+	HdHomeViewContainer *view_container;
+	ClutterActor *background_container;
+	ClutterActor *applets_container;
 
-  ClutterActor             *background;
-  TidySubTexture           *background_sub;
-  ClutterActor             *background_temp_portrait;
-  TidySubTexture           *background_sub_temp_portrait;
-  ClutterActor             *background_temp;
-  TidySubTexture           *background_sub_temp;
-  MBWindowManagerClient    *live_bg;
+	ClutterActor *background;
+	TidySubTexture *background_sub;
+	ClutterActor *background_temp_portrait;
+	TidySubTexture *background_sub_temp_portrait;
+	ClutterActor *background_temp;
+	TidySubTexture *background_sub_temp;
+	MBWindowManagerClient *live_bg;
 
-  GHashTable               *applets;
+	GHashTable *applets;
 
-  gboolean                  is_portrait;
+	gboolean is_portrait;
 
-  gint                      applet_motion_start_x;
-  gint                      applet_motion_start_y;
-  gint                      applet_motion_start_position_x;
-  gint                      applet_motion_start_position_y;
+	gint applet_motion_start_x;
+	gint applet_motion_start_y;
+	gint applet_motion_start_position_x;
+	gint applet_motion_start_position_y;
 
-  gboolean                  applet_motion_tap : 1;
+	gboolean applet_motion_tap:1;
 
-  gboolean                  move_applet_left : 1;
-  gboolean                  move_applet_right : 1;
+	gboolean move_applet_left:1;
+	gboolean move_applet_right:1;
 
-  gint                      pan_gesture_start_x;
-  gint                      pan_gesture_start_y;
+	gint pan_gesture_start_x;
+	gint pan_gesture_start_y;
 
-  guint                     id;
+	guint id;
 
-  guint load_background_source;
+	guint load_background_source;
 
-  GConfClient *gconf_client;
+	GConfClient *gconf_client;
 
-  HdHomeViewLayout *layout;
+	HdHomeViewLayout *layout;
 };
 
-static void hd_home_view_class_init (HdHomeViewClass *klass);
-static void hd_home_view_init       (HdHomeView *self);
-static void hd_home_view_dispose    (GObject *object);
-static void hd_home_view_finalize   (GObject *object);
+static void hd_home_view_class_init(HdHomeViewClass * klass);
+static void hd_home_view_init(HdHomeView * self);
+static void hd_home_view_dispose(GObject * object);
+static void hd_home_view_finalize(GObject * object);
 
-static void hd_home_view_set_property (GObject      *object,
-				       guint         prop_id,
-				       const GValue *value,
-				       GParamSpec   *pspec);
+static void hd_home_view_set_property(GObject * object, guint prop_id, const GValue * value, GParamSpec * pspec);
 
-static void hd_home_view_get_property (GObject      *object,
-				       guint         prop_id,
-				       GValue       *value,
-				       GParamSpec   *pspec);
+static void hd_home_view_get_property(GObject * object, guint prop_id, GValue * value, GParamSpec * pspec);
 
-static void hd_home_view_constructed (GObject *object);
+static void hd_home_view_constructed(GObject * object);
 
-static void
-hd_home_view_rotate_background(ClutterActor *actor, GParamSpec *unused,
-                               ClutterActor *stage);
+static void hd_home_view_rotate_background(ClutterActor * actor, GParamSpec * unused, ClutterActor * stage);
 
-static void
-hd_home_view_resize_applets_container(ClutterActor *actor, GParamSpec *unused,
-                               ClutterActor *stage);
+static void hd_home_view_resize_applets_container(ClutterActor * actor, GParamSpec * unused, ClutterActor * stage);
 
-static void
-hd_home_view_allocation_changed (HdHomeView    *home_view,
-                                 GParamSpec *pspec,
-                                 gpointer    user_data);
+static void hd_home_view_allocation_changed(HdHomeView * home_view, GParamSpec * pspec, gpointer user_data);
 
-static void snap_widget_to_grid (ClutterActor *widget);
+static void snap_widget_to_grid(ClutterActor * widget);
 
 typedef struct _HdHomeViewAppletData HdHomeViewAppletData;
 
-struct _HdHomeViewAppletData
-{
-  ClutterActor *actor;
+struct _HdHomeViewAppletData {
+	ClutterActor *actor;
 
-  MBWMCompMgrClient *cc;
+	MBWMCompMgrClient *cc;
 
-  guint press_cb;
-  guint release_cb;
-  guint resize_cb;
-  guint motion_cb;
+	guint press_cb;
+	guint release_cb;
+	guint resize_cb;
+	guint motion_cb;
 
-  ClutterActor *close_button;
-  ClutterActor *configure_button;
+	ClutterActor *close_button;
+	ClutterActor *configure_button;
 };
 
-static HdHomeViewAppletData *applet_data_new  (ClutterActor *actor);
-static void                  applet_data_free (HdHomeViewAppletData *data);
+static HdHomeViewAppletData *applet_data_new(ClutterActor * actor);
+static void applet_data_free(HdHomeViewAppletData * data);
 
-G_DEFINE_TYPE_WITH_CODE (HdHomeView,
-                         hd_home_view,
-                         CLUTTER_TYPE_GROUP,
-                         G_ADD_PRIVATE (HdHomeView));
+G_DEFINE_TYPE_WITH_CODE(HdHomeView, hd_home_view, CLUTTER_TYPE_GROUP, G_ADD_PRIVATE(HdHomeView));
 
-static void
-hd_home_view_allocate (ClutterActor          *actor,
-                       const ClutterActorBox *box,
-                       gboolean               absolute_origin_changed)
+static void hd_home_view_allocate(ClutterActor * actor, const ClutterActorBox * box, gboolean absolute_origin_changed)
 {
 #if 0
-  FIXME unused remove
-  HdHomeView        *view = HD_HOME_VIEW (actor);
-  HdHomeViewPrivate *priv = view->priv;
+	FIXME unused remove HdHomeView *view = HD_HOME_VIEW(actor);
+	HdHomeViewPrivate *priv = view->priv;
 
-  /* We've resized, refresh the background image to fit the new size */
-  if ((CLUTTER_UNITS_TO_INT (box->x2 - box->x1) != priv->bg_image_dest_width) ||
-      (CLUTTER_UNITS_TO_INT (box->y2 - box->y1) != priv->bg_image_dest_height))
-    hd_home_view_refresh_bg (view,
-                             priv->background_image_file);
+	/* We've resized, refresh the background image to fit the new size */
+	if ((CLUTTER_UNITS_TO_INT(box->x2 - box->x1) != priv->bg_image_dest_width) ||
+	    (CLUTTER_UNITS_TO_INT(box->y2 - box->y1) != priv->bg_image_dest_height))
+		hd_home_view_refresh_bg(view, priv->background_image_file);
 #endif
 
-  CLUTTER_ACTOR_CLASS (hd_home_view_parent_class)->allocate (actor, box, absolute_origin_changed);
+	CLUTTER_ACTOR_CLASS(hd_home_view_parent_class)->allocate(actor, box, absolute_origin_changed);
 }
 
-static void
-hd_home_view_class_init (HdHomeViewClass *klass)
+static void hd_home_view_class_init(HdHomeViewClass * klass)
 {
-  ClutterActorClass *actor_class  = CLUTTER_ACTOR_CLASS (klass);
-  GObjectClass      *object_class = G_OBJECT_CLASS (klass);
-  GParamSpec        *pspec;
+	ClutterActorClass *actor_class = CLUTTER_ACTOR_CLASS(klass);
+	GObjectClass *object_class = G_OBJECT_CLASS(klass);
+	GParamSpec *pspec;
 
-  actor_class->allocate      = hd_home_view_allocate;
+	actor_class->allocate = hd_home_view_allocate;
 
-  object_class->dispose      = hd_home_view_dispose;
-  object_class->finalize     = hd_home_view_finalize;
-  object_class->set_property = hd_home_view_set_property;
-  object_class->get_property = hd_home_view_get_property;
-  object_class->constructed  = hd_home_view_constructed;
+	object_class->dispose = hd_home_view_dispose;
+	object_class->finalize = hd_home_view_finalize;
+	object_class->set_property = hd_home_view_set_property;
+	object_class->get_property = hd_home_view_get_property;
+	object_class->constructed = hd_home_view_constructed;
 
-  pspec = g_param_spec_pointer ("comp-mgr",
-				"Composite Manager",
-				"MBWMCompMgrClutter Object",
-				G_PARAM_READWRITE | G_PARAM_CONSTRUCT);
+	pspec = g_param_spec_pointer("comp-mgr",
+				     "Composite Manager",
+				     "MBWMCompMgrClutter Object", G_PARAM_READWRITE | G_PARAM_CONSTRUCT);
 
-  g_object_class_install_property (object_class, PROP_COMP_MGR, pspec);
+	g_object_class_install_property(object_class, PROP_COMP_MGR, pspec);
 
-  pspec = g_param_spec_pointer ("home",
-				"HdHome",
-				"Parent HdHome object",
-				G_PARAM_READWRITE | G_PARAM_CONSTRUCT);
+	pspec = g_param_spec_pointer("home", "HdHome", "Parent HdHome object", G_PARAM_READWRITE | G_PARAM_CONSTRUCT);
 
-  g_object_class_install_property (object_class, PROP_HOME, pspec);
+	g_object_class_install_property(object_class, PROP_HOME, pspec);
 
-  pspec = g_param_spec_int ("id",
-			    "id",
-			    "Numerical id for this view",
-			    0, MAX_VIEWS - 1,
-			    0,
-			    G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
+	pspec = g_param_spec_int("id",
+				 "id",
+				 "Numerical id for this view",
+				 0, MAX_VIEWS - 1, 0, G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
 
-  g_object_class_install_property (object_class, PROP_ID, pspec);
+	g_object_class_install_property(object_class, PROP_ID, pspec);
 
-  g_object_class_install_property (object_class,
-                                   PROP_ACTIVE,
-                                   g_param_spec_boolean ("active",
-                                                         "Active",
-                                                         "View is active",
-                                                         TRUE,
-                                                         G_PARAM_READABLE));
+	g_object_class_install_property(object_class,
+					PROP_ACTIVE,
+					g_param_spec_boolean("active",
+							     "Active", "View is active", TRUE, G_PARAM_READABLE));
 
-  g_object_class_install_property (object_class,
-                                   PROP_CONTAINER,
-                                   g_param_spec_object ("view-container",
-                                                        "View Container",
-                                                        "Views are embedded in that container",
-                                                        HD_TYPE_HOME_VIEW_CONTAINER,
-                                                        G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+	g_object_class_install_property(object_class,
+					PROP_CONTAINER,
+					g_param_spec_object("view-container",
+							    "View Container",
+							    "Views are embedded in that container",
+							    HD_TYPE_HOME_VIEW_CONTAINER,
+							    G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 }
 
 /* applets_container is not a member of HdHomeView (it is in HdHome's 'front'
  * container. Hence we want to show/hide the applets container whenever the
  * home view itself is hidden */
-static gboolean hd_home_view_shown(HdHomeView *view) {
-  HdHomeViewPrivate        *priv = view->priv;
-  clutter_actor_show(priv->applets_container);
-  return FALSE;
+static gboolean hd_home_view_shown(HdHomeView * view)
+{
+	HdHomeViewPrivate *priv = view->priv;
+	clutter_actor_show(priv->applets_container);
+	return FALSE;
 }
+
 /* applets_container is not a member of HdHomeView (it is in HdHome's 'front'
  * container. Hence we want to show/hide the applets container whenever the
  * home view itself is hidden */
-static gboolean hd_home_view_hidden(HdHomeView *view) {
-  HdHomeViewPrivate        *priv = view->priv;
-  clutter_actor_hide(priv->applets_container);
-  return FALSE;
+static gboolean hd_home_view_hidden(HdHomeView * view)
+{
+	HdHomeViewPrivate *priv = view->priv;
+	clutter_actor_hide(priv->applets_container);
+	return FALSE;
 }
 
-static gboolean
-is_button_press_in_gesture_start_area (ClutterEvent *event)
+static gboolean is_button_press_in_gesture_start_area(ClutterEvent * event)
 {
-  g_debug ("%s. (%d, %d)",
-           __FUNCTION__,
-           event->button.x, event->button.y);
+	g_debug("%s. (%d, %d)", __FUNCTION__, event->button.x, event->button.y);
 
-	if(!STATE_IS_PORTRAIT (hd_render_manager_get_state()))
-	  return event->button.x <= 15 || event->button.x >= HD_COMP_MGR_LANDSCAPE_WIDTH - 15;
+	if (!STATE_IS_PORTRAIT(hd_render_manager_get_state()))
+		return event->button.x <= 15 || event->button.x >= HD_COMP_MGR_LANDSCAPE_WIDTH - 15;
 	else
 		return event->button.x <= 15 || event->button.x >= HD_COMP_MGR_PORTRAIT_WIDTH - 15;
 }
 
-static gboolean stop_pan_gesture (HdHomeView *view);
+static gboolean stop_pan_gesture(HdHomeView * view);
 
-static gboolean
-pan_gesture_motion (ClutterActor *actor,
-                    ClutterEvent *event,
-                    HdHomeView   *view)
+static gboolean pan_gesture_motion(ClutterActor * actor, ClutterEvent * event, HdHomeView * view)
 {
-  HdHomeViewPrivate *priv = view->priv;
+	HdHomeViewPrivate *priv = view->priv;
 
-  g_debug ("%s. (%d, %d)",
-           __FUNCTION__,
-           event->motion.x, event->motion.y);
+	g_debug("%s. (%d, %d)", __FUNCTION__, event->motion.x, event->motion.y);
 
-  if (ABS (priv->pan_gesture_start_y - event->motion.y) > 25)
-    {
-      stop_pan_gesture (view);
-    }
-  else
-    {
-      if (ABS (priv->pan_gesture_start_x - event->motion.x) > 50)
-        {
-          stop_pan_gesture (view);
+	if (ABS(priv->pan_gesture_start_y - event->motion.y) > 25) {
+		stop_pan_gesture(view);
+	} else {
+		if (ABS(priv->pan_gesture_start_x - event->motion.x) > 50) {
+			stop_pan_gesture(view);
 
-          if (priv->pan_gesture_start_x <= 15)
-            hd_home_view_container_scroll_to_previous (HD_HOME_VIEW_CONTAINER (priv->view_container), 0);
-          else
-            hd_home_view_container_scroll_to_next (HD_HOME_VIEW_CONTAINER (priv->view_container), 0);
-        }
-    }
+			if (priv->pan_gesture_start_x <= 15)
+				hd_home_view_container_scroll_to_previous(HD_HOME_VIEW_CONTAINER(priv->view_container),
+									  0);
+			else
+				hd_home_view_container_scroll_to_next(HD_HOME_VIEW_CONTAINER(priv->view_container), 0);
+		}
+	}
 
-  return FALSE;
+	return FALSE;
 }
 
-static gboolean
-stop_pan_gesture (HdHomeView *view)
+static gboolean stop_pan_gesture(HdHomeView * view)
 {
-  g_debug ("%s", __FUNCTION__);
+	g_debug("%s", __FUNCTION__);
 
-  clutter_ungrab_pointer ();
+	clutter_ungrab_pointer();
 
-  g_signal_handlers_disconnect_by_func (view,
-                                        pan_gesture_motion,
-                                        view);
-  g_signal_handlers_disconnect_by_func (view,
-                                        stop_pan_gesture,
-                                        view);
+	g_signal_handlers_disconnect_by_func(view, pan_gesture_motion, view);
+	g_signal_handlers_disconnect_by_func(view, stop_pan_gesture, view);
 
-  return FALSE;
+	return FALSE;
 }
 
-static gboolean
-pressed_on_view (ClutterActor *actor,
-                 ClutterEvent *event,
-                 HdHomeView   *view)
+static gboolean pressed_on_view(ClutterActor * actor, ClutterEvent * event, HdHomeView * view)
 {
-  HdHomeViewPrivate *priv = view->priv;
+	HdHomeViewPrivate *priv = view->priv;
 
-  g_debug ("%s. (%d, %d)",
-           __FUNCTION__,
-           event->button.x, event->button.y);
+	g_debug("%s. (%d, %d)", __FUNCTION__, event->button.x, event->button.y);
 
-  if (is_button_press_in_gesture_start_area (event))
-    {
-      priv->pan_gesture_start_x = event->button.x;
-      priv->pan_gesture_start_y = event->button.y;
+	if (is_button_press_in_gesture_start_area(event)) {
+		priv->pan_gesture_start_x = event->button.x;
+		priv->pan_gesture_start_y = event->button.y;
 
-      clutter_grab_pointer (CLUTTER_ACTOR (view));
-      g_signal_connect (view, "motion-event",
-                        G_CALLBACK (pan_gesture_motion), view);
-      g_signal_connect_swapped (view, "button-release-event",
-                                G_CALLBACK (stop_pan_gesture), view);
-    }
+		clutter_grab_pointer(CLUTTER_ACTOR(view));
+		g_signal_connect(view, "motion-event", G_CALLBACK(pan_gesture_motion), view);
+		g_signal_connect_swapped(view, "button-release-event", G_CALLBACK(stop_pan_gesture), view);
+	}
 
-  return FALSE;
+	return FALSE;
 }
 
-static void
-hd_home_view_constructed (GObject *object)
+static void hd_home_view_constructed(GObject * object)
 {
-  ClutterColor              clr = BACKGROUND_COLOR;
-  HdHomeView               *self = HD_HOME_VIEW (object);
-  HdHomeViewPrivate        *priv = self->priv;
+	ClutterColor clr = BACKGROUND_COLOR;
+	HdHomeView *self = HD_HOME_VIEW(object);
+	HdHomeViewPrivate *priv = self->priv;
 
-  priv->applets = g_hash_table_new_full (g_direct_hash, g_direct_equal,
-                                         NULL,
-                                         (GDestroyNotify) applet_data_free);
+	priv->applets = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, (GDestroyNotify) applet_data_free);
 
-  priv->background_container = clutter_group_new ();
-  clutter_actor_set_name (priv->background_container, "HdHomeView::background-container");
-  clutter_actor_set_visibility_detect(priv->background_container, FALSE);
-  clutter_actor_set_position (priv->background_container, 0, 0);
-  clutter_actor_set_size (priv->background_container,
-                          HD_COMP_MGR_LANDSCAPE_WIDTH,
-                          HD_COMP_MGR_LANDSCAPE_HEIGHT);
-  g_signal_connect_swapped(clutter_stage_get_default(), "notify::allocation",
-                           G_CALLBACK(hd_home_view_rotate_background),
-                           priv->background_container);
-  clutter_container_add_actor (CLUTTER_CONTAINER (object), priv->background_container);
+	priv->background_container = clutter_group_new();
+	clutter_actor_set_name(priv->background_container, "HdHomeView::background-container");
+	clutter_actor_set_visibility_detect(priv->background_container, FALSE);
+	clutter_actor_set_position(priv->background_container, 0, 0);
+	clutter_actor_set_size(priv->background_container, HD_COMP_MGR_LANDSCAPE_WIDTH, HD_COMP_MGR_LANDSCAPE_HEIGHT);
+	g_signal_connect_swapped(clutter_stage_get_default(), "notify::allocation",
+				 G_CALLBACK(hd_home_view_rotate_background), priv->background_container);
+	clutter_container_add_actor(CLUTTER_CONTAINER(object), priv->background_container);
 
-  priv->applets_container = clutter_group_new ();
-  clutter_actor_set_name (priv->applets_container, "HdHomeView::applets-container");
-  clutter_actor_set_visibility_detect(priv->applets_container, FALSE);
-  clutter_actor_set_position (priv->applets_container, 0, 0);
-  clutter_actor_set_size (priv->applets_container,
-                          HD_COMP_MGR_LANDSCAPE_WIDTH,
-                          HD_COMP_MGR_LANDSCAPE_HEIGHT);
-  g_signal_connect_swapped(clutter_stage_get_default(), "notify::allocation",
-                           G_CALLBACK(hd_home_view_resize_applets_container),
-                           priv->applets_container);
-  clutter_container_add_actor (CLUTTER_CONTAINER (hd_home_get_front(priv->home)),
-                               priv->applets_container);
+	priv->applets_container = clutter_group_new();
+	clutter_actor_set_name(priv->applets_container, "HdHomeView::applets-container");
+	clutter_actor_set_visibility_detect(priv->applets_container, FALSE);
+	clutter_actor_set_position(priv->applets_container, 0, 0);
+	clutter_actor_set_size(priv->applets_container, HD_COMP_MGR_LANDSCAPE_WIDTH, HD_COMP_MGR_LANDSCAPE_HEIGHT);
+	g_signal_connect_swapped(clutter_stage_get_default(), "notify::allocation",
+				 G_CALLBACK(hd_home_view_resize_applets_container), priv->applets_container);
+	clutter_container_add_actor(CLUTTER_CONTAINER(hd_home_get_front(priv->home)), priv->applets_container);
 
-  /* By default the background is a black rectangle */
-  priv->background = clutter_rectangle_new_with_color (&clr);
-  clutter_actor_set_name (priv->background, "HdHomeView::background");
-  clutter_actor_set_size (priv->background,
-                          HD_COMP_MGR_LANDSCAPE_WIDTH,
-                          HD_COMP_MGR_LANDSCAPE_HEIGHT);
-  clutter_container_add_actor (CLUTTER_CONTAINER (priv->background_container),
-                               priv->background);
+	/* By default the background is a black rectangle */
+	priv->background = clutter_rectangle_new_with_color(&clr);
+	clutter_actor_set_name(priv->background, "HdHomeView::background");
+	clutter_actor_set_size(priv->background, HD_COMP_MGR_LANDSCAPE_WIDTH, HD_COMP_MGR_LANDSCAPE_HEIGHT);
+	clutter_container_add_actor(CLUTTER_CONTAINER(priv->background_container), priv->background);
 
-  clutter_actor_set_reactive (CLUTTER_ACTOR (object), TRUE);
+	clutter_actor_set_reactive(CLUTTER_ACTOR(object), TRUE);
 
-  g_signal_connect (object, "button-press-event",
-                    G_CALLBACK (pressed_on_view), object);
+	g_signal_connect(object, "button-press-event", G_CALLBACK(pressed_on_view), object);
 
-  g_signal_connect (object, "notify::allocation",
-                    G_CALLBACK (hd_home_view_allocation_changed),
-                    object);
+	g_signal_connect(object, "notify::allocation", G_CALLBACK(hd_home_view_allocation_changed), object);
 
-  g_signal_connect (object, "show",
-                    G_CALLBACK (hd_home_view_shown), NULL);
-  g_signal_connect (object, "hide",
-                    G_CALLBACK (hd_home_view_hidden), NULL);
+	g_signal_connect(object, "show", G_CALLBACK(hd_home_view_shown), NULL);
+	g_signal_connect(object, "hide", G_CALLBACK(hd_home_view_hidden), NULL);
 }
 
-static void
-hd_home_view_init (HdHomeView *self)
+static void hd_home_view_init(HdHomeView * self)
 {
-  self->priv = hd_home_view_get_instance_private (self);
+	self->priv = hd_home_view_get_instance_private(self);
 
-  clutter_actor_set_name(CLUTTER_ACTOR(self), "HdHomeView");
-  /* Explicitly enable maemo-specific visibility detection to cut down
-   * spurious paints */
-  clutter_actor_set_visibility_detect(CLUTTER_ACTOR(self), TRUE);
+	clutter_actor_set_name(CLUTTER_ACTOR(self), "HdHomeView");
+	/* Explicitly enable maemo-specific visibility detection to cut down
+	 * spurious paints */
+	clutter_actor_set_visibility_detect(CLUTTER_ACTOR(self), TRUE);
 
-  self->priv->gconf_client = gconf_client_get_default ();
+	self->priv->gconf_client = gconf_client_get_default();
 
-  self->priv->layout = hd_home_view_layout_new ();
+	self->priv->layout = hd_home_view_layout_new();
 }
 
-static void
-hd_home_view_dispose (GObject *object)
+static void hd_home_view_dispose(GObject * object)
 {
-  HdHomeView         *self           = HD_HOME_VIEW (object);
-  HdHomeViewPrivate  *priv	     = self->priv;
+	HdHomeView *self = HD_HOME_VIEW(object);
+	HdHomeViewPrivate *priv = self->priv;
 
-  /* Remove idle/timeout handlers */
-  if (priv->load_background_source)
-    priv->load_background_source = (g_source_remove (priv->load_background_source), 0);
+	/* Remove idle/timeout handlers */
+	if (priv->load_background_source)
+		priv->load_background_source = (g_source_remove(priv->load_background_source), 0);
 
-  if (priv->gconf_client)
-    priv->gconf_client = (g_object_unref (priv->gconf_client), NULL);
+	if (priv->gconf_client)
+		priv->gconf_client = (g_object_unref(priv->gconf_client), NULL);
 
-  if (priv->applets)
-    priv->applets = (g_hash_table_destroy (priv->applets), NULL);
+	if (priv->applets)
+		priv->applets = (g_hash_table_destroy(priv->applets), NULL);
 
-  if (priv->layout)
-    priv->layout = (g_object_unref (priv->layout), NULL);
+	if (priv->layout)
+		priv->layout = (g_object_unref(priv->layout), NULL);
 
-  G_OBJECT_CLASS (hd_home_view_parent_class)->dispose (object);
+	G_OBJECT_CLASS(hd_home_view_parent_class)->dispose(object);
 }
 
-static void
-hd_home_view_finalize (GObject *object)
+static void hd_home_view_finalize(GObject * object)
 {
-  G_OBJECT_CLASS (hd_home_view_parent_class)->finalize (object);
+	G_OBJECT_CLASS(hd_home_view_parent_class)->finalize(object);
 }
 
-static void
-set_background_common (HdHomeView *hview, ClutterActor *new_bg)
+static void set_background_common(HdHomeView * hview, ClutterActor * new_bg)
 {
-  HdHomeViewPrivate *priv = hview->priv;
-  //ClutterActor *actor = CLUTTER_ACTOR (hview);
-  TidySubTexture *new_bg_sub = 0;
-  ClutterColor clr = BACKGROUND_COLOR;
+	HdHomeViewPrivate *priv = hview->priv;
+	//ClutterActor *actor = CLUTTER_ACTOR (hview);
+	TidySubTexture *new_bg_sub = 0;
+	ClutterColor clr = BACKGROUND_COLOR;
 
-  if (!new_bg)
-    {
-      /* Add a black background */
-      new_bg = clutter_rectangle_new_with_color (&clr);
-      clutter_actor_set_size (new_bg,
-                              HD_COMP_MGR_LANDSCAPE_WIDTH,
-                              HD_COMP_MGR_LANDSCAPE_HEIGHT);
-    }
-  else
-    {
-      guint bg_width, bg_height;
-      guint actual_width, actual_height;
-      bg_width = HD_COMP_MGR_LANDSCAPE_WIDTH;
-      bg_height = HD_COMP_MGR_LANDSCAPE_HEIGHT;
-      actual_width = clutter_actor_get_width (new_bg);
-      actual_height = clutter_actor_get_height (new_bg);
-      /* It may be that we get a bigger texture than we need
-       * (because PVR texture compression has to use 2^n width
-       * and height). In this case we want to crop off the
-       * bottom + right sides, which we can do more efficiently
-       * with TidySubTexture than we can with set_clip.
-       */
-      if (bg_width != actual_width ||
-          bg_height != actual_height)
-        {
-          ClutterGeometry region;
-          region.x = 0;
-          region.y = 0;
-          region.width = actual_width > bg_width ? bg_width : actual_width;
-          region.height = actual_height > bg_height ? bg_height : actual_height;
+	if (!new_bg) {
+		/* Add a black background */
+		new_bg = clutter_rectangle_new_with_color(&clr);
+		clutter_actor_set_size(new_bg, HD_COMP_MGR_LANDSCAPE_WIDTH, HD_COMP_MGR_LANDSCAPE_HEIGHT);
+	} else {
+		guint bg_width, bg_height;
+		guint actual_width, actual_height;
+		bg_width = HD_COMP_MGR_LANDSCAPE_WIDTH;
+		bg_height = HD_COMP_MGR_LANDSCAPE_HEIGHT;
+		actual_width = clutter_actor_get_width(new_bg);
+		actual_height = clutter_actor_get_height(new_bg);
+		/* It may be that we get a bigger texture than we need
+		 * (because PVR texture compression has to use 2^n width
+		 * and height). In this case we want to crop off the
+		 * bottom + right sides, which we can do more efficiently
+		 * with TidySubTexture than we can with set_clip.
+		 */
+		if (bg_width != actual_width || bg_height != actual_height) {
+			ClutterGeometry region;
+			region.x = 0;
+			region.y = 0;
+			region.width = actual_width > bg_width ? bg_width : actual_width;
+			region.height = actual_height > bg_height ? bg_height : actual_height;
 
-          new_bg_sub = tidy_sub_texture_new(CLUTTER_TEXTURE(new_bg));
-          tidy_sub_texture_set_region(new_bg_sub, &region);
-          clutter_actor_set_size(CLUTTER_ACTOR(new_bg_sub), bg_width, bg_height);
-          clutter_actor_hide(new_bg);
-          clutter_actor_show(CLUTTER_ACTOR(new_bg_sub));
-        }
-    }
+			new_bg_sub = tidy_sub_texture_new(CLUTTER_TEXTURE(new_bg));
+			tidy_sub_texture_set_region(new_bg_sub, &region);
+			clutter_actor_set_size(CLUTTER_ACTOR(new_bg_sub), bg_width, bg_height);
+			clutter_actor_hide(new_bg);
+			clutter_actor_show(CLUTTER_ACTOR(new_bg_sub));
+		}
+	}
 
-  clutter_actor_set_name (new_bg, "HdHomeView::background");
+	clutter_actor_set_name(new_bg, "HdHomeView::background");
 
-  if(hd_home_is_portrait_wallpaper_enabled (priv->home))
-    {
-      if(priv->is_portrait)
-        { /* Remember wallpaper for portrait mode */
-          clutter_actor_destroy(priv->background_temp_portrait);
-          clutter_actor_destroy(CLUTTER_ACTOR(priv->background_sub_temp_portrait));
-          priv->background_temp_portrait = new_bg;
-          priv->background_sub_temp_portrait = new_bg_sub;
-        }
-      else
-        { /* Remember wallpaper for landscape mode and show it */
-          clutter_actor_destroy(priv->background_temp);
-          clutter_actor_destroy(CLUTTER_ACTOR(priv->background_sub_temp));
-          priv->background_temp = new_bg;
-          priv->background_sub_temp = new_bg_sub;
-        }
-    }
+	if (hd_home_is_portrait_wallpaper_enabled(priv->home)) {
+		if (priv->is_portrait) {	/* Remember wallpaper for portrait mode */
+			clutter_actor_destroy(priv->background_temp_portrait);
+			clutter_actor_destroy(CLUTTER_ACTOR(priv->background_sub_temp_portrait));
+			priv->background_temp_portrait = new_bg;
+			priv->background_sub_temp_portrait = new_bg_sub;
+		} else {	/* Remember wallpaper for landscape mode and show it */
+			clutter_actor_destroy(priv->background_temp);
+			clutter_actor_destroy(CLUTTER_ACTOR(priv->background_sub_temp));
+			priv->background_temp = new_bg;
+			priv->background_sub_temp = new_bg_sub;
+		}
+	}
 
-    if( ((hd_comp_mgr_is_portrait () && !priv->is_portrait) 
-      || (!hd_comp_mgr_is_portrait () && priv->is_portrait)) 
-      && hd_home_is_portrait_wallpaper_enabled (priv->home))
-      return;
+	if (((hd_comp_mgr_is_portrait() && !priv->is_portrait)
+	     || (!hd_comp_mgr_is_portrait() && priv->is_portrait))
+	    && hd_home_is_portrait_wallpaper_enabled(priv->home))
+		return;
 
-    /* Add new background to the background container */
-    clutter_container_add_actor (
-                CLUTTER_CONTAINER (priv->background_container),
-                new_bg);
-    if (new_bg_sub)
-      clutter_container_add_actor (
-                  CLUTTER_CONTAINER (priv->background_container),
-                  CLUTTER_ACTOR(new_bg_sub));
+	/* Add new background to the background container */
+	clutter_container_add_actor(CLUTTER_CONTAINER(priv->background_container), new_bg);
+	if (new_bg_sub)
+		clutter_container_add_actor(CLUTTER_CONTAINER(priv->background_container), CLUTTER_ACTOR(new_bg_sub));
 
-    /* Remove the old background (color or image) and the subtexture
-     * that may have been used to make it smaller */
-    if (priv->background_sub)
-        clutter_actor_destroy (CLUTTER_ACTOR(priv->background_sub));
-    if (priv->background)
-        clutter_actor_destroy (priv->background);
+	/* Remove the old background (color or image) and the subtexture
+	 * that may have been used to make it smaller */
+	if (priv->background_sub)
+		clutter_actor_destroy(CLUTTER_ACTOR(priv->background_sub));
+	if (priv->background)
+		clutter_actor_destroy(priv->background);
 
-    /* Only update blur if we're currently active */
-    if (hd_home_view_container_get_current_view(priv->view_container) == priv->id)
-        hd_render_manager_blurred_changed();
+	/* Only update blur if we're currently active */
+	if (hd_home_view_container_get_current_view(priv->view_container) == priv->id)
+		hd_render_manager_blurred_changed();
 
-    priv->background = new_bg;
-    priv->background_sub = new_bg_sub;
-    
+	priv->background = new_bg;
+	priv->background_sub = new_bg_sub;
+
 }
 
-static gboolean
-load_background_idle (gpointer data)
+static gboolean load_background_idle(gpointer data)
 {
-  HdHomeView *self = HD_HOME_VIEW (data);
-  HdHomeViewPrivate *priv = self->priv;
-  gchar *cached_background_image_file;
-  ClutterActor *new_bg = 0;
-  GError *error = NULL;
-  GError *error_portrait = NULL;
-  int i;
-  int max_value;
+	HdHomeView *self = HD_HOME_VIEW(data);
+	HdHomeViewPrivate *priv = self->priv;
+	gchar *cached_background_image_file;
+	ClutterActor *new_bg = 0;
+	GError *error = NULL;
+	GError *error_portrait = NULL;
+	int i;
+	int max_value;
 
-  if (g_source_is_destroyed (g_main_current_source ()))
-    return FALSE;
+	if (g_source_is_destroyed(g_main_current_source()))
+		return FALSE;
 
-  if(hd_home_is_portrait_wallpaper_enabled (priv->home))
-    max_value = 2;
-  else
-    max_value = 1;
+	if (hd_home_is_portrait_wallpaper_enabled(priv->home))
+		max_value = 2;
+	else
+		max_value = 1;
 
-  for(i = 0; i < max_value; i++){
-    if(!i)
-      {
-        cached_background_image_file = g_strdup_printf (CACHED_BACKGROUND_IMAGE_FILE_PNG,
-                                                        g_get_home_dir (),
-                                                        priv->id + 1);
-        priv->is_portrait = FALSE;
-      }
-    else
-      {
-        cached_background_image_file = g_strdup_printf (CACHED_BACKGROUND_IMAGE_FILE_PNG_PORTRAIT,
-                                                        g_get_home_dir (),
-                                                        priv->id + 1);
-        priv->is_portrait = TRUE;
-      }
+	for (i = 0; i < max_value; i++) {
+		if (!i) {
+			cached_background_image_file = g_strdup_printf(CACHED_BACKGROUND_IMAGE_FILE_PNG,
+								       g_get_home_dir(), priv->id + 1);
+			priv->is_portrait = FALSE;
+		} else {
+			cached_background_image_file = g_strdup_printf(CACHED_BACKGROUND_IMAGE_FILE_PNG_PORTRAIT,
+								       g_get_home_dir(), priv->id + 1);
+			priv->is_portrait = TRUE;
+		}
 
-    if (!g_file_test (cached_background_image_file,
-                      G_FILE_TEST_EXISTS))
-      {
-        g_free (cached_background_image_file);
-        if(!i) 
-          {
-            cached_background_image_file = g_strdup_printf (CACHED_BACKGROUND_IMAGE_FILE_PVR,
-                                                            g_get_home_dir (),
-                                                            priv->id + 1);
+		if (!g_file_test(cached_background_image_file, G_FILE_TEST_EXISTS)) {
+			g_free(cached_background_image_file);
+			if (!i) {
+				cached_background_image_file = g_strdup_printf(CACHED_BACKGROUND_IMAGE_FILE_PVR,
+									       g_get_home_dir(), priv->id + 1);
 
-            new_bg = clutter_texture_new_from_file (cached_background_image_file,
-                                                      &error);
-          }
-        else 
-          {
-            cached_background_image_file = g_strdup_printf (CACHED_BACKGROUND_IMAGE_FILE_PVR_PORTRAIT,
-                                                            g_get_home_dir (),
-                                                            priv->id + 1);
+				new_bg = clutter_texture_new_from_file(cached_background_image_file, &error);
+			} else {
+				cached_background_image_file =
+				    g_strdup_printf(CACHED_BACKGROUND_IMAGE_FILE_PVR_PORTRAIT, g_get_home_dir(),
+						    priv->id + 1);
 
-            new_bg = clutter_texture_new_from_file (cached_background_image_file,
-                                                    &error_portrait);
-          }
-      }
-    else
-      {
-        GdkPixbuf        *pixbuf;
+				new_bg = clutter_texture_new_from_file(cached_background_image_file, &error_portrait);
+			}
+		} else {
+			GdkPixbuf *pixbuf;
 
-        /* Load image directly. We actually want to dither it on the fly to
-         * 16 bit, and clutter doesn't do this for us so we implement a very
-         * quick dither here. */
-        if(!i) 
-          pixbuf = gdk_pixbuf_new_from_file (cached_background_image_file, &error);
-        else
-          pixbuf = gdk_pixbuf_new_from_file (cached_background_image_file, &error_portrait);
-          
-        if (pixbuf != NULL)
-          {
-            gint              width;
-            gint              height;
-            gint              rowstride;
-            gint              n_channels;
-            guchar           *pixels;
-            gushort          *out_pixels, *out;
-            guint             lfsr = 1;
-            gint x,y;
+			/* Load image directly. We actually want to dither it on the fly to
+			 * 16 bit, and clutter doesn't do this for us so we implement a very
+			 * quick dither here. */
+			if (!i)
+				pixbuf = gdk_pixbuf_new_from_file(cached_background_image_file, &error);
+			else
+				pixbuf = gdk_pixbuf_new_from_file(cached_background_image_file, &error_portrait);
 
-            /* Get pixbuf properties */
-            width           = gdk_pixbuf_get_width (pixbuf);
-            height          = gdk_pixbuf_get_height (pixbuf);
-            rowstride       = gdk_pixbuf_get_rowstride (pixbuf);
-            n_channels      = gdk_pixbuf_get_n_channels (pixbuf);
-            pixels          = gdk_pixbuf_get_pixels (pixbuf);
+			if (pixbuf != NULL) {
+				gint width;
+				gint height;
+				gint rowstride;
+				gint n_channels;
+				guchar *pixels;
+				gushort *out_pixels, *out;
+				guint lfsr = 1;
+				gint x, y;
 
-            if (gdk_pixbuf_get_bits_per_sample (pixbuf)==8 &&
-                (n_channels==3 || n_channels==4))
-              {
-                out_pixels = g_malloc(width*height*2);
-                out = out_pixels;
-                for (y=0;y<height;y++) {
-                  for (x=0;x<width;x++) {
-                    /* http://en.wikipedia.org/wiki/Linear_feedback_shift_register */
-                    lfsr = (lfsr >> 1) ^ (unsigned int)((0 - (lfsr & 1u)) & 0xd0000001u);
-  
-                    /* dither 565 - by adding random noise and then truncating
-                     * (r>>8)*0xFF makes sure our bottom 8 bits are 0xFF if we
-                     * overflow.
-                     */
-                    guint r,g,b;
-                    r = pixels[0] + (lfsr&7);
-                    r |= (r>>8)*0xFF;
-                    g = pixels[1] + ((lfsr>>3)&3);
-                    g |= (g>>8)*0xFF;
-                    b = pixels[2] + ((lfsr>>5)&7);
-                    b |= (b>>8)*0xFF;
-                    *out = ((r<<8)&0xF800) |
-                           ((g<<3)&0x07E0) |
-                           ((b>>3)&0x001F);
+				/* Get pixbuf properties */
+				width = gdk_pixbuf_get_width(pixbuf);
+				height = gdk_pixbuf_get_height(pixbuf);
+				rowstride = gdk_pixbuf_get_rowstride(pixbuf);
+				n_channels = gdk_pixbuf_get_n_channels(pixbuf);
+				pixels = gdk_pixbuf_get_pixels(pixbuf);
 
-                    pixels += n_channels;
-                    out++;
-                  }
-                  pixels += rowstride - width*n_channels;
-                }
-                new_bg = clutter_texture_new();
+				if (gdk_pixbuf_get_bits_per_sample(pixbuf) == 8 && (n_channels == 3 || n_channels == 4)) {
+					out_pixels = g_malloc(width * height * 2);
+					out = out_pixels;
+					for (y = 0; y < height; y++) {
+						for (x = 0; x < width; x++) {
+							/* http://en.wikipedia.org/wiki/Linear_feedback_shift_register */
+							lfsr =
+							    (lfsr >> 1) ^ (unsigned int)((0 - (lfsr & 1u)) &
+											 0xd0000001u);
 
-                if(!i) 
-                  {
-                    clutter_texture_set_from_rgb_data(CLUTTER_TEXTURE(new_bg),
-                          (guchar*)out_pixels, FALSE,
-                          width, height, width*2, 2, CLUTTER_TEXTURE_FLAG_16_BIT, &error);
-                  }
-                else 
-                  {
-                    clutter_texture_set_from_rgb_data(CLUTTER_TEXTURE(new_bg),
-                          (guchar*)out_pixels, FALSE,
-                          width, height, width*2, 2, CLUTTER_TEXTURE_FLAG_16_BIT, &error_portrait);
-                  }
+							/* dither 565 - by adding random noise and then truncating
+							 * (r>>8)*0xFF makes sure our bottom 8 bits are 0xFF if we
+							 * overflow.
+							 */
+							guint r, g, b;
+							r = pixels[0] + (lfsr & 7);
+							r |= (r >> 8) * 0xFF;
+							g = pixels[1] + ((lfsr >> 3) & 3);
+							g |= (g >> 8) * 0xFF;
+							b = pixels[2] + ((lfsr >> 5) & 7);
+							b |= (b >> 8) * 0xFF;
+							*out = ((r << 8) & 0xF800) |
+							    ((g << 3) & 0x07E0) | ((b >> 3) & 0x001F);
 
-                g_free(out_pixels);
-              }
-            g_object_unref (pixbuf);
-          }
-      }
+							pixels += n_channels;
+							out++;
+						}
+						pixels += rowstride - width * n_channels;
+					}
+					new_bg = clutter_texture_new();
 
-    if(!i) 
-      {
-        if (!new_bg)
-          {
-            g_warning ("Error loading cached background image %s. %s",
-                       cached_background_image_file,
-                       error?error->message:"");
-            if (error)
-              g_error_free (error);
-          }
-      }
-    else
-      {
-        if (!new_bg)
-          {
-            g_warning ("Error loading cached portrait background image %s. %s",
-                       cached_background_image_file,
-                       error_portrait?error_portrait->message:"");
-            if (error_portrait)
-              g_error_free (error_portrait);
-          }
-      }
-  
-    g_free (cached_background_image_file);
+					if (!i) {
+						clutter_texture_set_from_rgb_data(CLUTTER_TEXTURE(new_bg),
+										  (guchar *) out_pixels, FALSE,
+										  width, height, width * 2, 2,
+										  CLUTTER_TEXTURE_FLAG_16_BIT, &error);
+					} else {
+						clutter_texture_set_from_rgb_data(CLUTTER_TEXTURE(new_bg),
+										  (guchar *) out_pixels, FALSE,
+										  width, height, width * 2, 2,
+										  CLUTTER_TEXTURE_FLAG_16_BIT,
+										  &error_portrait);
+					}
 
-    set_background_common (self, new_bg);  
-    priv->load_background_source = 0;
-  }
+					g_free(out_pixels);
+				}
+				g_object_unref(pixbuf);
+			}
+		}
 
-  priv->is_portrait = FALSE;
+		if (!i) {
+			if (!new_bg) {
+				g_warning("Error loading cached background image %s. %s",
+					  cached_background_image_file, error ? error->message : "");
+				if (error)
+					g_error_free(error);
+			}
+		} else {
+			if (!new_bg) {
+				g_warning("Error loading cached portrait background image %s. %s",
+					  cached_background_image_file, error_portrait ? error_portrait->message : "");
+				if (error_portrait)
+					g_error_free(error_portrait);
+			}
+		}
 
-  return FALSE;
+		g_free(cached_background_image_file);
+
+		set_background_common(self, new_bg);
+		priv->load_background_source = 0;
+	}
+
+	priv->is_portrait = FALSE;
+
+	return FALSE;
 }
 
 /* Use Window as background, mostly copied from above.
  * 1) client != NULL means setting live-bg for this view.
  * 2) client == NULL means unsetting the live-bg for this view. */
-void
-hd_home_view_set_live_bg (HdHomeView *view,
-                          MBWindowManagerClient *client,
-                          gboolean above_applets)
+void hd_home_view_set_live_bg(HdHomeView * view, MBWindowManagerClient * client, gboolean above_applets)
 {
-  HdHomeViewPrivate *priv = view->priv;
-  ClutterActor *new_bg = 0;
-  MBWMCompMgrClutterClient *cclient;
+	HdHomeViewPrivate *priv = view->priv;
+	ClutterActor *new_bg = 0;
+	MBWMCompMgrClutterClient *cclient;
 
-  if (priv->load_background_source && !above_applets)
-    {
-      /* cancel ongoing background loading job unless we have transparent
-       * live background */
-      g_source_remove (priv->load_background_source);
-      priv->load_background_source = 0;
-    }
+	if (priv->load_background_source && !above_applets) {
+		/* cancel ongoing background loading job unless we have transparent
+		 * live background */
+		g_source_remove(priv->load_background_source);
+		priv->load_background_source = 0;
+	}
 
-  if (client) 
-    {
-      if (priv->live_bg)
-        /* remove the old one */
-        hd_home_view_set_live_bg (view, NULL, FALSE);
+	if (client) {
+		if (priv->live_bg)
+			/* remove the old one */
+			hd_home_view_set_live_bg(view, NULL, FALSE);
 
-      cclient = MB_WM_COMP_MGR_CLUTTER_CLIENT (client->cm_client);
-      new_bg = mb_wm_comp_mgr_clutter_client_get_actor (cclient);
-      clutter_actor_set_reactive (new_bg, FALSE);
-      priv->live_bg = client;
-      /* the actor is already parented to something, so reparent */
-      if (above_applets)
-        clutter_actor_reparent (new_bg, priv->applets_container);
-      else
-        clutter_actor_reparent (new_bg, priv->background_container);
-
-      if (!priv->background && above_applets)
-        /* use normal background below the live-bg */
-        hd_home_view_load_background (view);
-    }
-  else
-    {
-      /* remove it */
-      client = priv->live_bg;
-      if (client)
-        {
-          cclient = MB_WM_COMP_MGR_CLUTTER_CLIENT (client->cm_client);
-          new_bg = mb_wm_comp_mgr_clutter_client_get_actor (cclient);
-          /* it is in either container */
-          clutter_container_remove_actor (
-                CLUTTER_CONTAINER (priv->background_container), new_bg);
-          clutter_container_remove_actor (
-                CLUTTER_CONTAINER (priv->applets_container), new_bg);
-          clutter_actor_hide (new_bg);
-        }
-      priv->live_bg = NULL;
-      /* create black background to replace priv->background */
-      new_bg = priv->background = NULL;
-    }
-
-  if (!client || !above_applets)
-    set_background_common (view, new_bg);
-}
-
-void
-hd_home_view_load_background (HdHomeView *view)
-{
-  HdHomeViewPrivate *priv;
-  gint priority = G_PRIORITY_DEFAULT_IDLE;
-  g_return_if_fail (HD_IS_HOME_VIEW (view));
-
-  priv = view->priv;
-
-  /* Check current home view and increase priority if this is the current one */
-  if (hd_home_view_container_get_current_view (priv->view_container) == priv->id)
-    priority = G_PRIORITY_HIGH_IDLE;
-
-  priv->load_background_source = g_idle_add_full (priority,
-                                                  load_background_idle,
-                                                  view,
-                                                  NULL);
-}
-
-static void
-hd_home_view_set_property (GObject       *object,
-			   guint         prop_id,
-			   const GValue *value,
-			   GParamSpec   *pspec)
-{
-  HdHomeView        *self = HD_HOME_VIEW (object);
-  HdHomeViewPrivate *priv = self->priv;
-
-  switch (prop_id)
-    {
-    case PROP_COMP_MGR:
-      priv->comp_mgr = g_value_get_pointer (value);
-      break;
-    case PROP_HOME:
-      priv->home = g_value_get_pointer (value);
-      break;
-    case PROP_ID:
-      priv->id = g_value_get_int (value);
-      break;
-    case PROP_CONTAINER:
-      priv->view_container = g_value_get_object (value);
-      break;
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-      break;
-    }
-}
-
-static void
-hd_home_view_get_property (GObject      *object,
-			   guint         prop_id,
-			   GValue       *value,
-			   GParamSpec   *pspec)
-{
-  HdHomeView *view = HD_HOME_VIEW (object);
-  HdHomeViewPrivate *priv = view->priv;
-
-  switch (prop_id)
-    {
-    case PROP_COMP_MGR:
-      g_value_set_pointer (value, priv->comp_mgr);
-      break;
-    case PROP_HOME:
-      g_value_set_pointer (value, priv->home);
-      break;
-    case PROP_ID:
-      g_value_set_int (value, priv->id);
-      break;
-    case PROP_ACTIVE:
-      g_value_set_boolean (value, hd_home_view_container_get_active (priv->view_container,
-                                                                     priv->id));
-      break;
-    case PROP_CONTAINER:
-      g_value_set_object (value, priv->view_container);
-      break;
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-      break;
-    }
-}
-
-guint
-hd_home_view_get_view_id (HdHomeView *view)
-{
-  HdHomeViewPrivate *priv = view->priv;
-
-  return priv->id;
-}
-
-static void
-hd_home_view_applet_resize (ClutterActor *applet,
-                            gpointer unused, HdHomeView *view)
-{
-  HdHomeViewAppletData *data;
-
-  if (!(data = g_hash_table_lookup (view->priv->applets, applet)))
-    return;
-  clutter_actor_set_position (data->close_button,
-                         clutter_actor_get_width (applet)
-                         - clutter_actor_get_width (data->close_button),
-                         0);
-  if (data->configure_button)
-    clutter_actor_set_position (data->configure_button, 0,
-                       clutter_actor_get_height (applet)
-                       - clutter_actor_get_height (data->close_button));
-}
-
-static gboolean
-hd_home_view_applet_motion (ClutterActor       *applet,
-			    ClutterMotionEvent *event,
-			    HdHomeView         *view)
-{
-  HdHomeViewPrivate *priv = view->priv;
-  gint x, y;
-  guint w, h;
-
-  /* Check if it is still a tap or already a move */
-  if (priv->applet_motion_tap)
-    {
-      if (ABS (priv->applet_motion_start_x - event->x) > MAX_TAP_DISTANCE ||
-          ABS (priv->applet_motion_start_y - event->y) > MAX_TAP_DISTANCE)
-        priv->applet_motion_tap = FALSE;
-      else
-        return FALSE;
-    }
-
-  hd_home_show_edge_indication (priv->home);
-
-  /* New position of applet actor based on movement */
-  x = priv->applet_motion_start_position_x + event->x - priv->applet_motion_start_x;
-  y = priv->applet_motion_start_position_y + event->y - priv->applet_motion_start_y;
-
-  /* Get size of home view and applet actor */
-  clutter_actor_get_size (applet, &w, &h);
-
-  /* Restrict new applet actor position to allowed values */
-  if (!hd_home_view_container_get_previous_view (HD_HOME_VIEW_CONTAINER (priv->view_container)) ||
-      !hd_home_view_container_get_next_view (HD_HOME_VIEW_CONTAINER (priv->view_container)))
-	{
-		if(!STATE_IS_PORTRAIT (hd_render_manager_get_state()))
-	    x = MAX (MIN (x,
-  	                (gint) HD_COMP_MGR_LANDSCAPE_WIDTH - ((gint) w)),
-  	           0);
+		cclient = MB_WM_COMP_MGR_CLUTTER_CLIENT(client->cm_client);
+		new_bg = mb_wm_comp_mgr_clutter_client_get_actor(cclient);
+		clutter_actor_set_reactive(new_bg, FALSE);
+		priv->live_bg = client;
+		/* the actor is already parented to something, so reparent */
+		if (above_applets)
+			clutter_actor_reparent(new_bg, priv->applets_container);
 		else
-	    x = MAX (MIN (x,
-  	                (gint) HD_COMP_MGR_PORTRAIT_WIDTH - ((gint) w)),
-  	           0);
-	}
-	if(!STATE_IS_PORTRAIT (hd_render_manager_get_state()))
-	  y = MAX (MIN (y,
-  	              (gint) HD_COMP_MGR_LANDSCAPE_HEIGHT - ((gint) h)),
-  	         HD_COMP_MGR_TOP_MARGIN);
-	else
-	  y = MAX (MIN (y,
-  	              (gint) HD_COMP_MGR_PORTRAIT_HEIGHT - ((gint) h)),
-  	         HD_COMP_MGR_TOP_MARGIN);
+			clutter_actor_reparent(new_bg, priv->background_container);
 
-  /* Update applet actor position */
-  clutter_actor_set_position (applet, x, y);
-  if (hd_transition_get_int ("edit_mode",
-                             "snap_to_grid_while_move",
-                             1))
-    snap_widget_to_grid (applet);
-
-  /* Check if this is the only active Home view */
-  if (!hd_home_view_container_get_previous_view (HD_HOME_VIEW_CONTAINER (priv->view_container)) ||
-      !hd_home_view_container_get_next_view (HD_HOME_VIEW_CONTAINER (priv->view_container)))
-    return FALSE;
-
-  /*
-   * If the "drag cursor" entered the left/right indication area, highlight the indication.
-   */
-  priv->move_applet_left = FALSE;
-  priv->move_applet_right = FALSE;
-
-	if(!STATE_IS_PORTRAIT (hd_render_manager_get_state()))
-	{
-    if (event->x < HD_EDGE_INDICATION_WIDTH)
-    	priv->move_applet_left = TRUE;
-   	else if (event->x > HD_COMP_MGR_LANDSCAPE_WIDTH - HD_EDGE_INDICATION_WIDTH)
-    	priv->move_applet_right = TRUE;
-	}
-	else
-	{
-    if(hd_home_get_vertical_scrolling (priv->home))
-      {
-    	  if (event->y < HD_EDGE_INDICATION_WIDTH + HD_COMP_MGR_TOP_MARGIN)
-    	    priv->move_applet_left = TRUE;
-    	  else if (event->y > HD_COMP_MGR_PORTRAIT_HEIGHT - HD_EDGE_INDICATION_WIDTH)
-    	    priv->move_applet_right = TRUE;
-      }
-    else
-      {
-    	  if (event->x < HD_EDGE_INDICATION_WIDTH)
-    	    priv->move_applet_left = TRUE;
-    	  else if (event->x > HD_COMP_MGR_PORTRAIT_WIDTH - HD_EDGE_INDICATION_WIDTH)
-    	    priv->move_applet_right = TRUE;
-      }
+		if (!priv->background && above_applets)
+			/* use normal background below the live-bg */
+			hd_home_view_load_background(view);
+	} else {
+		/* remove it */
+		client = priv->live_bg;
+		if (client) {
+			cclient = MB_WM_COMP_MGR_CLUTTER_CLIENT(client->cm_client);
+			new_bg = mb_wm_comp_mgr_clutter_client_get_actor(cclient);
+			/* it is in either container */
+			clutter_container_remove_actor(CLUTTER_CONTAINER(priv->background_container), new_bg);
+			clutter_container_remove_actor(CLUTTER_CONTAINER(priv->applets_container), new_bg);
+			clutter_actor_hide(new_bg);
+		}
+		priv->live_bg = NULL;
+		/* create black background to replace priv->background */
+		new_bg = priv->background = NULL;
 	}
 
-  hd_home_highlight_edge_indication (priv->home, priv->move_applet_left, priv->move_applet_right);
-
-  return FALSE;
+	if (!client || !above_applets)
+		set_background_common(view, new_bg);
 }
 
-static gboolean
-hd_home_view_applet_press (ClutterActor       *applet,
-			   ClutterButtonEvent *event,
-			   HdHomeView         *view)
+void hd_home_view_load_background(HdHomeView * view)
 {
-  HdHomeViewPrivate *priv = view->priv;
-  gchar *modified_key, *modified;
-  HdHomeApplet *wm_applet;
-  MBWindowManagerClient *desktop_client;
-  HdHomeViewAppletData *data;
-  GError *error = NULL;
+	HdHomeViewPrivate *priv;
+	gint priority = G_PRIORITY_DEFAULT_IDLE;
+	g_return_if_fail(HD_IS_HOME_VIEW(view));
 
-  /* Get all pointer events */
-  clutter_grab_pointer (applet);
+	priv = view->priv;
 
-  desktop_client = hd_comp_mgr_get_desktop_client (HD_COMP_MGR (priv->comp_mgr));
+	/* Check current home view and increase priority if this is the current one */
+	if (hd_home_view_container_get_current_view(priv->view_container) == priv->id)
+		priority = G_PRIORITY_HIGH_IDLE;
 
-  data = g_hash_table_lookup (priv->applets, applet);
+	priv->load_background_source = g_idle_add_full(priority, load_background_idle, view, NULL);
+}
 
-  wm_applet = HD_HOME_APPLET (data->cc->wm_client);
+static void hd_home_view_set_property(GObject * object, guint prop_id, const GValue * value, GParamSpec * pspec)
+{
+	HdHomeView *self = HD_HOME_VIEW(object);
+	HdHomeViewPrivate *priv = self->priv;
 
-  data->motion_cb = g_signal_connect (applet, "motion-event",
-                                      G_CALLBACK (hd_home_view_applet_motion),
-                                      view);
+	switch (prop_id) {
+	case PROP_COMP_MGR:
+		priv->comp_mgr = g_value_get_pointer(value);
+		break;
+	case PROP_HOME:
+		priv->home = g_value_get_pointer(value);
+		break;
+	case PROP_ID:
+		priv->id = g_value_get_int(value);
+		break;
+	case PROP_CONTAINER:
+		priv->view_container = g_value_get_object(value);
+		break;
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
+		break;
+	}
+}
 
-  /* Raise the applet */
-  clutter_actor_raise_top (applet);
+static void hd_home_view_get_property(GObject * object, guint prop_id, GValue * value, GParamSpec * pspec)
+{
+	HdHomeView *view = HD_HOME_VIEW(object);
+	HdHomeViewPrivate *priv = view->priv;
 
-  /* Store the modifed time of the applet */
-  time (&wm_applet->modified);
+	switch (prop_id) {
+	case PROP_COMP_MGR:
+		g_value_set_pointer(value, priv->comp_mgr);
+		break;
+	case PROP_HOME:
+		g_value_set_pointer(value, priv->home);
+		break;
+	case PROP_ID:
+		g_value_set_int(value, priv->id);
+		break;
+	case PROP_ACTIVE:
+		g_value_set_boolean(value, hd_home_view_container_get_active(priv->view_container, priv->id));
+		break;
+	case PROP_CONTAINER:
+		g_value_set_object(value, priv->view_container);
+		break;
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
+		break;
+	}
+}
 
-  modified = g_strdup_printf ("%ld", wm_applet->modified);
+guint hd_home_view_get_view_id(HdHomeView * view)
+{
+	HdHomeViewPrivate *priv = view->priv;
 
-	modified_key = g_strdup_printf (GCONF_KEY_MODIFIED, wm_applet->applet_id);	
+	return priv->id;
+}
 
-  gconf_client_set_string (priv->gconf_client,
-                           modified_key,
-                           modified,
-                           &error);
-  if (G_UNLIKELY (error))
-    {
-      g_warning ("%s. Could not set GConf key/value. %s",
-                 __FUNCTION__,
-                 error->message);
-      g_clear_error (&error);
-    }
-  g_free (modified);
-  g_free (modified_key);
+static void hd_home_view_applet_resize(ClutterActor * applet, gpointer unused, HdHomeView * view)
+{
+	HdHomeViewAppletData *data;
 
-  gconf_client_suggest_sync (priv->gconf_client,
-                             &error);
-  if (G_UNLIKELY (error))
-    {
-      g_warning ("%s. Could not sync GConf. %s",
-                 __FUNCTION__,
-                 error->message);
-      g_clear_error (&error);
-    }
+	if (!(data = g_hash_table_lookup(view->priv->applets, applet)))
+		return;
+	clutter_actor_set_position(data->close_button, clutter_actor_get_width(applet)
+				   - clutter_actor_get_width(data->close_button), 0);
+	if (data->configure_button)
+		clutter_actor_set_position(data->configure_button, 0, clutter_actor_get_height(applet)
+					   - clutter_actor_get_height(data->close_button));
+}
 
+static gboolean hd_home_view_applet_motion(ClutterActor * applet, ClutterMotionEvent * event, HdHomeView * view)
+{
+	HdHomeViewPrivate *priv = view->priv;
+	gint x, y;
+	guint w, h;
 
-  mb_wm_client_stacking_mark_dirty (desktop_client);
+	/* Check if it is still a tap or already a move */
+	if (priv->applet_motion_tap) {
+		if (ABS(priv->applet_motion_start_x - event->x) > MAX_TAP_DISTANCE ||
+		    ABS(priv->applet_motion_start_y - event->y) > MAX_TAP_DISTANCE)
+			priv->applet_motion_tap = FALSE;
+		else
+			return FALSE;
+	}
 
-  priv->applet_motion_start_x = event->x;
-  priv->applet_motion_start_y = event->y;
+	hd_home_show_edge_indication(priv->home);
 
-  clutter_actor_get_position (applet,
-                              &priv->applet_motion_start_position_x,
-                              &priv->applet_motion_start_position_y);
+	/* New position of applet actor based on movement */
+	x = priv->applet_motion_start_position_x + event->x - priv->applet_motion_start_x;
+	y = priv->applet_motion_start_position_y + event->y - priv->applet_motion_start_y;
 
-  priv->applet_motion_tap = TRUE;
+	/* Get size of home view and applet actor */
+	clutter_actor_get_size(applet, &w, &h);
 
-  priv->move_applet_left = FALSE;
-  priv->move_applet_right = FALSE;
+	/* Restrict new applet actor position to allowed values */
+	if (!hd_home_view_container_get_previous_view(HD_HOME_VIEW_CONTAINER(priv->view_container)) ||
+	    !hd_home_view_container_get_next_view(HD_HOME_VIEW_CONTAINER(priv->view_container))) {
+		if (!STATE_IS_PORTRAIT(hd_render_manager_get_state()))
+			x = MAX(MIN(x, (gint) HD_COMP_MGR_LANDSCAPE_WIDTH - ((gint) w)), 0);
+		else
+			x = MAX(MIN(x, (gint) HD_COMP_MGR_PORTRAIT_WIDTH - ((gint) w)), 0);
+	}
+	if (!STATE_IS_PORTRAIT(hd_render_manager_get_state()))
+		y = MAX(MIN(y, (gint) HD_COMP_MGR_LANDSCAPE_HEIGHT - ((gint) h)), HD_COMP_MGR_TOP_MARGIN);
+	else
+		y = MAX(MIN(y, (gint) HD_COMP_MGR_PORTRAIT_HEIGHT - ((gint) h)), HD_COMP_MGR_TOP_MARGIN);
 
-  return FALSE;
+	/* Update applet actor position */
+	clutter_actor_set_position(applet, x, y);
+	if (hd_transition_get_int("edit_mode", "snap_to_grid_while_move", 1))
+		snap_widget_to_grid(applet);
+
+	/* Check if this is the only active Home view */
+	if (!hd_home_view_container_get_previous_view(HD_HOME_VIEW_CONTAINER(priv->view_container)) ||
+	    !hd_home_view_container_get_next_view(HD_HOME_VIEW_CONTAINER(priv->view_container)))
+		return FALSE;
+
+	/*
+	 * If the "drag cursor" entered the left/right indication area, highlight the indication.
+	 */
+	priv->move_applet_left = FALSE;
+	priv->move_applet_right = FALSE;
+
+	if (!STATE_IS_PORTRAIT(hd_render_manager_get_state())) {
+		if (event->x < HD_EDGE_INDICATION_WIDTH)
+			priv->move_applet_left = TRUE;
+		else if (event->x > HD_COMP_MGR_LANDSCAPE_WIDTH - HD_EDGE_INDICATION_WIDTH)
+			priv->move_applet_right = TRUE;
+	} else {
+		if (hd_home_get_vertical_scrolling(priv->home)) {
+			if (event->y < HD_EDGE_INDICATION_WIDTH + HD_COMP_MGR_TOP_MARGIN)
+				priv->move_applet_left = TRUE;
+			else if (event->y > HD_COMP_MGR_PORTRAIT_HEIGHT - HD_EDGE_INDICATION_WIDTH)
+				priv->move_applet_right = TRUE;
+		} else {
+			if (event->x < HD_EDGE_INDICATION_WIDTH)
+				priv->move_applet_left = TRUE;
+			else if (event->x > HD_COMP_MGR_PORTRAIT_WIDTH - HD_EDGE_INDICATION_WIDTH)
+				priv->move_applet_right = TRUE;
+		}
+	}
+
+	hd_home_highlight_edge_indication(priv->home, priv->move_applet_left, priv->move_applet_right);
+
+	return FALSE;
+}
+
+static gboolean hd_home_view_applet_press(ClutterActor * applet, ClutterButtonEvent * event, HdHomeView * view)
+{
+	HdHomeViewPrivate *priv = view->priv;
+	gchar *modified_key, *modified;
+	HdHomeApplet *wm_applet;
+	MBWindowManagerClient *desktop_client;
+	HdHomeViewAppletData *data;
+	GError *error = NULL;
+
+	/* Get all pointer events */
+	clutter_grab_pointer(applet);
+
+	desktop_client = hd_comp_mgr_get_desktop_client(HD_COMP_MGR(priv->comp_mgr));
+
+	data = g_hash_table_lookup(priv->applets, applet);
+
+	wm_applet = HD_HOME_APPLET(data->cc->wm_client);
+
+	data->motion_cb = g_signal_connect(applet, "motion-event", G_CALLBACK(hd_home_view_applet_motion), view);
+
+	/* Raise the applet */
+	clutter_actor_raise_top(applet);
+
+	/* Store the modifed time of the applet */
+	time(&wm_applet->modified);
+
+	modified = g_strdup_printf("%ld", wm_applet->modified);
+
+	modified_key = g_strdup_printf(GCONF_KEY_MODIFIED, wm_applet->applet_id);
+
+	gconf_client_set_string(priv->gconf_client, modified_key, modified, &error);
+	if (G_UNLIKELY(error)) {
+		g_warning("%s. Could not set GConf key/value. %s", __FUNCTION__, error->message);
+		g_clear_error(&error);
+	}
+	g_free(modified);
+	g_free(modified_key);
+
+	gconf_client_suggest_sync(priv->gconf_client, &error);
+	if (G_UNLIKELY(error)) {
+		g_warning("%s. Could not sync GConf. %s", __FUNCTION__, error->message);
+		g_clear_error(&error);
+	}
+
+	mb_wm_client_stacking_mark_dirty(desktop_client);
+
+	priv->applet_motion_start_x = event->x;
+	priv->applet_motion_start_y = event->y;
+
+	clutter_actor_get_position(applet,
+				   &priv->applet_motion_start_position_x, &priv->applet_motion_start_position_y);
+
+	priv->applet_motion_tap = TRUE;
+
+	priv->move_applet_left = FALSE;
+	priv->move_applet_right = FALSE;
+
+	return FALSE;
 }
 
 #define SNAP_GRID_SIZE_DEFAULT 4
 
-static gint
-snap_coordinate_to_grid (gint coordinate)
+static gint snap_coordinate_to_grid(gint coordinate)
 {
-  gint snap_grid_size, offset;
- 
-  snap_grid_size  = hd_transition_get_int ("edit_mode",
-                                           "snap_grid_size",
-                                           SNAP_GRID_SIZE_DEFAULT);
+	gint snap_grid_size, offset;
 
-  /* Avoid hildon-desktop crash, when snap_grid_size == 0 */
-  if(snap_grid_size < 1)
-    snap_grid_size = SNAP_GRID_SIZE_DEFAULT;
+	snap_grid_size = hd_transition_get_int("edit_mode", "snap_grid_size", SNAP_GRID_SIZE_DEFAULT);
 
-  offset = coordinate % snap_grid_size;
+	/* Avoid hildon-desktop crash, when snap_grid_size == 0 */
+	if (snap_grid_size < 1)
+		snap_grid_size = SNAP_GRID_SIZE_DEFAULT;
 
-  if (offset > snap_grid_size / 2)
-    return coordinate - offset + snap_grid_size;
-  else
-    return coordinate - offset;
-}
+	offset = coordinate % snap_grid_size;
 
-static void
-snap_widget_to_grid (ClutterActor *widget)
-{
-  ClutterGeometry c_geom;
-
-  /* Get applet size and position */
-  clutter_actor_get_geometry (widget, &c_geom);
-
-  c_geom.x = snap_coordinate_to_grid (c_geom.x);
-  c_geom.y = snap_coordinate_to_grid (c_geom.y);
-
-  clutter_actor_set_position (widget, c_geom.x, c_geom.y);
-}
-
-static void
-hd_home_view_store_applet_position (HdHomeView   *view,
-                                    ClutterActor *applet,
-                                    gint          old_x,
-                                    gint          old_y)
-{
-  HdHomeViewPrivate *priv = view->priv;
-  HdHomeViewAppletData *data;
-  ClutterGeometry c_geom;
-  MBGeometry mb_geom;
-
-  data = g_hash_table_lookup (priv->applets, applet);
-
-  snap_widget_to_grid (applet);
-
-  /* Get applet size and position */
-  clutter_actor_get_geometry (applet, &c_geom);
-
-  /* Move into allowed area */
-	if(!STATE_IS_PORTRAIT (hd_render_manager_get_state()))
-	{
- 		c_geom.x = MAX (MIN (c_geom.x,
-  	                    (gint) HD_COMP_MGR_LANDSCAPE_WIDTH - ((gint) c_geom.width)),
-                  	0);
-  	c_geom.y = MAX (MIN (c_geom.y,
-                       	(gint) HD_COMP_MGR_LANDSCAPE_HEIGHT - ((gint) c_geom.height)),
-                  	HD_COMP_MGR_TOP_MARGIN);
-	}
+	if (offset > snap_grid_size / 2)
+		return coordinate - offset + snap_grid_size;
 	else
-	{
-  	c_geom.x = MAX (MIN (c_geom.x,
-                       	(gint) HD_COMP_MGR_PORTRAIT_WIDTH - ((gint) c_geom.width)),
-                  	0);
-  	c_geom.y = MAX (MIN (c_geom.y,
-                       	(gint) HD_COMP_MGR_PORTRAIT_HEIGHT - ((gint) c_geom.height)),
-                  	HD_COMP_MGR_TOP_MARGIN);
-	}
-
-  clutter_actor_set_position (applet, c_geom.x, c_geom.y);
-
-  /* Move the underlying window to match the actor's position */
-  mb_geom.x = c_geom.x;
-  mb_geom.y = c_geom.y;
-  mb_geom.width = c_geom.width;
-  mb_geom.height = c_geom.height;
-
-  mb_wm_client_request_geometry (data->cc->wm_client,
-                                 &mb_geom,
-                                 MBWMClientReqGeomIsViaUserAction);
-
-  if (old_x != c_geom.x ||
-      old_y != c_geom.y)
-    {
-      const gchar *applet_id;
-      gchar *position_key;
-      GSList *position_value;
-      GError *error = NULL;
-
-      applet_id = HD_HOME_APPLET (data->cc->wm_client)->applet_id;
-
-			if(!STATE_IS_PORTRAIT (hd_render_manager_get_state()))
-			{
-	      position_key = g_strdup_printf (GCONF_KEY_POSITION, applet_id);
-			}
-			else
-			{
-				position_key = g_strdup_printf (GCONF_KEY_POSITION_PORTRAIT, applet_id);
-			}
-
-      position_value = g_slist_prepend (g_slist_prepend (NULL,
-                                                         GINT_TO_POINTER (c_geom.y)),
-                                        GINT_TO_POINTER (c_geom.x));
-      gconf_client_set_list (priv->gconf_client,
-                             position_key,
-                             GCONF_VALUE_INT,
-                             position_value,
-                             &error);
-      if (G_UNLIKELY (error))
-        {
-          g_warning ("Could not store new applet position for applet %s to GConf. %s",
-                     applet_id,
-                     error->message);
-          g_clear_error (&error);
-        }
-
-      gconf_client_suggest_sync (priv->gconf_client,
-                                 &error);
-      if (G_UNLIKELY (error))
-        {
-          g_warning ("%s. Could not sync GConf. %s",
-                     __FUNCTION__,
-                     error->message);
-          g_clear_error (&error);
-        }
-
-      g_free (position_key);
-      g_slist_free (position_value);
-    }
+		return coordinate - offset;
 }
 
-static gboolean
-hd_home_view_applet_release (ClutterActor       *applet,
-			     ClutterButtonEvent *event,
-			     HdHomeView         *view)
+static void snap_widget_to_grid(ClutterActor * widget)
 {
-  HdHomeViewPrivate *priv = view->priv;
-  HdHomeViewAppletData *data;
+	ClutterGeometry c_geom;
+
+	/* Get applet size and position */
+	clutter_actor_get_geometry(widget, &c_geom);
+
+	c_geom.x = snap_coordinate_to_grid(c_geom.x);
+	c_geom.y = snap_coordinate_to_grid(c_geom.y);
+
+	clutter_actor_set_position(widget, c_geom.x, c_geom.y);
+}
+
+static void hd_home_view_store_applet_position(HdHomeView * view, ClutterActor * applet, gint old_x, gint old_y)
+{
+	HdHomeViewPrivate *priv = view->priv;
+	HdHomeViewAppletData *data;
+	ClutterGeometry c_geom;
+	MBGeometry mb_geom;
+
+	data = g_hash_table_lookup(priv->applets, applet);
+
+	snap_widget_to_grid(applet);
+
+	/* Get applet size and position */
+	clutter_actor_get_geometry(applet, &c_geom);
+
+	/* Move into allowed area */
+	if (!STATE_IS_PORTRAIT(hd_render_manager_get_state())) {
+		c_geom.x = MAX(MIN(c_geom.x, (gint) HD_COMP_MGR_LANDSCAPE_WIDTH - ((gint) c_geom.width)), 0);
+		c_geom.y = MAX(MIN(c_geom.y,
+				   (gint) HD_COMP_MGR_LANDSCAPE_HEIGHT - ((gint) c_geom.height)),
+			       HD_COMP_MGR_TOP_MARGIN);
+	} else {
+		c_geom.x = MAX(MIN(c_geom.x, (gint) HD_COMP_MGR_PORTRAIT_WIDTH - ((gint) c_geom.width)), 0);
+		c_geom.y = MAX(MIN(c_geom.y,
+				   (gint) HD_COMP_MGR_PORTRAIT_HEIGHT - ((gint) c_geom.height)),
+			       HD_COMP_MGR_TOP_MARGIN);
+	}
+
+	clutter_actor_set_position(applet, c_geom.x, c_geom.y);
+
+	/* Move the underlying window to match the actor's position */
+	mb_geom.x = c_geom.x;
+	mb_geom.y = c_geom.y;
+	mb_geom.width = c_geom.width;
+	mb_geom.height = c_geom.height;
+
+	mb_wm_client_request_geometry(data->cc->wm_client, &mb_geom, MBWMClientReqGeomIsViaUserAction);
+
+	if (old_x != c_geom.x || old_y != c_geom.y) {
+		const gchar *applet_id;
+		gchar *position_key;
+		GSList *position_value;
+		GError *error = NULL;
+
+		applet_id = HD_HOME_APPLET(data->cc->wm_client)->applet_id;
+
+		if (!STATE_IS_PORTRAIT(hd_render_manager_get_state())) {
+			position_key = g_strdup_printf(GCONF_KEY_POSITION, applet_id);
+		} else {
+			position_key = g_strdup_printf(GCONF_KEY_POSITION_PORTRAIT, applet_id);
+		}
+
+		position_value = g_slist_prepend(g_slist_prepend(NULL,
+								 GINT_TO_POINTER(c_geom.y)), GINT_TO_POINTER(c_geom.x));
+		gconf_client_set_list(priv->gconf_client, position_key, GCONF_VALUE_INT, position_value, &error);
+		if (G_UNLIKELY(error)) {
+			g_warning("Could not store new applet position for applet %s to GConf. %s",
+				  applet_id, error->message);
+			g_clear_error(&error);
+		}
+
+		gconf_client_suggest_sync(priv->gconf_client, &error);
+		if (G_UNLIKELY(error)) {
+			g_warning("%s. Could not sync GConf. %s", __FUNCTION__, error->message);
+			g_clear_error(&error);
+		}
+
+		g_free(position_key);
+		g_slist_free(position_value);
+	}
+}
+
+static gboolean hd_home_view_applet_release(ClutterActor * applet, ClutterButtonEvent * event, HdHomeView * view)
+{
+	HdHomeViewPrivate *priv = view->priv;
+	HdHomeViewAppletData *data;
 
 /*  g_debug ("%s: %d, %d", __FUNCTION__, event->x, event->y); */
 
-  /* Get all pointer events */
-  clutter_ungrab_pointer ();
+	/* Get all pointer events */
+	clutter_ungrab_pointer();
 
-  data = g_hash_table_lookup (priv->applets, applet);
+	data = g_hash_table_lookup(priv->applets, applet);
 
-  if (data->motion_cb)
-    {
-      g_signal_handler_disconnect (applet, data->motion_cb);
-      data->motion_cb = 0;
-    }
+	if (data->motion_cb) {
+		g_signal_handler_disconnect(applet, data->motion_cb);
+		data->motion_cb = 0;
+	}
 
-  /*
-   * If this was a simple press/release, with no intervening pointer motion,
-   * emit the applet-clicked signal.
-   */
-  if (!priv->applet_motion_tap)
-    {
-      /* Hide switching edges */
-      hd_home_hide_edge_indication (priv->home);
+	/*
+	 * If this was a simple press/release, with no intervening pointer motion,
+	 * emit the applet-clicked signal.
+	 */
+	if (!priv->applet_motion_tap) {
+		/* Hide switching edges */
+		hd_home_hide_edge_indication(priv->home);
 
-      if (priv->move_applet_left || priv->move_applet_right)
-        {
-          /* Applet should be moved to another view */
-          ClutterActor *new_view;
+		if (priv->move_applet_left || priv->move_applet_right) {
+			/* Applet should be moved to another view */
+			ClutterActor *new_view;
 
-          if (priv->move_applet_left)
-            new_view = hd_home_view_container_get_previous_view (
-                            HD_HOME_VIEW_CONTAINER (priv->view_container));
-          else
-            new_view = hd_home_view_container_get_next_view (
-                            HD_HOME_VIEW_CONTAINER (priv->view_container));
+			if (priv->move_applet_left)
+				new_view =
+				    hd_home_view_container_get_previous_view(HD_HOME_VIEW_CONTAINER
+									     (priv->view_container));
+			else
+				new_view =
+				    hd_home_view_container_get_next_view(HD_HOME_VIEW_CONTAINER(priv->view_container));
 
-          if (new_view)
-            hd_home_view_move_applet (view, HD_HOME_VIEW (new_view), applet);
-          else
-            g_warning ("%s: new_view is NULL", __func__);
+			if (new_view)
+				hd_home_view_move_applet(view, HD_HOME_VIEW(new_view), applet);
+			else
+				g_warning("%s: new_view is NULL", __func__);
 
-          if (priv->move_applet_left)
-            hd_home_view_container_scroll_to_previous (
-                            HD_HOME_VIEW_CONTAINER (priv->view_container), 0);
-          else
-            hd_home_view_container_scroll_to_next (
-                            HD_HOME_VIEW_CONTAINER (priv->view_container), 0);
-        }
-      else
-        {
-          /*
-           * Applet should be moved in this view
-           * Move the underlying window to match the actor's position
-           */
-          hd_home_view_store_applet_position (view,
-                                              applet,
-                                              -1,
-                                              -1);
-          hd_home_view_layout_reset (priv->layout);
-        }
-    }
+			if (priv->move_applet_left)
+				hd_home_view_container_scroll_to_previous(HD_HOME_VIEW_CONTAINER(priv->view_container),
+									  0);
+			else
+				hd_home_view_container_scroll_to_next(HD_HOME_VIEW_CONTAINER(priv->view_container), 0);
+		} else {
+			/*
+			 * Applet should be moved in this view
+			 * Move the underlying window to match the actor's position
+			 */
+			hd_home_view_store_applet_position(view, applet, -1, -1);
+			hd_home_view_layout_reset(priv->layout);
+		}
+	}
 
-  return TRUE;
+	return TRUE;
 }
 
-static gint
-cmp_applet_modified (gconstpointer a,
-                     gconstpointer b)
+static gint cmp_applet_modified(gconstpointer a, gconstpointer b)
 {
-  const MBWMCompMgrClient *cc_a = a;
-  const MBWMCompMgrClient *cc_b = b;
+	const MBWMCompMgrClient *cc_a = a;
+	const MBWMCompMgrClient *cc_b = b;
 
-  return HD_HOME_APPLET (cc_a->wm_client)->modified
-          - HD_HOME_APPLET (cc_b->wm_client)->modified;
+	return HD_HOME_APPLET(cc_a->wm_client)->modified - HD_HOME_APPLET(cc_b->wm_client)->modified;
 }
 
 /* Return the list of CompMgrClients of the applets this homeview
  * manages sorted by their last modification time.   It's up to you
  * to free the list. */
-GSList *
-hd_home_view_get_all_applets (HdHomeView *view)
+GSList *hd_home_view_get_all_applets(HdHomeView * view)
 {
-  HdHomeViewPrivate *priv = view->priv;
-  GSList *sorted;
-  GHashTableIter iter;
-  gpointer tmp;
+	HdHomeViewPrivate *priv = view->priv;
+	GSList *sorted;
+	GHashTableIter iter;
+	gpointer tmp;
 
-  /* Get a list of all applets sorted by modified time */
-  sorted = NULL;
-  g_hash_table_iter_init (&iter, priv->applets);
-  while (g_hash_table_iter_next (&iter, NULL, &tmp))
-  {
-    HdHomeViewAppletData *value = tmp;
-    sorted = g_slist_insert_sorted (sorted, value->cc, cmp_applet_modified);
-  }
-  return sorted;
-}
-
-static void
-hd_home_view_restack_applets (HdHomeView *view)
-{
-  GSList *sorted = NULL, *s;
-
-  /* Get a list of all applets sorted by modified time
-   * and raise them in the order of the list. */
-  sorted = hd_home_view_get_all_applets (view);
-  for (s = sorted; s; s = s->next)
-    {
-      MBWMCompMgrClutterClient *cc = s->data;
-      ClutterActor *actor = mb_wm_comp_mgr_clutter_client_get_actor (cc);
-
-      clutter_actor_raise_top (actor);
-    }
-  g_slist_free (sorted);
-}
-
-static void
-hd_home_view_load_applet_position (HdHomeView           *view,
-                                   ClutterActor         *applet,
-                                   HdHomeViewAppletData *data,
-                                   gboolean              force_arrange,
-                                   gint                 *old_x,
-                                   gint                 *old_y)
-{
-  HdHomeViewPrivate *priv = view->priv;
-  const gchar *applet_id;
-  gchar *position_key;
-  GSList *position;
-
-  applet_id = HD_HOME_APPLET (data->cc->wm_client)->applet_id;
-	
-	if(!STATE_IS_PORTRAIT (hd_render_manager_get_state())){
-	  position_key = g_strdup_printf (GCONF_KEY_POSITION, applet_id);
+	/* Get a list of all applets sorted by modified time */
+	sorted = NULL;
+	g_hash_table_iter_init(&iter, priv->applets);
+	while (g_hash_table_iter_next(&iter, NULL, &tmp)) {
+		HdHomeViewAppletData *value = tmp;
+		sorted = g_slist_insert_sorted(sorted, value->cc, cmp_applet_modified);
 	}
-	else
-	{
-		position_key = g_strdup_printf (GCONF_KEY_POSITION_PORTRAIT, applet_id);
+	return sorted;
+}
+
+static void hd_home_view_restack_applets(HdHomeView * view)
+{
+	GSList *sorted = NULL, *s;
+
+	/* Get a list of all applets sorted by modified time
+	 * and raise them in the order of the list. */
+	sorted = hd_home_view_get_all_applets(view);
+	for (s = sorted; s; s = s->next) {
+		MBWMCompMgrClutterClient *cc = s->data;
+		ClutterActor *actor = mb_wm_comp_mgr_clutter_client_get_actor(cc);
+
+		clutter_actor_raise_top(actor);
+	}
+	g_slist_free(sorted);
+}
+
+static void
+hd_home_view_load_applet_position(HdHomeView * view,
+				  ClutterActor * applet,
+				  HdHomeViewAppletData * data, gboolean force_arrange, gint * old_x, gint * old_y)
+{
+	HdHomeViewPrivate *priv = view->priv;
+	const gchar *applet_id;
+	gchar *position_key;
+	GSList *position;
+
+	applet_id = HD_HOME_APPLET(data->cc->wm_client)->applet_id;
+
+	if (!STATE_IS_PORTRAIT(hd_render_manager_get_state())) {
+		position_key = g_strdup_printf(GCONF_KEY_POSITION, applet_id);
+	} else {
+		position_key = g_strdup_printf(GCONF_KEY_POSITION_PORTRAIT, applet_id);
 	}
 
-  position = gconf_client_get_list (priv->gconf_client,
-                                    position_key,
-                                    GCONF_VALUE_INT,
-                                    NULL);
+	position = gconf_client_get_list(priv->gconf_client, position_key, GCONF_VALUE_INT, NULL);
 
-  if (!force_arrange && position && position->next)
-    {
-      clutter_actor_set_position (applet,
-                                  GPOINTER_TO_INT (position->data),
-                                  GPOINTER_TO_INT (position->next->data));
+	if (!force_arrange && position && position->next) {
+		clutter_actor_set_position(applet,
+					   GPOINTER_TO_INT(position->data), GPOINTER_TO_INT(position->next->data));
 
-      if (old_x)
-        *old_x = GPOINTER_TO_INT (position->data);
+		if (old_x)
+			*old_x = GPOINTER_TO_INT(position->data);
 
-      if (old_y)
-        *old_y = GPOINTER_TO_INT (position->next->data);
+		if (old_y)
+			*old_y = GPOINTER_TO_INT(position->next->data);
 
-      hd_home_view_layout_reset (priv->layout);
-    }
-  else
-    {
-      GSList *applets = NULL;
-      GHashTableIter iter;
-      gpointer tmp;
+		hd_home_view_layout_reset(priv->layout);
+	} else {
+		GSList *applets = NULL;
+		GHashTableIter iter;
+		gpointer tmp;
 
-      /* Get a list of all applets */
-      g_hash_table_iter_init (&iter, priv->applets);
-      while (g_hash_table_iter_next (&iter, NULL, &tmp))
-        {
-          HdHomeViewAppletData *value = tmp;
-          applets = g_slist_prepend (applets, value->actor);
-        }
+		/* Get a list of all applets */
+		g_hash_table_iter_init(&iter, priv->applets);
+		while (g_hash_table_iter_next(&iter, NULL, &tmp)) {
+			HdHomeViewAppletData *value = tmp;
+			applets = g_slist_prepend(applets, value->actor);
+		}
 
-      hd_home_view_layout_arrange_applet (priv->layout,
-                                          applets,
-                                          applet);
+		hd_home_view_layout_arrange_applet(priv->layout, applets, applet);
 
-      g_slist_free (applets);
-    }
+		g_slist_free(applets);
+	}
 
-  g_free (position_key);
-  g_slist_free (position);
+	g_free(position_key);
+	g_slist_free(position);
 }
 
-static void
-close_applet (HdHomeView *view, HdHomeViewAppletData *data)
+static void close_applet(HdHomeView * view, HdHomeViewAppletData * data)
 {
-  HdHomeViewPrivate *priv = view->priv;
-  const gchar *applet_id;
-  gchar *applet_key;
+	HdHomeViewPrivate *priv = view->priv;
+	const gchar *applet_id;
+	gchar *applet_key;
 
-  /* Hide clutter actor */
-  clutter_actor_hide (data->actor);
+	/* Hide clutter actor */
+	clutter_actor_hide(data->actor);
 
-  /* Unset GConf configuration */
-  applet_id = HD_HOME_APPLET (data->cc->wm_client)->applet_id;
+	/* Unset GConf configuration */
+	applet_id = HD_HOME_APPLET(data->cc->wm_client)->applet_id;
 
-  applet_key = g_strdup_printf ("/apps/osso/hildon-desktop/applets/%s", applet_id);
-  gconf_client_recursive_unset (priv->gconf_client, applet_key, 0, NULL);
-  g_free (applet_key);
+	applet_key = g_strdup_printf("/apps/osso/hildon-desktop/applets/%s", applet_id);
+	gconf_client_recursive_unset(priv->gconf_client, applet_key, 0, NULL);
+	g_free(applet_key);
 
-  mb_wm_client_deliver_delete (data->cc->wm_client);
+	mb_wm_client_deliver_delete(data->cc->wm_client);
 }
 
-static gboolean
-close_button_pressed (ClutterActor       *button,
-                     ClutterButtonEvent *event,
-                     HdHomeView         *view)
+static gboolean close_button_pressed(ClutterActor * button, ClutterButtonEvent * event, HdHomeView * view)
 {
-  HdHomeViewPrivate *priv = view->priv;
+	HdHomeViewPrivate *priv = view->priv;
 
-  priv->applet_motion_start_x = event->x;
-  priv->applet_motion_start_y = event->y;
+	priv->applet_motion_start_x = event->x;
+	priv->applet_motion_start_y = event->y;
 
-  return TRUE;
+	return TRUE;
 }
 
-static gboolean
-close_button_released (ClutterActor       *button,
-                       ClutterButtonEvent *event,
-                       HdHomeView         *view)
+static gboolean close_button_released(ClutterActor * button, ClutterButtonEvent * event, HdHomeView * view)
 {
-  HdHomeViewPrivate *priv = view->priv;
-  ClutterActor *applet;
-  HdHomeViewAppletData *data;
+	HdHomeViewPrivate *priv = view->priv;
+	ClutterActor *applet;
+	HdHomeViewAppletData *data;
 
-  if (ABS (priv->applet_motion_start_x - event->x) > MAX_TAP_DISTANCE ||
-      ABS (priv->applet_motion_start_y - event->y) > MAX_TAP_DISTANCE)
-    return TRUE;
+	if (ABS(priv->applet_motion_start_x - event->x) > MAX_TAP_DISTANCE ||
+	    ABS(priv->applet_motion_start_y - event->y) > MAX_TAP_DISTANCE)
+		return TRUE;
 
-  applet = clutter_actor_get_parent (button);
+	applet = clutter_actor_get_parent(button);
 
-  data = g_hash_table_lookup (priv->applets, applet);
+	data = g_hash_table_lookup(priv->applets, applet);
 
-  close_applet (view, data);
+	close_applet(view, data);
 
-  return TRUE;
+	return TRUE;
 }
 
-static gboolean
-configure_button_clicked (ClutterActor       *button,
-                          ClutterButtonEvent *event,
-                          HdHomeView         *view)
+static gboolean configure_button_clicked(ClutterActor * button, ClutterButtonEvent * event, HdHomeView * view)
 {
-  HdHomeViewPrivate *priv = view->priv;
-  ClutterActor *applet;
-  HdHomeViewAppletData *data;
-  HdHomeApplet *wm_applet;
+	HdHomeViewPrivate *priv = view->priv;
+	ClutterActor *applet;
+	HdHomeViewAppletData *data;
+	HdHomeApplet *wm_applet;
 
-  applet = clutter_actor_get_parent (button);
+	applet = clutter_actor_get_parent(button);
 
-  data = g_hash_table_lookup (priv->applets, applet);
+	data = g_hash_table_lookup(priv->applets, applet);
 
-  wm_applet = HD_HOME_APPLET (data->cc->wm_client);
+	wm_applet = HD_HOME_APPLET(data->cc->wm_client);
 
-  if (wm_applet->settings)
-    {
-      HdCompMgr *hmgr = HD_COMP_MGR (priv->comp_mgr);
+	if (wm_applet->settings) {
+		HdCompMgr *hmgr = HD_COMP_MGR(priv->comp_mgr);
 
-      mb_wm_client_deliver_message (data->cc->wm_client,
-                                    hd_comp_mgr_get_atom (hmgr, HD_ATOM_HILDON_APPLET_SHOW_SETTINGS),
-                                    0, 0, 0, 0, 0);
-    }
+		mb_wm_client_deliver_message(data->cc->wm_client,
+					     hd_comp_mgr_get_atom(hmgr, HD_ATOM_HILDON_APPLET_SHOW_SETTINGS),
+					     0, 0, 0, 0, 0);
+	}
 
-  return TRUE;
+	return TRUE;
 }
 
-void
-hd_home_view_add_applet (HdHomeView   *view,
-                         ClutterActor *applet,
-                         gboolean      force_arrange)
+void hd_home_view_add_applet(HdHomeView * view, ClutterActor * applet, gboolean force_arrange)
 {
-  HdHomeViewPrivate *priv = view->priv;
-  HdHomeViewAppletData *data;
-  ClutterActor *close_button;
-  MBWindowManagerClient *desktop;
-  gint old_x = -1, old_y = -1;
+	HdHomeViewPrivate *priv = view->priv;
+	HdHomeViewAppletData *data;
+	ClutterActor *close_button;
+	MBWindowManagerClient *desktop;
+	gint old_x = -1, old_y = -1;
 
-  /*
-   * Reparent the applet to ourselves; note that this automatically
-   * gets us the correct position within the view.
-   */
-  clutter_actor_reparent (applet, priv->applets_container);
-  clutter_actor_set_reactive (applet, TRUE);
+	/*
+	 * Reparent the applet to ourselves; note that this automatically
+	 * gets us the correct position within the view.
+	 */
+	clutter_actor_reparent(applet, priv->applets_container);
+	clutter_actor_set_reactive(applet, TRUE);
 
-  data = applet_data_new (applet);
+	data = applet_data_new(applet);
 
-  /* Add close button */
-  close_button = hd_clutter_cache_get_texture ("AppletCloseButton.png", TRUE);
-  clutter_container_add_actor (CLUTTER_CONTAINER (applet), close_button);
+	/* Add close button */
+	close_button = hd_clutter_cache_get_texture("AppletCloseButton.png", TRUE);
+	clutter_container_add_actor(CLUTTER_CONTAINER(applet), close_button);
 
-  clutter_actor_set_reactive (close_button, TRUE);
-  clutter_actor_raise_top (close_button);
-  if (!STATE_IN_EDIT_MODE (hd_render_manager_get_state ()))
-    clutter_actor_hide (close_button);
-  g_signal_connect (close_button, "button-press-event",
-                    G_CALLBACK (close_button_pressed), view);
-  g_signal_connect (close_button, "button-release-event",
-                    G_CALLBACK (close_button_released), view);
-  data->close_button = close_button;
+	clutter_actor_set_reactive(close_button, TRUE);
+	clutter_actor_raise_top(close_button);
+	if (!STATE_IN_EDIT_MODE(hd_render_manager_get_state()))
+		clutter_actor_hide(close_button);
+	g_signal_connect(close_button, "button-press-event", G_CALLBACK(close_button_pressed), view);
+	g_signal_connect(close_button, "button-release-event", G_CALLBACK(close_button_released), view);
+	data->close_button = close_button;
 
-  /* Add configure button */
-  if (HD_HOME_APPLET (data->cc->wm_client)->settings)
-    {
-      ClutterActor *configure_button;
+	/* Add configure button */
+	if (HD_HOME_APPLET(data->cc->wm_client)->settings) {
+		ClutterActor *configure_button;
 
-      configure_button = hd_clutter_cache_get_texture ("AppletConfigureButton.png", TRUE);
-      clutter_container_add_actor (CLUTTER_CONTAINER (applet), configure_button);
+		configure_button = hd_clutter_cache_get_texture("AppletConfigureButton.png", TRUE);
+		clutter_container_add_actor(CLUTTER_CONTAINER(applet), configure_button);
 
-      clutter_actor_set_reactive (configure_button, TRUE);
-      clutter_actor_raise_top (configure_button);
-      if (!STATE_IN_EDIT_MODE (hd_render_manager_get_state ()))
-        clutter_actor_hide (configure_button);
-      g_signal_connect (configure_button, "button-press-event",
-                        G_CALLBACK (configure_button_clicked), view);
-      data->configure_button = configure_button;
-    }
+		clutter_actor_set_reactive(configure_button, TRUE);
+		clutter_actor_raise_top(configure_button);
+		if (!STATE_IN_EDIT_MODE(hd_render_manager_get_state()))
+			clutter_actor_hide(configure_button);
+		g_signal_connect(configure_button, "button-press-event", G_CALLBACK(configure_button_clicked), view);
+		data->configure_button = configure_button;
+	}
 
-  data->release_cb = g_signal_connect (applet, "button-release-event",
-                                       G_CALLBACK (hd_home_view_applet_release), view);
-  data->press_cb = g_signal_connect (applet, "button-press-event",
-                                     G_CALLBACK (hd_home_view_applet_press), view);
+	data->release_cb = g_signal_connect(applet, "button-release-event",
+					    G_CALLBACK(hd_home_view_applet_release), view);
+	data->press_cb = g_signal_connect(applet, "button-press-event", G_CALLBACK(hd_home_view_applet_press), view);
 
-  data->resize_cb = g_signal_connect (applet, "notify::allocation",
-                                      G_CALLBACK (hd_home_view_applet_resize), view);
+	data->resize_cb = g_signal_connect(applet, "notify::allocation", G_CALLBACK(hd_home_view_applet_resize), view);
 
-  g_object_set_data (G_OBJECT (applet), "HD-HomeView", view);
+	g_object_set_data(G_OBJECT(applet), "HD-HomeView", view);
 
-  hd_home_view_load_applet_position (view,
-                                     applet,
-                                     data,
-                                     force_arrange,
-                                     &old_x,
-                                     &old_y);
+	hd_home_view_load_applet_position(view, applet, data, force_arrange, &old_x, &old_y);
 
-  g_hash_table_insert (priv->applets,
-                       applet,
-                       data);
+	g_hash_table_insert(priv->applets, applet, data);
 
-  hd_home_view_store_applet_position (view,
-                                      applet,
-                                      old_x,
-                                      old_y);
-  hd_home_view_applet_resize (applet, NULL, view);
+	hd_home_view_store_applet_position(view, applet, old_x, old_y);
+	hd_home_view_applet_resize(applet, NULL, view);
 
-  desktop = hd_comp_mgr_get_desktop_client (HD_COMP_MGR (priv->comp_mgr));
-  if (desktop)
-    { /* Synchronize here, we may not come from clutter_x11_event_filter()
-       * at all. */
-      mb_wm_client_stacking_mark_dirty (desktop);
-      mb_wm_sync (MB_WM_COMP_MGR (priv->comp_mgr)->wm);
-    }
-  hd_home_view_restack_applets (view);
+	desktop = hd_comp_mgr_get_desktop_client(HD_COMP_MGR(priv->comp_mgr));
+	if (desktop) {		/* Synchronize here, we may not come from clutter_x11_event_filter()
+				 * at all. */
+		mb_wm_client_stacking_mark_dirty(desktop);
+		mb_wm_sync(MB_WM_COMP_MGR(priv->comp_mgr)->wm);
+	}
+	hd_home_view_restack_applets(view);
 }
 
-void
-hd_home_view_change_applets_position (HdHomeView *view)
+void hd_home_view_change_applets_position(HdHomeView * view)
 {
-  HdHomeViewPrivate *priv;
-  GHashTableIter iter;
-  gpointer value, key;
+	HdHomeViewPrivate *priv;
+	GHashTableIter iter;
+	gpointer value, key;
 	gint x, y;
 
-  g_return_if_fail (HD_IS_HOME_VIEW (view));
+	g_return_if_fail(HD_IS_HOME_VIEW(view));
 
-  priv = view->priv;
+	priv = view->priv;
 
-  /* Iterate over all applets */
-  g_hash_table_iter_init (&iter, priv->applets);
+	/* Iterate over all applets */
+	g_hash_table_iter_init(&iter, priv->applets);
 
-  while (g_hash_table_iter_next (&iter, &key, &value))
-    {
-			x = -1;
-			y = -1;
- 		  hd_home_view_load_applet_position (view,
-		                                     (ClutterActor *) key,
-		                                     (HdHomeViewAppletData *) value,
-		                                     FALSE,
-		                                     &x,
-		                                     &y);
+	while (g_hash_table_iter_next(&iter, &key, &value)) {
+		x = -1;
+		y = -1;
+		hd_home_view_load_applet_position(view,
+						  (ClutterActor *) key, (HdHomeViewAppletData *) value, FALSE, &x, &y);
 
-		  hd_home_view_store_applet_position (view,
-		                                      (ClutterActor *) key,
-		                                      x,
-		                                      y);			
-    }
- }
-
-void
-hd_home_view_unregister_applet (HdHomeView *view, ClutterActor *applet)
-{
-  HdHomeViewPrivate *priv = view->priv;
-
-  g_hash_table_remove (priv->applets, applet);
-
-  hd_home_view_layout_reset (priv->layout);
+		hd_home_view_store_applet_position(view, (ClutterActor *) key, x, y);
+	}
 }
 
-void
-hd_home_view_move_applet (HdHomeView   *view,
-			  HdHomeView   *new_view,
-			  ClutterActor *applet)
+void hd_home_view_unregister_applet(HdHomeView * view, ClutterActor * applet)
 {
-  HdHomeViewPrivate *priv = view->priv;
-  HdHomeViewAppletData *data;
-  HdHomeApplet *wm_applet;
-  gchar *position_key, *view_key;
-  GError *error = NULL;
-  MBWindowManagerClient *desktop_client;
+	HdHomeViewPrivate *priv = view->priv;
 
-  data = g_hash_table_lookup (priv->applets, applet);
+	g_hash_table_remove(priv->applets, applet);
 
-  /* Update view for WM window */
-  wm_applet = HD_HOME_APPLET (data->cc->wm_client);
-  wm_applet->view_id = hd_home_view_get_view_id (new_view);
+	hd_home_view_layout_reset(priv->layout);
+}
 
-  /* Reset position in GConf*/
-	if(!STATE_IS_PORTRAIT (hd_render_manager_get_state()))
-	  position_key = g_strdup_printf (GCONF_KEY_POSITION, wm_applet->applet_id);
+void hd_home_view_move_applet(HdHomeView * view, HdHomeView * new_view, ClutterActor * applet)
+{
+	HdHomeViewPrivate *priv = view->priv;
+	HdHomeViewAppletData *data;
+	HdHomeApplet *wm_applet;
+	gchar *position_key, *view_key;
+	GError *error = NULL;
+	MBWindowManagerClient *desktop_client;
+
+	data = g_hash_table_lookup(priv->applets, applet);
+
+	/* Update view for WM window */
+	wm_applet = HD_HOME_APPLET(data->cc->wm_client);
+	wm_applet->view_id = hd_home_view_get_view_id(new_view);
+
+	/* Reset position in GConf */
+	if (!STATE_IS_PORTRAIT(hd_render_manager_get_state()))
+		position_key = g_strdup_printf(GCONF_KEY_POSITION, wm_applet->applet_id);
 	else
-		position_key = g_strdup_printf (GCONF_KEY_POSITION_PORTRAIT, wm_applet->applet_id);
+		position_key = g_strdup_printf(GCONF_KEY_POSITION_PORTRAIT, wm_applet->applet_id);
 
-  gconf_client_unset (priv->gconf_client, position_key, &error);
-  if (G_UNLIKELY (error))
-    {
-      g_warning ("Could not unset GConf key %s. %s", position_key, error->message);
-      error = (g_error_free (error), NULL);
-    }
-  g_free (position_key);
+	gconf_client_unset(priv->gconf_client, position_key, &error);
+	if (G_UNLIKELY(error)) {
+		g_warning("Could not unset GConf key %s. %s", position_key, error->message);
+		error = (g_error_free(error), NULL);
+	}
+	g_free(position_key);
 
-  /* Update view in GConf */
-	view_key = g_strdup_printf (GCONF_KEY_VIEW, wm_applet->applet_id);
+	/* Update view in GConf */
+	view_key = g_strdup_printf(GCONF_KEY_VIEW, wm_applet->applet_id);
 
-  gconf_client_set_int (priv->gconf_client,
-                        view_key,
-                        wm_applet->view_id + 1,
-                        &error);
-  if (G_UNLIKELY (error))
-    {
-      g_warning ("%s. Could not set GConf key/value. %s",
-                 __FUNCTION__,
-                 error->message);
-      g_clear_error (&error);
-    }
-  g_free (view_key);
+	gconf_client_set_int(priv->gconf_client, view_key, wm_applet->view_id + 1, &error);
+	if (G_UNLIKELY(error)) {
+		g_warning("%s. Could not set GConf key/value. %s", __FUNCTION__, error->message);
+		g_clear_error(&error);
+	}
+	g_free(view_key);
 
-  gconf_client_suggest_sync (priv->gconf_client,
-                             &error);
-  if (G_UNLIKELY (error))
-    {
-      g_warning ("%s. Could not sync GConf. %s",
-                 __FUNCTION__,
-                 error->message);
-      g_clear_error (&error);
-    }
+	gconf_client_suggest_sync(priv->gconf_client, &error);
+	if (G_UNLIKELY(error)) {
+		g_warning("%s. Could not sync GConf. %s", __FUNCTION__, error->message);
+		g_clear_error(&error);
+	}
 
-  /* Unregister from old view */
-  hd_home_view_unregister_applet (view, applet);
+	/* Unregister from old view */
+	hd_home_view_unregister_applet(view, applet);
 
-  /* Add applet to the new view */
-  hd_home_view_add_applet (new_view, applet, TRUE);
+	/* Add applet to the new view */
+	hd_home_view_add_applet(new_view, applet, TRUE);
 
-  /* Mark desktop for restacking (because the wm window was moved) */
-  desktop_client = hd_comp_mgr_get_desktop_client (HD_COMP_MGR (priv->comp_mgr));
-  mb_wm_client_stacking_mark_dirty (desktop_client);
+	/* Mark desktop for restacking (because the wm window was moved) */
+	desktop_client = hd_comp_mgr_get_desktop_client(HD_COMP_MGR(priv->comp_mgr));
+	mb_wm_client_stacking_mark_dirty(desktop_client);
 }
 
-MBWindowManagerClient *
-hd_home_view_get_live_bg (HdHomeView *view)
+MBWindowManagerClient *hd_home_view_get_live_bg(HdHomeView * view)
 {
-  HdHomeViewPrivate *priv = view->priv;
+	HdHomeViewPrivate *priv = view->priv;
 
-  return priv->live_bg;
+	return priv->live_bg;
 }
 
-gboolean
-hd_home_view_get_active (HdHomeView *view)
+gboolean hd_home_view_get_active(HdHomeView * view)
 {
-  g_return_val_if_fail (HD_IS_HOME_VIEW (view), FALSE);
+	g_return_val_if_fail(HD_IS_HOME_VIEW(view), FALSE);
 
-  return hd_home_view_container_get_active (view->priv->view_container,
-                                            view->priv->id);
+	return hd_home_view_container_get_active(view->priv->view_container, view->priv->id);
 }
 
-void
-hd_home_view_close_all_applets (HdHomeView *view)
+void hd_home_view_close_all_applets(HdHomeView * view)
 {
-  HdHomeViewPrivate *priv;
-  GHashTableIter iter;
-  gpointer value;
+	HdHomeViewPrivate *priv;
+	GHashTableIter iter;
+	gpointer value;
 
-  g_return_if_fail (HD_IS_HOME_VIEW (view));
+	g_return_if_fail(HD_IS_HOME_VIEW(view));
 
-  priv = view->priv;
+	priv = view->priv;
 
-  /* Iterate over all applets */
-  g_hash_table_iter_init (&iter, priv->applets);
-  while (g_hash_table_iter_next (&iter, NULL, &value))
-    {
-      close_applet (view, (HdHomeViewAppletData *) value);
-    }
- }
-
-void
-hd_home_view_update_state (HdHomeView *view)
-{
-  HdHomeViewPrivate *priv;
-  GHashTableIter iter;
-  gpointer value;
-
-  g_return_if_fail (HD_IS_HOME_VIEW (view));
-
-  priv = view->priv;
-
-  /* Iterate over all applets */
-  g_hash_table_iter_init (&iter, priv->applets);
-  while (g_hash_table_iter_next (&iter, NULL, &value))
-    {
-      HdHomeViewAppletData *data = value;
-
-      if (STATE_IN_EDIT_MODE (hd_render_manager_get_state ()))
-        {
-          if (data->close_button)
-            clutter_actor_show (data->close_button);
-          if (data->configure_button)
-            clutter_actor_show (data->configure_button);
-        }
-      else
-        {
-          if (data->close_button)
-            clutter_actor_hide (data->close_button);
-          if (data->configure_button)
-            clutter_actor_hide (data->configure_button);
-        }
-    }
+	/* Iterate over all applets */
+	g_hash_table_iter_init(&iter, priv->applets);
+	while (g_hash_table_iter_next(&iter, NULL, &value)) {
+		close_applet(view, (HdHomeViewAppletData *) value);
+	}
 }
 
-static HdHomeViewAppletData *
-applet_data_new (ClutterActor *actor)
+void hd_home_view_update_state(HdHomeView * view)
 {
-  HdHomeViewAppletData *data;
+	HdHomeViewPrivate *priv;
+	GHashTableIter iter;
+	gpointer value;
 
-  data = g_slice_new0 (HdHomeViewAppletData);
+	g_return_if_fail(HD_IS_HOME_VIEW(view));
 
-  data->actor = actor;
-  data->cc = g_object_get_data (G_OBJECT (actor), "HD-MBWMCompMgrClutterClient");
+	priv = view->priv;
 
-  return data;
+	/* Iterate over all applets */
+	g_hash_table_iter_init(&iter, priv->applets);
+	while (g_hash_table_iter_next(&iter, NULL, &value)) {
+		HdHomeViewAppletData *data = value;
+
+		if (STATE_IN_EDIT_MODE(hd_render_manager_get_state())) {
+			if (data->close_button)
+				clutter_actor_show(data->close_button);
+			if (data->configure_button)
+				clutter_actor_show(data->configure_button);
+		} else {
+			if (data->close_button)
+				clutter_actor_hide(data->close_button);
+			if (data->configure_button)
+				clutter_actor_hide(data->configure_button);
+		}
+	}
 }
 
-static void
-applet_data_free (HdHomeViewAppletData *data)
+static HdHomeViewAppletData *applet_data_new(ClutterActor * actor)
 {
-  if (G_UNLIKELY (!data))
-    return;
+	HdHomeViewAppletData *data;
 
-  if (data->press_cb)
-    data->press_cb = (g_signal_handler_disconnect (data->actor, data->press_cb), 0);
-  if (data->release_cb)
-    data->release_cb = (g_signal_handler_disconnect (data->actor, data->release_cb), 0);
-  if (data->resize_cb)
-    data->resize_cb = (g_signal_handler_disconnect (data->actor, data->resize_cb), 0);
-  if (data->motion_cb)
-    data->motion_cb = (g_signal_handler_disconnect (data->actor, data->motion_cb), 0);
+	data = g_slice_new0(HdHomeViewAppletData);
 
-  data->actor = NULL;
-  data->cc = NULL;
+	data->actor = actor;
+	data->cc = g_object_get_data(G_OBJECT(actor), "HD-MBWMCompMgrClutterClient");
 
-  if (data->close_button)
-    data->close_button = (clutter_actor_destroy (data->close_button), NULL);
-  if (data->configure_button)
-    data->configure_button = (clutter_actor_destroy (data->configure_button), NULL);
-
-  g_slice_free (HdHomeViewAppletData, data);
+	return data;
 }
 
-
-static void
-hd_home_view_allocation_changed (HdHomeView    *view,
-                               GParamSpec *pspec,
-                               gpointer    user_data)
+static void applet_data_free(HdHomeViewAppletData * data)
 {
-  HdHomeViewPrivate *priv = view->priv;
-  ClutterGeometry geom;
+	if (G_UNLIKELY(!data))
+		return;
 
-  /* We need to update the position of the applets container,
-   * as it is not a child of ours. Rather than just setting
-   * the X and Y to that of ourselves, we'll modify the offset
-   * so that panning of the applets is non-linear relative to
-   * the background. */
-  clutter_actor_get_allocation_geometry (CLUTTER_ACTOR(view), &geom);
+	if (data->press_cb)
+		data->press_cb = (g_signal_handler_disconnect(data->actor, data->press_cb), 0);
+	if (data->release_cb)
+		data->release_cb = (g_signal_handler_disconnect(data->actor, data->release_cb), 0);
+	if (data->resize_cb)
+		data->resize_cb = (g_signal_handler_disconnect(data->actor, data->resize_cb), 0);
+	if (data->motion_cb)
+		data->motion_cb = (g_signal_handler_disconnect(data->actor, data->motion_cb), 0);
 
-  /* For scrolling either way from the home position, make the applets
-   * move faster than the background to produce the parallax effect. */
-  if( STATE_IS_PORTRAIT(hd_render_manager_get_state ())
-      && hd_home_get_vertical_scrolling(priv->home))
-    {
-      if (geom.y > -HD_COMP_MGR_LANDSCAPE_WIDTH && geom.y < 0)
-        {
-          geom.y = (int)(geom.y * HD_HOME_VIEW_PARALLAX_AMOUNT);
-          if (geom.y < -HD_COMP_MGR_LANDSCAPE_WIDTH)
-            geom.y = -HD_COMP_MGR_LANDSCAPE_WIDTH;
-        }
-      if (geom.y < HD_COMP_MGR_LANDSCAPE_WIDTH && geom.y > 0)
-        {
-          geom.y = (int)(geom.y * HD_HOME_VIEW_PARALLAX_AMOUNT);
-          if (geom.y > HD_COMP_MGR_LANDSCAPE_WIDTH)
-            geom.y = HD_COMP_MGR_LANDSCAPE_WIDTH;
-        }
-    }
-  else
-    {
-      if (geom.x > -HD_COMP_MGR_LANDSCAPE_WIDTH && geom.x < 0)
-        {
-          geom.x = (int)(geom.x * HD_HOME_VIEW_PARALLAX_AMOUNT);
-          if (geom.x < -HD_COMP_MGR_LANDSCAPE_WIDTH)
-            geom.x = -HD_COMP_MGR_LANDSCAPE_WIDTH;
-        }
-      if (geom.x < HD_COMP_MGR_LANDSCAPE_WIDTH && geom.x > 0)
-        {
-          geom.x = (int)(geom.x * HD_HOME_VIEW_PARALLAX_AMOUNT);
-          if (geom.x > HD_COMP_MGR_LANDSCAPE_WIDTH)
-            geom.x = HD_COMP_MGR_LANDSCAPE_WIDTH;
-        }
-    }
+	data->actor = NULL;
+	data->cc = NULL;
 
-  clutter_actor_set_position(priv->applets_container, geom.x, geom.y);
+	if (data->close_button)
+		data->close_button = (clutter_actor_destroy(data->close_button), NULL);
+	if (data->configure_button)
+		data->configure_button = (clutter_actor_destroy(data->configure_button), NULL);
+
+	g_slice_free(HdHomeViewAppletData, data);
+}
+
+static void hd_home_view_allocation_changed(HdHomeView * view, GParamSpec * pspec, gpointer user_data)
+{
+	HdHomeViewPrivate *priv = view->priv;
+	ClutterGeometry geom;
+
+	/* We need to update the position of the applets container,
+	 * as it is not a child of ours. Rather than just setting
+	 * the X and Y to that of ourselves, we'll modify the offset
+	 * so that panning of the applets is non-linear relative to
+	 * the background. */
+	clutter_actor_get_allocation_geometry(CLUTTER_ACTOR(view), &geom);
+
+	/* For scrolling either way from the home position, make the applets
+	 * move faster than the background to produce the parallax effect. */
+	if (STATE_IS_PORTRAIT(hd_render_manager_get_state())
+	    && hd_home_get_vertical_scrolling(priv->home)) {
+		if (geom.y > -HD_COMP_MGR_LANDSCAPE_WIDTH && geom.y < 0) {
+			geom.y = (int)(geom.y * HD_HOME_VIEW_PARALLAX_AMOUNT);
+			if (geom.y < -HD_COMP_MGR_LANDSCAPE_WIDTH)
+				geom.y = -HD_COMP_MGR_LANDSCAPE_WIDTH;
+		}
+		if (geom.y < HD_COMP_MGR_LANDSCAPE_WIDTH && geom.y > 0) {
+			geom.y = (int)(geom.y * HD_HOME_VIEW_PARALLAX_AMOUNT);
+			if (geom.y > HD_COMP_MGR_LANDSCAPE_WIDTH)
+				geom.y = HD_COMP_MGR_LANDSCAPE_WIDTH;
+		}
+	} else {
+		if (geom.x > -HD_COMP_MGR_LANDSCAPE_WIDTH && geom.x < 0) {
+			geom.x = (int)(geom.x * HD_HOME_VIEW_PARALLAX_AMOUNT);
+			if (geom.x < -HD_COMP_MGR_LANDSCAPE_WIDTH)
+				geom.x = -HD_COMP_MGR_LANDSCAPE_WIDTH;
+		}
+		if (geom.x < HD_COMP_MGR_LANDSCAPE_WIDTH && geom.x > 0) {
+			geom.x = (int)(geom.x * HD_HOME_VIEW_PARALLAX_AMOUNT);
+			if (geom.x > HD_COMP_MGR_LANDSCAPE_WIDTH)
+				geom.x = HD_COMP_MGR_LANDSCAPE_WIDTH;
+		}
+	}
+
+	clutter_actor_set_position(priv->applets_container, geom.x, geom.y);
 }
 
 /* ClutterStage::notify::allocation handler to rotate a background
  * container when we're going to or coming from portrait mode. */
-static void
-hd_home_view_rotate_background(ClutterActor *actor, GParamSpec *unused,
-                               ClutterActor *stage)
+static void hd_home_view_rotate_background(ClutterActor * actor, GParamSpec * unused, ClutterActor * stage)
 {
-  guint w, h;
+	guint w, h;
 
-  clutter_actor_get_size (stage, &w, &h);
-  if (w < h)
-    { /* -> portrait */
-      clutter_actor_set_anchor_point_from_gravity (actor,
-                                                   CLUTTER_GRAVITY_SOUTH_WEST);
-      clutter_actor_set_rotation (actor, CLUTTER_Z_AXIS, 90, 0, 0, 0);
-    }
-  else
-    { /* -> landscape */
-     clutter_actor_set_anchor_point_from_gravity (actor,
-                                                   CLUTTER_GRAVITY_NORTH_WEST);
-      clutter_actor_set_rotation (actor, CLUTTER_Z_AXIS, 0, 0, 0, 0);
-    }
-  clutter_actor_set_size(actor, w, h);
+	clutter_actor_get_size(stage, &w, &h);
+	if (w < h) {		/* -> portrait */
+		clutter_actor_set_anchor_point_from_gravity(actor, CLUTTER_GRAVITY_SOUTH_WEST);
+		clutter_actor_set_rotation(actor, CLUTTER_Z_AXIS, 90, 0, 0, 0);
+	} else {		/* -> landscape */
+		clutter_actor_set_anchor_point_from_gravity(actor, CLUTTER_GRAVITY_NORTH_WEST);
+		clutter_actor_set_rotation(actor, CLUTTER_Z_AXIS, 0, 0, 0, 0);
+	}
+	clutter_actor_set_size(actor, w, h);
 }
 
-static void
-hd_home_view_resize_applets_container(ClutterActor *actor, GParamSpec *unused,
-                               ClutterActor *stage)
+static void hd_home_view_resize_applets_container(ClutterActor * actor, GParamSpec * unused, ClutterActor * stage)
 {
 
-  clutter_actor_set_size(actor,
-                         hd_comp_mgr_get_current_screen_width (),
-                         hd_comp_mgr_get_current_screen_height ());
+	clutter_actor_set_size(actor, hd_comp_mgr_get_current_screen_width(), hd_comp_mgr_get_current_screen_height());
 }
 
-void
-hd_home_view_change_wallpaper(HdHomeView *view)
+void hd_home_view_change_wallpaper(HdHomeView * view)
 {
-  HdHomeViewPrivate *priv = view->priv;
-  TidySubTexture *new_bg_sub = 0;
-  ClutterActor *new_bg;
+	HdHomeViewPrivate *priv = view->priv;
+	TidySubTexture *new_bg_sub = 0;
+	ClutterActor *new_bg;
 
-  if(priv->background_temp_portrait == NULL ||
-      priv->background_temp == NULL)
-      return;
+	if (priv->background_temp_portrait == NULL || priv->background_temp == NULL)
+		return;
 
+	if (STATE_IS_PORTRAIT(hd_render_manager_get_state())) {
+		new_bg = priv->background_temp_portrait;
+		new_bg_sub = priv->background_sub_temp_portrait;
+	} else {
+		new_bg = priv->background_temp;
+		new_bg_sub = priv->background_sub_temp;
+	}
 
-  if(STATE_IS_PORTRAIT(hd_render_manager_get_state ()))
-    {
-      new_bg = priv->background_temp_portrait;
-      new_bg_sub = priv->background_sub_temp_portrait;
-    }
-  else
-    {
-      new_bg = priv->background_temp;
-      new_bg_sub = priv->background_sub_temp;
-    }
+	clutter_actor_set_name(new_bg, "HdHomeView::background");
 
-  clutter_actor_set_name (new_bg, "HdHomeView::background");
+	g_object_ref(priv->background);
+	g_object_ref(priv->background_sub);
 
-  g_object_ref(priv->background);
-  g_object_ref(priv->background_sub);
+	/* Remove old background and add new to the background container */
+	clutter_container_remove_actor(CLUTTER_CONTAINER(priv->background_container), priv->background);
+	if (priv->background_sub)
+		clutter_container_remove_actor(CLUTTER_CONTAINER(priv->background_container),
+					       CLUTTER_ACTOR(priv->background_sub));
 
-  /* Remove old background and add new to the background container */
-  clutter_container_remove_actor (
-              CLUTTER_CONTAINER (priv->background_container),
-              priv->background);
-  if (priv->background_sub)
-    clutter_container_remove_actor (
-                CLUTTER_CONTAINER (priv->background_container),
-                CLUTTER_ACTOR(priv->background_sub));
+	clutter_container_add_actor(CLUTTER_CONTAINER(priv->background_container), new_bg);
+	if (new_bg_sub)
+		clutter_container_add_actor(CLUTTER_CONTAINER(priv->background_container), CLUTTER_ACTOR(new_bg_sub));
 
-  clutter_container_add_actor (
-              CLUTTER_CONTAINER (priv->background_container),
-              new_bg);
-  if (new_bg_sub)
-    clutter_container_add_actor (
-                CLUTTER_CONTAINER (priv->background_container),
-                CLUTTER_ACTOR(new_bg_sub));
+	/* Only update blur if we're currently active */
+	if (hd_home_view_container_get_current_view(priv->view_container) == priv->id)
+		hd_render_manager_blurred_changed();
 
-  /* Only update blur if we're currently active */
-  if (hd_home_view_container_get_current_view(priv->view_container) == priv->id)
-    hd_render_manager_blurred_changed();
-
-  priv->background = new_bg;
-  priv->background_sub = new_bg_sub;
+	priv->background = new_bg;
+	priv->background_sub = new_bg_sub;
 }

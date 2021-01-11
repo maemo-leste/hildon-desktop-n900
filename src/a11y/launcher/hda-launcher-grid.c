@@ -38,78 +38,63 @@
 #define HDA_LAUNCHER_GRID_DEFAULT_NAME "Launcher Grid"
 
 /* GObject */
-static void
-hda_launcher_grid_class_init                    (HdaLauncherGridClass *klass);
+static void hda_launcher_grid_class_init(HdaLauncherGridClass * klass);
 
-static void
-hda_launcher_grid_init                          (HdaLauncherGrid *root);
+static void hda_launcher_grid_init(HdaLauncherGrid * root);
 
 /* AtkObject.h */
 
-static void
-hda_launcher_grid_initialize                    (AtkObject *obj,
-                                                 gpointer data);
-static const gchar *
-hda_launcher_grid_get_name                      (AtkObject *obj);
+static void hda_launcher_grid_initialize(AtkObject * obj, gpointer data);
+static const gchar *hda_launcher_grid_get_name(AtkObject * obj);
 
-
-G_DEFINE_TYPE (HdaLauncherGrid, hda_launcher_grid,  CAIL_TYPE_ACTOR)
-
-static void
-hda_launcher_grid_class_init                            (HdaLauncherGridClass *klass)
+G_DEFINE_TYPE(HdaLauncherGrid, hda_launcher_grid, CAIL_TYPE_ACTOR)
+static void hda_launcher_grid_class_init(HdaLauncherGridClass * klass)
 {
 /*   GObjectClass *gobject_class = G_OBJECT_CLASS (klass); */
-  AtkObjectClass *class = ATK_OBJECT_CLASS (klass);
+	AtkObjectClass *class = ATK_OBJECT_CLASS(klass);
 
-  /* AtkObject */
-  class->initialize = hda_launcher_grid_initialize;
-  class->get_name   = hda_launcher_grid_get_name;
+	/* AtkObject */
+	class->initialize = hda_launcher_grid_initialize;
+	class->get_name = hda_launcher_grid_get_name;
 }
 
-static void
-hda_launcher_grid_init                          (HdaLauncherGrid *grid)
+static void hda_launcher_grid_init(HdaLauncherGrid * grid)
 {
-  /* nothing required */
+	/* nothing required */
 }
 
-
-AtkObject*
-hda_launcher_grid_new                           (ClutterActor *grid)
+AtkObject *hda_launcher_grid_new(ClutterActor * grid)
 {
-  GObject   *object     = NULL;
-  AtkObject *accessible = NULL;
+	GObject *object = NULL;
+	AtkObject *accessible = NULL;
 
-  object = g_object_new (HDA_TYPE_LAUNCHER_GRID, NULL);
+	object = g_object_new(HDA_TYPE_LAUNCHER_GRID, NULL);
 
-  accessible = ATK_OBJECT (object);
-  atk_object_initialize (accessible, grid);
+	accessible = ATK_OBJECT(object);
+	atk_object_initialize(accessible, grid);
 
-  return accessible;
+	return accessible;
 }
 
 /* AtkObject */
 
-static void
-hda_launcher_grid_initialize                    (AtkObject   *obj,
-                                                 gpointer    data)
+static void hda_launcher_grid_initialize(AtkObject * obj, gpointer data)
 {
-  ATK_OBJECT_CLASS (hda_launcher_grid_parent_class)->initialize (obj, data);
+	ATK_OBJECT_CLASS(hda_launcher_grid_parent_class)->initialize(obj, data);
 
-  obj->role = ATK_ROLE_FILLER;
+	obj->role = ATK_ROLE_FILLER;
 }
 
-static const gchar *
-hda_launcher_grid_get_name                      (AtkObject *obj)
+static const gchar *hda_launcher_grid_get_name(AtkObject * obj)
 {
-  const gchar *name = NULL;
+	const gchar *name = NULL;
 
-  g_return_val_if_fail (HDA_IS_LAUNCHER_GRID (obj), NULL);
+	g_return_val_if_fail(HDA_IS_LAUNCHER_GRID(obj), NULL);
 
-  name = ATK_OBJECT_CLASS (hda_launcher_grid_parent_class)->get_name (obj);
-  if (name == NULL)
-    {
-      name = HDA_LAUNCHER_GRID_DEFAULT_NAME;
-    }
+	name = ATK_OBJECT_CLASS(hda_launcher_grid_parent_class)->get_name(obj);
+	if (name == NULL) {
+		name = HDA_LAUNCHER_GRID_DEFAULT_NAME;
+	}
 
-  return name;
+	return name;
 }

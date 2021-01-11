@@ -24,17 +24,12 @@
 #include <glib.h>
 
 G_BEGIN_DECLS
-
 #define I_(str)         (g_intern_static_string ((str)))
-
 #define TIDY_PARAM_READABLE     \
         (G_PARAM_READABLE |     \
          G_PARAM_STATIC_NICK | G_PARAM_STATIC_NAME | G_PARAM_STATIC_BLURB)
-
 #define TIDY_PARAM_READWRITE    \
         (G_PARAM_READABLE | G_PARAM_WRITABLE | \
          G_PARAM_STATIC_NICK | G_PARAM_STATIC_NAME | G_PARAM_STATIC_BLURB)
-
-G_END_DECLS
-
-#endif /* __TIDY_PRIVATE_H__ */
+    G_END_DECLS
+#endif				/* __TIDY_PRIVATE_H__ */

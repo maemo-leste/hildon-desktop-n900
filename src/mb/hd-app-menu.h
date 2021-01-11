@@ -27,7 +27,7 @@
 #include <matchbox/core/mb-wm.h>
 #include <matchbox/client-types/mb-wm-client-menu.h>
 
-typedef struct HdAppMenu      HdAppMenu;
+typedef struct HdAppMenu HdAppMenu;
 typedef struct HdAppMenuClass HdAppMenuClass;
 
 #define HD_APP_MENU(c) ((HdAppMenu*)(c))
@@ -35,21 +35,18 @@ typedef struct HdAppMenuClass HdAppMenuClass;
 #define HD_TYPE_APP_MENU (hd_app_menu_class_type ())
 #define HD_IS_APP_MENU(c) (MB_WM_OBJECT_TYPE(c)==HD_TYPE_APP_MENU)
 
-struct HdAppMenu
-{
-  MBWMClientMenu  parent;
+struct HdAppMenu {
+	MBWMClientMenu parent;
 
-  unsigned long   release_cb_id;
+	unsigned long release_cb_id;
 };
 
-struct HdAppMenuClass
-{
-  MBWMClientMenuClass parent;
+struct HdAppMenuClass {
+	MBWMClientMenuClass parent;
 };
 
-MBWindowManagerClient* hd_app_menu_new (MBWindowManager *wm,
-					MBWMClientWindow *win);
+MBWindowManagerClient *hd_app_menu_new(MBWindowManager * wm, MBWMClientWindow * win);
 
-int hd_app_menu_class_type (void);
+int hd_app_menu_class_type(void);
 
 #endif

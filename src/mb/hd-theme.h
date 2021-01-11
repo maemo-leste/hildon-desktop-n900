@@ -52,11 +52,11 @@
 #define HD_THEME_IMG_SEPARATOR "wmSeparator.png"
 
 #define HD_THEME_IMG_MENU_INDICATOR "wmMenuIndicator.png"
-#define HD_THEME_IMG_MENU_INDICATOR_SIZE 48 /* width/height of indicator */
+#define HD_THEME_IMG_MENU_INDICATOR_SIZE 48	/* width/height of indicator */
 #define HD_THEME_IMG_PROGRESS "wmProgressIndicator.png"
-#define HD_THEME_IMG_PROGRESS_SIZE 48 /* width/height of frame */
-#define HD_THEME_IMG_PROGRESS_FRAMES 8 /*frames in animation */
-#define HD_THEME_IMG_PROGRESS_FPS 5 /*frames per second */
+#define HD_THEME_IMG_PROGRESS_SIZE 48	/* width/height of frame */
+#define HD_THEME_IMG_PROGRESS_FRAMES 8	/*frames in animation */
+#define HD_THEME_IMG_PROGRESS_FPS 5	/*frames per second */
 
 #define HD_THEME_IMG_CLOSING_PARTICLE "wmWhiteSparkle.png"
 /* sparkle when app closes */
@@ -68,14 +68,13 @@
 
 /* ------------------------------------------------------------------------- */
 
-typedef struct HdThemeClass   HdThemeClass;
-typedef struct HdTheme        HdTheme;
+typedef struct HdThemeClass HdThemeClass;
+typedef struct HdTheme HdTheme;
 typedef struct HdThemePrivate HdThemePrivate;
 
-typedef enum _HdThemeButtomType
-{
-  HdHomeThemeButtonBack = MBWMDecorButtonHelp + 1,
-}HdThemeButtonType;
+typedef enum _HdThemeButtomType {
+	HdHomeThemeButtonBack = MBWMDecorButtonHelp + 1,
+} HdThemeButtonType;
 
 #define HD_THEME(c)       ((HdTheme*)(c))
 #define HD_THEME_CLASS(c) ((HdThemeClass*)(c))
@@ -83,44 +82,40 @@ typedef enum _HdThemeButtomType
 #define HD_THEME_BUTTON_TYPE(t) \
                           ((HdThemeButtonType)(t))
 
-struct HdThemeClass
-{
-  MBWMThemeClass    parent;
+struct HdThemeClass {
+	MBWMThemeClass parent;
 
 };
 
-struct HdTheme
-{
-  MBWMTheme     parent;
+struct HdTheme {
+	MBWMTheme parent;
 };
 
-int hd_theme_class_type (void);
+int hd_theme_class_type(void);
 
-MBWMTheme * hd_theme_alloc_func (int theme_type, ...);
+MBWMTheme *hd_theme_alloc_func(int theme_type, ...);
 
 /* This is a simple test theme that implements the features of
  * of the real theme engine, but is based on the simple, rather than
  * png them.
  */
-typedef struct HdThemeSimpleClass   HdThemeSimpleClass;
-typedef struct HdThemeSimple        HdThemeSimple;
+typedef struct HdThemeSimpleClass HdThemeSimpleClass;
+typedef struct HdThemeSimple HdThemeSimple;
 typedef struct HdThemeSimplePrivate HdThemeSimplePrivate;
 
 #define HD_THEME_SIMPLE(c)       ((HdThemeSimple*)(c))
 #define HD_THEME_SIMPLE_CLASS(c) ((HdThemeSimpleClass*)(c))
 #define HD_TYPE_THEME_SIMPLE     (hd_theme_simple_class_type ())
 
-struct HdThemeSimpleClass
-{
-  MBWMThemeClass    parent;
+struct HdThemeSimpleClass {
+	MBWMThemeClass parent;
 
 };
 
-struct HdThemeSimple
-{
-  MBWMTheme     parent;
+struct HdThemeSimple {
+	MBWMTheme parent;
 };
 
-int hd_theme_simple_class_type (void);
+int hd_theme_simple_class_type(void);
 
 #endif

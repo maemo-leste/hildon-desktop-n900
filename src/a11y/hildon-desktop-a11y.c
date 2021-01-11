@@ -29,113 +29,97 @@
 #define ENV_VAR      "ENABLE_HILDON_DESKTOP_A11Y"
 #define VALUE_STRING "TRUE"
 
-static gboolean
-_a11y_invoke_module                    (const gchar  *libname,
-                                        gboolean      init);
-static char *
-_a11y_create_accessibility_module_name (const gchar *libname);
+static gboolean _a11y_invoke_module(const gchar * libname, gboolean init);
+static char *_a11y_create_accessibility_module_name(const gchar * libname);
 
-static gboolean
-_should_enable_a11y                    ();
+static gboolean _should_enable_a11y();
 
-static gboolean
-_a11y_invoke_module (const gchar  *libname,
-                     gboolean      init)
+static gboolean _a11y_invoke_module(const gchar * libname, gboolean init)
 {
-  GModule    *handle;
-  void      (*invoke_fn) (void);
-  const char *method;
-  gboolean    retval = FALSE;
-  gchar      *module_name;
+	GModule *handle;
+	void (*invoke_fn)(void);
+	const char *method;
+	gboolean retval = FALSE;
+	gchar *module_name;
 
-  if (init)
-    method = "gnome_accessibility_module_init";
-  else
-    method = "gnome_accessibility_module_shutdown";
+	if (init)
+		method = "gnome_accessibility_module_init";
+	else
+		method = "gnome_accessibility_module_shutdown";
 
-  module_name = _a11y_create_accessibility_module_name (libname);
+	module_name = _a11y_create_accessibility_module_name(libname);
 
-  if (!module_name) {
-    g_warning ("Accessibility: failed to find module '%s' which "
-               "is needed to make this application accessible",
-               libname);
+	if (!module_name) {
+		g_warning("Accessibility: failed to find module '%s' which "
+			  "is needed to make this application accessible", libname);
 
-  } else if (!(handle = g_module_open (module_name, G_MODULE_BIND_LAZY))) {
-    g_warning ("Accessibility: failed to load module '%s': '%s'",
-               libname, g_module_error ());
+	} else if (!(handle = g_module_open(module_name, G_MODULE_BIND_LAZY))) {
+		g_warning("Accessibility: failed to load module '%s': '%s'", libname, g_module_error());
 
-  } else if (!g_module_symbol (handle, method, (gpointer *)&invoke_fn)) {
-    g_warning ("Accessibility: error library '%s' does not include "
-               "method '%s' required for accessibility support",
-               libname, method);
-    g_module_close (handle);
+	} else if (!g_module_symbol(handle, method, (gpointer *) & invoke_fn)) {
+		g_warning("Accessibility: error library '%s' does not include "
+			  "method '%s' required for accessibility support", libname, method);
+		g_module_close(handle);
 
-  } else {
-    g_debug ("Module %s loaded successfully", libname);
-    retval = TRUE;
-    invoke_fn ();
-  }
+	} else {
+		g_debug("Module %s loaded successfully", libname);
+		retval = TRUE;
+		invoke_fn();
+	}
 
-  g_free (module_name);
+	g_free(module_name);
 
-  return retval;
+	return retval;
 }
 
-static gchar *
-_a11y_create_accessibility_module_name (const gchar *libname)
+static gchar *_a11y_create_accessibility_module_name(const gchar * libname)
 {
-  gchar *fname;
-  gchar *retval;
+	gchar *fname;
+	gchar *retval;
 
-  fname = g_strconcat (libname, "." G_MODULE_SUFFIX, NULL);
+	fname = g_strconcat(libname, "." G_MODULE_SUFFIX, NULL);
 
-  retval = g_strconcat ("/usr/lib/gtk-2.0/modules", G_DIR_SEPARATOR_S, fname, NULL);
+	retval = g_strconcat("/usr/lib/gtk-2.0/modules", G_DIR_SEPARATOR_S, fname, NULL);
 
-  g_free (fname);
+	g_free(fname);
 
-  g_debug ("retval = %s", retval);
+	g_debug("retval = %s", retval);
 
-  return retval;
+	return retval;
 }
 
-static gboolean
-_should_enable_a11y                    ()
+static gboolean _should_enable_a11y()
 {
-  const gchar *value = NULL;
-  gint found = 0;
+	const gchar *value = NULL;
+	gint found = 0;
 
-  value = g_getenv (ENV_VAR);
-  if (value == NULL)
-    {
-      return FALSE;
-    }
+	value = g_getenv(ENV_VAR);
+	if (value == NULL) {
+		return FALSE;
+	}
 
-  found = !g_ascii_strcasecmp (value, VALUE_STRING);
+	found = !g_ascii_strcasecmp(value, VALUE_STRING);
 
-  if (found)
-    {
-      return TRUE;
-    }
+	if (found) {
+		return TRUE;
+	}
 
-  return FALSE;
+	return FALSE;
 }
 
 /* public methods */
-void
-hildon_desktop_a11y_init (void)
+void hildon_desktop_a11y_init(void)
 {
-  if (!_should_enable_a11y ())
-    {
-      g_debug ("Current %s doesn't allow a11y support. Avoiding load a11y modules",
-               ENV_VAR);
-      return;
-    }
+	if (!_should_enable_a11y()) {
+		g_debug("Current %s doesn't allow a11y support. Avoiding load a11y modules", ENV_VAR);
+		return;
+	}
 
-  /* loading the different accessibility modules  */
-  _a11y_invoke_module ("libgail", TRUE);
-  _a11y_invoke_module ("libcail", TRUE);
-  _a11y_invoke_module ("libhda", TRUE);
+	/* loading the different accessibility modules  */
+	_a11y_invoke_module("libgail", TRUE);
+	_a11y_invoke_module("libcail", TRUE);
+	_a11y_invoke_module("libhda", TRUE);
 
-  /* atk-bridge */
-  _a11y_invoke_module ("libatk-bridge", TRUE);
+	/* atk-bridge */
+	_a11y_invoke_module("libatk-bridge", TRUE);
 }

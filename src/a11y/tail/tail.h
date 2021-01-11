@@ -24,11 +24,7 @@
 #ifndef __TAIL_H
 #define __TAIL_H
 
-G_BEGIN_DECLS
-
-void
-tail_accessibility_init (void);
+G_BEGIN_DECLS void tail_accessibility_init(void);
 
 G_END_DECLS
-
-#endif /* __TAIL_H */
+#endif				/* __TAIL_H */

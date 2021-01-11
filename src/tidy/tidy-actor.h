@@ -25,17 +25,15 @@
 #include <tidy/tidy-types.h>
 
 G_BEGIN_DECLS
-
 #define TIDY_TYPE_ACTOR                 (tidy_actor_get_type ())
 #define TIDY_ACTOR(obj)                 (G_TYPE_CHECK_INSTANCE_CAST ((obj), TIDY_TYPE_ACTOR, TidyActor))
 #define TIDY_IS_ACTOR(obj)              (G_TYPE_CHECK_INSTANCE_TYPE ((obj), TIDY_TYPE_ACTOR))
 #define TIDY_ACTOR_CLASS(klass)         (G_TYPE_CHECK_CLASS_CAST ((klass), TIDY_TYPE_ACTOR, TidyActorClass))
 #define TIDY_IS_ACTOR_CLASS(klass)      (G_TYPE_CHECK_CLASS_TYPE ((klass), TIDY_TYPE_ACTOR))
 #define TIDY_ACTOR_GET_CLASS(obj)       (G_TYPE_INSTANCE_GET_CLASS ((obj), TIDY_TYPE_ACTOR, TidyActorClass))
-
-typedef struct _TidyActor               TidyActor;
-typedef struct _TidyActorPrivate        TidyActorPrivate;
-typedef struct _TidyActorClass          TidyActorClass;
+typedef struct _TidyActor TidyActor;
+typedef struct _TidyActorPrivate TidyActorPrivate;
+typedef struct _TidyActorClass TidyActorClass;
 
 /**
  * TidyActor:
@@ -44,12 +42,11 @@ typedef struct _TidyActorClass          TidyActorClass;
  * structure are private and should only be accessed through the
  * public API.
  */
-struct _TidyActor
-{
-  /*< private >*/
-  ClutterActor parent_instance;
+struct _TidyActor {
+	/*< private > */
+	ClutterActor parent_instance;
 
-  TidyActorPrivate *priv;
+	TidyActorPrivate *priv;
 };
 
 /**
@@ -57,32 +54,20 @@ struct _TidyActor
  *
  * Base class for stylable actors.
  */
-struct _TidyActorClass
-{
-  /*< private >*/
-  ClutterActorClass parent_class;
+struct _TidyActorClass {
+	/*< private > */
+	ClutterActorClass parent_class;
 };
 
-GType      tidy_actor_get_type       (void) G_GNUC_CONST;
+GType tidy_actor_get_type(void) G_GNUC_CONST;
 
-void       tidy_actor_set_padding    (TidyActor         *actor,
-                                      const TidyPadding *padding);
-void       tidy_actor_get_padding    (TidyActor         *actor,
-                                      TidyPadding       *padding);
+void tidy_actor_set_padding(TidyActor * actor, const TidyPadding * padding);
+void tidy_actor_get_padding(TidyActor * actor, TidyPadding * padding);
 
-void       tidy_actor_set_alignment  (TidyActor         *actor,
-                                      gdouble            x_align,
-                                      gdouble            y_align);
-void       tidy_actor_get_alignment  (TidyActor         *actor,
-                                      gdouble           *x_align,
-                                      gdouble           *y_align);
-void       tidy_actor_set_alignmentx (TidyActor         *actor,
-                                      ClutterFixed       x_align,
-                                      ClutterFixed       y_align);
-void       tidy_actor_get_alignmentx (TidyActor         *actor,
-                                      ClutterFixed      *x_align,
-                                      ClutterFixed      *y_align);
+void tidy_actor_set_alignment(TidyActor * actor, gdouble x_align, gdouble y_align);
+void tidy_actor_get_alignment(TidyActor * actor, gdouble * x_align, gdouble * y_align);
+void tidy_actor_set_alignmentx(TidyActor * actor, ClutterFixed x_align, ClutterFixed y_align);
+void tidy_actor_get_alignmentx(TidyActor * actor, ClutterFixed * x_align, ClutterFixed * y_align);
 
 G_END_DECLS
-
-#endif /* __TIDY_ACTOR_H__ */
+#endif				/* __TIDY_ACTOR_H__ */

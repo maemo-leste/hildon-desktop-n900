@@ -33,57 +33,50 @@
 #include "hd-launcher-item.h"
 
 G_BEGIN_DECLS
-
 #define HD_TYPE_LAUNCHER_APP            (hd_launcher_app_get_type ())
 #define HD_LAUNCHER_APP(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), HD_TYPE_LAUNCHER_APP, HdLauncherApp))
 #define HD_IS_LAUNCHER_APP(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HD_TYPE_LAUNCHER_APP))
 #define HD_LAUNCHER_APP_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), HD_TYPE_LAUNCHER_APP, HdLauncherAppClass))
 #define HD_IS_LAUNCHER_APP_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), HD_TYPE_LAUNCHER_APP))
 #define HD_LAUNCHER_APP_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), HD_TYPE_LAUNCHER_APP, HdLauncherAppClass))
+typedef struct _HdLauncherApp HdLauncherApp;
+typedef struct _HdLauncherAppPrivate HdLauncherAppPrivate;
+typedef struct _HdLauncherAppClass HdLauncherAppClass;
 
-typedef struct _HdLauncherApp           HdLauncherApp;
-typedef struct _HdLauncherAppPrivate    HdLauncherAppPrivate;
-typedef struct _HdLauncherAppClass      HdLauncherAppClass;
+struct _HdLauncherApp {
+	HdLauncherItem parent_instance;
 
-struct _HdLauncherApp
-{
-  HdLauncherItem parent_instance;
-
-  HdLauncherAppPrivate *priv;
+	HdLauncherAppPrivate *priv;
 };
 
-struct _HdLauncherAppClass
-{
-  HdLauncherItemClass parent_class;
+struct _HdLauncherAppClass {
+	HdLauncherItemClass parent_class;
 };
 
-GType           hd_launcher_app_get_type          (void) G_GNUC_CONST;
+GType hd_launcher_app_get_type(void) G_GNUC_CONST;
 
-const gchar *hd_launcher_app_get_exec          (HdLauncherApp *item);
-const gchar *hd_launcher_app_get_service       (HdLauncherApp *item);
-const gchar *hd_launcher_app_get_loading_image (HdLauncherApp *item);
-const gchar *hd_launcher_app_get_switcher_icon (HdLauncherApp *item);
-const gchar *hd_launcher_app_get_wm_class      (HdLauncherApp *item);
+const gchar *hd_launcher_app_get_exec(HdLauncherApp * item);
+const gchar *hd_launcher_app_get_service(HdLauncherApp * item);
+const gchar *hd_launcher_app_get_loading_image(HdLauncherApp * item);
+const gchar *hd_launcher_app_get_switcher_icon(HdLauncherApp * item);
+const gchar *hd_launcher_app_get_wm_class(HdLauncherApp * item);
 
 #define HD_APP_PRESTART_NONE_STRING     "none"
 #define HD_APP_PRESTART_USAGE_STRING    "usage"
 #define HD_APP_PRESTART_ALWAYS_STRING   "always"
 typedef enum {
-  HD_APP_PRESTART_NONE   = 0,
-  HD_APP_PRESTART_USAGE  = 1,
-  HD_APP_PRESTART_ALWAYS = 2
+	HD_APP_PRESTART_NONE = 0,
+	HD_APP_PRESTART_USAGE = 1,
+	HD_APP_PRESTART_ALWAYS = 2
 } HdLauncherAppPrestartMode;
 
-HdLauncherAppPrestartMode  hd_launcher_app_get_prestart_mode (HdLauncherApp *item);
+HdLauncherAppPrestartMode hd_launcher_app_get_prestart_mode(HdLauncherApp * item);
 
-gint hd_launcher_app_get_priority (HdLauncherApp *app);
-gboolean hd_launcher_app_get_ignore_lowmem (HdLauncherApp *app);
-gboolean hd_launcher_app_get_ignore_load   (HdLauncherApp *app);
+gint hd_launcher_app_get_priority(HdLauncherApp * app);
+gboolean hd_launcher_app_get_ignore_lowmem(HdLauncherApp * app);
+gboolean hd_launcher_app_get_ignore_load(HdLauncherApp * app);
 
-gboolean hd_launcher_app_match_window (HdLauncherApp *app,
-                                       const gchar *res_name,
-                                       const gchar *res_class);
+gboolean hd_launcher_app_match_window(HdLauncherApp * app, const gchar * res_name, const gchar * res_class);
 
 G_END_DECLS
-
-#endif /* __HD_LAUNCHER_APP_H__ */
+#endif				/* __HD_LAUNCHER_APP_H__ */

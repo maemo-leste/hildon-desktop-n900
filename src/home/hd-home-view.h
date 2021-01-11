@@ -33,65 +33,54 @@
 #include <matchbox/core/mb-wm-client.h>
 
 G_BEGIN_DECLS
-
 #define HD_TYPE_HOME_VIEW            (hd_home_view_get_type ())
 #define HD_HOME_VIEW(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), HD_TYPE_HOME_VIEW, HdHomeView))
 #define HD_HOME_VIEW_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), HD_TYPE_HOME_VIEW, HdHomeViewClass))
 #define HD_IS_HOME_VIEW(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HD_TYPE_HOME_VIEW))
 #define HD_IS_HOME_VIEW_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), HD_TYPE_HOME_VIEW))
 #define HD_HOME_VIEW_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), HD_TYPE_HOME_VIEW, HdHomeViewClass))
-
-typedef struct _HdHomeView        HdHomeView;
-typedef struct _HdHomeViewClass   HdHomeViewClass;
+typedef struct _HdHomeView HdHomeView;
+typedef struct _HdHomeViewClass HdHomeViewClass;
 typedef struct _HdHomeViewPrivate HdHomeViewPrivate;
 
-struct _HdHomeViewClass
-{
-  ClutterGroupClass parent_class;
+struct _HdHomeViewClass {
+	ClutterGroupClass parent_class;
 };
 
-struct _HdHomeView
-{
-  ClutterGroup          parent;
+struct _HdHomeView {
+	ClutterGroup parent;
 
-  HdHomeViewPrivate    *priv;
+	HdHomeViewPrivate *priv;
 };
 
-GType hd_home_view_get_type (void);
+GType hd_home_view_get_type(void);
 
-void hd_home_view_set_background_image (HdHomeView *view, const gchar * path);
+void hd_home_view_set_background_image(HdHomeView * view, const gchar * path);
 
-void hd_home_view_set_thumbnail_mode (HdHomeView * view, gboolean on);
+void hd_home_view_set_thumbnail_mode(HdHomeView * view, gboolean on);
 
-guint hd_home_view_get_view_id (HdHomeView *view);
+guint hd_home_view_get_view_id(HdHomeView * view);
 
-void hd_home_view_add_applet (HdHomeView   *view,
-                              ClutterActor *applet,
-                              gboolean      force_arrange);
-GSList *hd_home_view_get_all_applets (HdHomeView *view);
+void hd_home_view_add_applet(HdHomeView * view, ClutterActor * applet, gboolean force_arrange);
+GSList *hd_home_view_get_all_applets(HdHomeView * view);
 
-void hd_home_view_unregister_applet (HdHomeView *view, ClutterActor *applet);
-void hd_home_view_remove_applet (HdHomeView *view, ClutterActor *applet);
+void hd_home_view_unregister_applet(HdHomeView * view, ClutterActor * applet);
+void hd_home_view_remove_applet(HdHomeView * view, ClutterActor * applet);
 
-void hd_home_view_move_applet (HdHomeView   *old_view, HdHomeView   *new_view,
-			       ClutterActor *applet);
+void hd_home_view_move_applet(HdHomeView * old_view, HdHomeView * new_view, ClutterActor * applet);
 
-void hd_home_view_close_all_applets (HdHomeView *view);
+void hd_home_view_close_all_applets(HdHomeView * view);
 
-gboolean hd_home_view_get_active (HdHomeView *view);
-void     hd_home_view_set_active (HdHomeView *view,
-                                  gboolean    active);
+gboolean hd_home_view_get_active(HdHomeView * view);
+void hd_home_view_set_active(HdHomeView * view, gboolean active);
 
-MBWindowManagerClient *hd_home_view_get_live_bg (HdHomeView *view);
-void hd_home_view_set_live_bg (HdHomeView *view,
-                               MBWindowManagerClient *client,
-                               gboolean above_applets);
-void hd_home_view_load_background (HdHomeView *view);
-void hd_home_view_update_state (HdHomeView *view);
+MBWindowManagerClient *hd_home_view_get_live_bg(HdHomeView * view);
+void hd_home_view_set_live_bg(HdHomeView * view, MBWindowManagerClient * client, gboolean above_applets);
+void hd_home_view_load_background(HdHomeView * view);
+void hd_home_view_update_state(HdHomeView * view);
 
-void hd_home_view_change_applets_position (HdHomeView *view);
-void hd_home_view_change_wallpaper(HdHomeView *view);
+void hd_home_view_change_applets_position(HdHomeView * view);
+void hd_home_view_change_wallpaper(HdHomeView * view);
 
 G_END_DECLS
-
 #endif

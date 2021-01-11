@@ -24,11 +24,7 @@
 #ifndef __HDA_HOME_H
 #define __HDA_HOME_H
 
-G_BEGIN_DECLS
-
-void
-hda_home_accessibility_init (void);
+G_BEGIN_DECLS void hda_home_accessibility_init(void);
 
 G_END_DECLS
-
-#endif /* __HDA_HOME_H */
+#endif				/* __HDA_HOME_H */

@@ -27,7 +27,7 @@
 #include <matchbox/core/mb-wm.h>
 #include <matchbox/client-types/mb-wm-client-dialog.h>
 
-typedef struct HdDialog      HdDialog;
+typedef struct HdDialog HdDialog;
 typedef struct HdDialogClass HdDialogClass;
 
 #define HD_DIALOG(c) ((HdDialog*)(c))
@@ -35,25 +35,22 @@ typedef struct HdDialogClass HdDialogClass;
 #define HD_TYPE_DIALOG (hd_dialog_class_type ())
 #define HD_IS_DIALOG(c) (MB_WM_OBJECT_TYPE(c)==HD_TYPE_DIALOG)
 
-struct HdDialog
-{
-  MBWMClientDialog  parent;
+struct HdDialog {
+	MBWMClientDialog parent;
 
-  unsigned long     release_cb_id;
+	unsigned long release_cb_id;
 
-  /* The height the client asked for last time.  Try to honor it
-   * when the layout manager requests a new geometry. */
-  unsigned          requested_height;
+	/* The height the client asked for last time.  Try to honor it
+	 * when the layout manager requests a new geometry. */
+	unsigned requested_height;
 };
 
-struct HdDialogClass
-{
-  MBWMClientDialogClass parent;
+struct HdDialogClass {
+	MBWMClientDialogClass parent;
 };
 
-MBWindowManagerClient* hd_dialog_new (MBWindowManager  *wm,
-				      MBWMClientWindow *win);
+MBWindowManagerClient *hd_dialog_new(MBWindowManager * wm, MBWMClientWindow * win);
 
-int hd_dialog_class_type (void);
+int hd_dialog_class_type(void);
 
 #endif

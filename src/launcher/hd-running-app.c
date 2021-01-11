@@ -35,157 +35,135 @@
 #define HD_RUNNING_APP_GET_PRIVATE(obj)  \
   (hd_running_app_get_instance_private (HD_RUNNING_APP (obj)))
 
-struct _HdRunningAppPrivate
-{
-  HdLauncherApp *launcher_app;
-  HdRunningAppState state;
-  GPid pid;
-  time_t last_launch;
+struct _HdRunningAppPrivate {
+	HdLauncherApp *launcher_app;
+	HdRunningAppState state;
+	GPid pid;
+	time_t last_launch;
 };
 
-G_DEFINE_TYPE_WITH_CODE (HdRunningApp,
-                         hd_running_app,
-                         G_TYPE_OBJECT,
-                         G_ADD_PRIVATE (HdRunningApp));
+G_DEFINE_TYPE_WITH_CODE(HdRunningApp, hd_running_app, G_TYPE_OBJECT, G_ADD_PRIVATE(HdRunningApp));
 
-static void
-hd_running_app_finalize (GObject *gobject)
+static void hd_running_app_finalize(GObject * gobject)
 {
-  HdRunningAppPrivate *priv = HD_RUNNING_APP_GET_PRIVATE (gobject);
-  if (priv->launcher_app)
-    {
-      g_object_unref (priv->launcher_app);
-      priv->launcher_app = NULL;
-    }
-  G_OBJECT_CLASS (hd_running_app_parent_class)->finalize (gobject);
+	HdRunningAppPrivate *priv = HD_RUNNING_APP_GET_PRIVATE(gobject);
+	if (priv->launcher_app) {
+		g_object_unref(priv->launcher_app);
+		priv->launcher_app = NULL;
+	}
+	G_OBJECT_CLASS(hd_running_app_parent_class)->finalize(gobject);
 }
 
-static void
-hd_running_app_class_init (HdRunningAppClass *klass)
+static void hd_running_app_class_init(HdRunningAppClass * klass)
 {
-  GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 
-  gobject_class->finalize = hd_running_app_finalize;
+	gobject_class->finalize = hd_running_app_finalize;
 }
 
-static void
-hd_running_app_init (HdRunningApp *app)
+static void hd_running_app_init(HdRunningApp * app)
 {
-  app->priv = HD_RUNNING_APP_GET_PRIVATE (app);
+	app->priv = HD_RUNNING_APP_GET_PRIVATE(app);
 }
 
-HdRunningApp *
-hd_running_app_new (HdLauncherApp *launcher)
+HdRunningApp *hd_running_app_new(HdLauncherApp * launcher)
 {
-  HdRunningApp *result = g_object_new (HD_TYPE_RUNNING_APP, 0);
-  if (result)
-    hd_running_app_set_launcher_app (result, launcher);
+	HdRunningApp *result = g_object_new(HD_TYPE_RUNNING_APP, 0);
+	if (result)
+		hd_running_app_set_launcher_app(result, launcher);
 
-  return result;
+	return result;
 }
 
-HdRunningAppState
-hd_running_app_get_state (HdRunningApp *app)
+HdRunningAppState hd_running_app_get_state(HdRunningApp * app)
 {
-  HdRunningAppPrivate *priv = HD_RUNNING_APP_GET_PRIVATE (app);
-  return priv->state;
-}
-void
-hd_running_app_set_state (HdRunningApp *app, HdRunningAppState state)
-{
-  HdRunningAppPrivate *priv = HD_RUNNING_APP_GET_PRIVATE (app);
-  priv->state = state;
+	HdRunningAppPrivate *priv = HD_RUNNING_APP_GET_PRIVATE(app);
+	return priv->state;
 }
 
-gboolean
-hd_running_app_is_executing (HdRunningApp *app)
+void hd_running_app_set_state(HdRunningApp * app, HdRunningAppState state)
 {
-  return (hd_running_app_get_state (app) == HD_APP_STATE_PRESTARTED ||
-          hd_running_app_get_state (app) == HD_APP_STATE_SHOWN);
+	HdRunningAppPrivate *priv = HD_RUNNING_APP_GET_PRIVATE(app);
+	priv->state = state;
 }
 
-gboolean
-hd_running_app_is_hibernating (HdRunningApp *app)
+gboolean hd_running_app_is_executing(HdRunningApp * app)
 {
-  return (hd_running_app_get_state (app) == HD_APP_STATE_HIBERNATED ||
-          hd_running_app_get_state (app) == HD_APP_STATE_WAKING);
+	return (hd_running_app_get_state(app) == HD_APP_STATE_PRESTARTED ||
+		hd_running_app_get_state(app) == HD_APP_STATE_SHOWN);
 }
 
-gboolean
-hd_running_app_is_inactive (HdRunningApp *app)
+gboolean hd_running_app_is_hibernating(HdRunningApp * app)
 {
-  return (hd_running_app_get_state (app) == HD_APP_STATE_INACTIVE ||
-          hd_running_app_get_state (app) == HD_APP_STATE_HIBERNATED);
+	return (hd_running_app_get_state(app) == HD_APP_STATE_HIBERNATED ||
+		hd_running_app_get_state(app) == HD_APP_STATE_WAKING);
 }
 
-GPid
-hd_running_app_get_pid (HdRunningApp *app)
+gboolean hd_running_app_is_inactive(HdRunningApp * app)
 {
-  HdRunningAppPrivate *priv = HD_RUNNING_APP_GET_PRIVATE (app);
-  return priv->pid;
+	return (hd_running_app_get_state(app) == HD_APP_STATE_INACTIVE ||
+		hd_running_app_get_state(app) == HD_APP_STATE_HIBERNATED);
 }
 
-void
-hd_running_app_set_pid (HdRunningApp *app, GPid pid)
+GPid hd_running_app_get_pid(HdRunningApp * app)
 {
-  HdRunningAppPrivate *priv = HD_RUNNING_APP_GET_PRIVATE (app);
-  priv->pid = pid;
+	HdRunningAppPrivate *priv = HD_RUNNING_APP_GET_PRIVATE(app);
+	return priv->pid;
 }
 
-time_t
-hd_running_app_get_last_launch (HdRunningApp *app)
+void hd_running_app_set_pid(HdRunningApp * app, GPid pid)
 {
-  HdRunningAppPrivate *priv = HD_RUNNING_APP_GET_PRIVATE (app);
-  return priv->last_launch;
+	HdRunningAppPrivate *priv = HD_RUNNING_APP_GET_PRIVATE(app);
+	priv->pid = pid;
 }
 
-void
-hd_running_app_set_last_launch (HdRunningApp *app, time_t time)
+time_t hd_running_app_get_last_launch(HdRunningApp * app)
 {
-  HdRunningAppPrivate *priv = HD_RUNNING_APP_GET_PRIVATE (app);
-  priv->last_launch = time;
+	HdRunningAppPrivate *priv = HD_RUNNING_APP_GET_PRIVATE(app);
+	return priv->last_launch;
 }
 
-HdLauncherApp  *
-hd_running_app_get_launcher_app  (HdRunningApp *app)
+void hd_running_app_set_last_launch(HdRunningApp * app, time_t time)
 {
-  g_return_val_if_fail (app, NULL);
-  HdRunningAppPrivate *priv = HD_RUNNING_APP_GET_PRIVATE (app);
-  return priv->launcher_app;
+	HdRunningAppPrivate *priv = HD_RUNNING_APP_GET_PRIVATE(app);
+	priv->last_launch = time;
 }
 
-void
-hd_running_app_set_launcher_app  (HdRunningApp *app,
-                                  HdLauncherApp *launcher)
+HdLauncherApp *hd_running_app_get_launcher_app(HdRunningApp * app)
 {
-  HdRunningAppPrivate *priv = HD_RUNNING_APP_GET_PRIVATE (app);
-  if (priv->launcher_app == launcher)
-    return;
-
-  if (priv->launcher_app)
-    g_object_unref (G_OBJECT (priv->launcher_app));
-  if (launcher)
-    priv->launcher_app = g_object_ref (launcher);
-  else
-    priv->launcher_app = NULL;
+	g_return_val_if_fail(app, NULL);
+	HdRunningAppPrivate *priv = HD_RUNNING_APP_GET_PRIVATE(app);
+	return priv->launcher_app;
 }
 
-const gchar *
-hd_running_app_get_service (HdRunningApp *app)
+void hd_running_app_set_launcher_app(HdRunningApp * app, HdLauncherApp * launcher)
 {
-  HdLauncherApp *launcher = hd_running_app_get_launcher_app (app);
-  if (!launcher)
-    return NULL;
-  return hd_launcher_app_get_service (launcher);
+	HdRunningAppPrivate *priv = HD_RUNNING_APP_GET_PRIVATE(app);
+	if (priv->launcher_app == launcher)
+		return;
+
+	if (priv->launcher_app)
+		g_object_unref(G_OBJECT(priv->launcher_app));
+	if (launcher)
+		priv->launcher_app = g_object_ref(launcher);
+	else
+		priv->launcher_app = NULL;
 }
 
-const gchar *
-hd_running_app_get_id (HdRunningApp *app)
+const gchar *hd_running_app_get_service(HdRunningApp * app)
 {
-  const gchar *result = NULL;
-  HdLauncherApp *launcher = hd_running_app_get_launcher_app (app);
-  if (!launcher)
-    return "<unknown>";
-  result = hd_launcher_item_get_id (HD_LAUNCHER_ITEM (launcher));
-  return result ? result : "<unknown>";
+	HdLauncherApp *launcher = hd_running_app_get_launcher_app(app);
+	if (!launcher)
+		return NULL;
+	return hd_launcher_app_get_service(launcher);
+}
+
+const gchar *hd_running_app_get_id(HdRunningApp * app)
+{
+	const gchar *result = NULL;
+	HdLauncherApp *launcher = hd_running_app_get_launcher_app(app);
+	if (!launcher)
+		return "<unknown>";
+	result = hd_launcher_item_get_id(HD_LAUNCHER_ITEM(launcher));
+	return result ? result : "<unknown>";
 }

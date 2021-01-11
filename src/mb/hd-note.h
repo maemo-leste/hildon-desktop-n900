@@ -33,7 +33,7 @@
 #include <matchbox/core/mb-wm.h>
 #include <matchbox/client-types/mb-wm-client-note.h>
 
-typedef struct HdNote      HdNote;
+typedef struct HdNote HdNote;
 typedef struct HdNoteClass HdNoteClass;
 
 #define HD_NOTE(c) ((HdNote*)(c))
@@ -52,54 +52,50 @@ typedef struct HdNoteClass HdNoteClass;
 #define HD_IS_INCOMING_EVENT_NOTE(c) (HD_IS_NOTE(c) \
              && HD_NOTE(c)->note_type == HdNoteTypeIncomingEvent)
 
-typedef enum _HdNoteType
-{
-  HdNoteTypeBanner        = 0,
-  HdNoteTypeInfo,
-  HdNoteTypeConfirmation,
-  HdNoteTypeIncomingEventPreview,
-  HdNoteTypeIncomingEvent,
-}HdNoteType;
+typedef enum _HdNoteType {
+	HdNoteTypeBanner = 0,
+	HdNoteTypeInfo,
+	HdNoteTypeConfirmation,
+	HdNoteTypeIncomingEventPreview,
+	HdNoteTypeIncomingEvent,
+} HdNoteType;
 
-enum
-{
-  HdNoteSignalChanged = 1,
+enum {
+	HdNoteSignalChanged = 1,
 };
 
-struct HdNote
-{
-  MBWMClientNote  parent;
+struct HdNote {
+	MBWMClientNote parent;
 
-  HdNoteType      note_type;
+	HdNoteType note_type;
 
-  /* For Info:s (hd_util_modal_blocker_realize()) */
-  unsigned long   modal_blocker_cb_id;
+	/* For Info:s (hd_util_modal_blocker_realize()) */
+	unsigned long modal_blocker_cb_id;
 
-  /* For Banner:s, Info:s and Confirmation:s,
-   * which are sized to fill the screen,
-   * to know when to resize. */
-  unsigned long   screen_size_changed_cb_id;
+	/* For Banner:s, Info:s and Confirmation:s,
+	 * which are sized to fill the screen,
+	 * to know when to resize. */
+	unsigned long screen_size_changed_cb_id;
 
-  /* For IncomingEvent:s: property cache and signal id.
-   * The strings in the cache are X-allocated. */
-  char *properties[6];
-  unsigned long   property_changed_cb_id;
+	/* For IncomingEvent:s: property cache and signal id.
+	 * The strings in the cache are X-allocated. */
+	char *properties[6];
+	unsigned long property_changed_cb_id;
 };
 
-struct HdNoteClass
-{
-  MBWMClientNoteClass parent;
+struct HdNoteClass {
+	MBWMClientNoteClass parent;
 };
 
-MBWindowManagerClient* hd_note_new (MBWindowManager *wm, MBWMClientWindow *win);
-void hd_note_clicked (HdNote *self, void *unused, void *actor);
-const char *hd_note_get_destination (HdNote *self);
-const char *hd_note_get_message (HdNote *self);
-const char *hd_note_get_summary (HdNote *self);
-const char *hd_note_get_count (HdNote *self);
-const char *hd_note_get_time (HdNote *self);
-const char *hd_note_get_icon (HdNote *self);
+MBWindowManagerClient *hd_note_new(MBWindowManager * wm, MBWMClientWindow * win);
+void hd_note_clicked(HdNote * self, void *unused, void *actor);
+const char *hd_note_get_destination(HdNote * self);
+const char *hd_note_get_message(HdNote * self);
+const char *hd_note_get_summary(HdNote * self);
+const char *hd_note_get_count(HdNote * self);
+const char *hd_note_get_time(HdNote * self);
+const char *hd_note_get_icon(HdNote * self);
 
-int hd_note_class_type (void);
+int hd_note_class_type(void);
 
 #endif

@@ -27,7 +27,6 @@
 #include                                        "cail/cail-actor.h"
 
 G_BEGIN_DECLS
-
 #define                                         HDA_TYPE_LAUNCHER_PAGE \
                                                 (hda_launcher_page_get_type ())
 #define                                         HDA_LAUNCHER_PAGE(obj) \
@@ -45,28 +44,20 @@ G_BEGIN_DECLS
 #define                                         HDA_LAUNCHER_PAGE_GET_CLASS(obj) \
                                                 (G_TYPE_INSTANCE_GET_CLASS ((obj), \
                                                 HDA_TYPE_LAUNCHER_PAGE, HdaLauncherPageClass))
+typedef struct _HdaLauncherPage HdaLauncherPage;
+typedef struct _HdaLauncherPageClass HdaLauncherPageClass;
 
-typedef struct                                  _HdaLauncherPage        HdaLauncherPage;
-typedef struct                                  _HdaLauncherPageClass   HdaLauncherPageClass;
-
-struct                                          _HdaLauncherPage
-{
-  CailActor parent;
+struct _HdaLauncherPage {
+	CailActor parent;
 };
 
-struct                                          _HdaLauncherPageClass
-{
-  CailActorClass parent_class;
+struct _HdaLauncherPageClass {
+	CailActorClass parent_class;
 };
 
+GType hda_launcher_page_get_type(void);
 
-GType
-hda_launcher_page_get_type                      (void);
-
-AtkObject*
-hda_launcher_page_new                           (ClutterActor *page);
-
+AtkObject *hda_launcher_page_new(ClutterActor * page);
 
 G_END_DECLS
-
 #endif

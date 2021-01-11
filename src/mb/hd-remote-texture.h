@@ -28,7 +28,7 @@
 #include <matchbox/client-types/mb-wm-client-app.h>
 #include <tidy/tidy-mem-texture.h>
 
-typedef struct HdRemoteTexture      HdRemoteTexture;
+typedef struct HdRemoteTexture HdRemoteTexture;
 typedef struct HdRemoteTextureClass HdRemoteTextureClass;
 
 #define HD_REMOTE_TEXTURE(c)       ((HdRemoteTexture*)(c))
@@ -36,29 +36,26 @@ typedef struct HdRemoteTextureClass HdRemoteTextureClass;
 #define HD_TYPE_REMOTE_TEXTURE     (hd_remote_texture_class_type ())
 #define HD_IS_REMOTE_TEXTURE(c)    (MB_WM_OBJECT_TYPE(c)==HD_TYPE_REMOTE_TEXTURE)
 
-struct HdRemoteTexture
-{
-  MBWMClientApp    parent;
+struct HdRemoteTexture {
+	MBWMClientApp parent;
 
-  /* Private */
-  unsigned long    client_message_handler_id;
-  TidyMemTexture  *texture;
+	/* Private */
+	unsigned long client_message_handler_id;
+	TidyMemTexture *texture;
 
-  key_t         shm_key;
-  guint         shm_width;
-  guint         shm_height;
-  guint         shm_bpp;
-  const guchar *shm_addr;
+	key_t shm_key;
+	guint shm_width;
+	guint shm_height;
+	guint shm_bpp;
+	const guchar *shm_addr;
 };
 
-struct HdRemoteTextureClass
-{
-  MBWMClientAppClass parent;
+struct HdRemoteTextureClass {
+	MBWMClientAppClass parent;
 };
 
-MBWindowManagerClient*
-hd_remote_texture_new (MBWindowManager *wm, MBWMClientWindow *win);
+MBWindowManagerClient *hd_remote_texture_new(MBWindowManager * wm, MBWMClientWindow * win);
 
-int hd_remote_texture_class_type (void);
+int hd_remote_texture_class_type(void);
 
 #endif
