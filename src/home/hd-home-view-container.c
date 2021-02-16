@@ -49,1087 +49,884 @@
 
 #define BACKGROUNDS_DIR ".backgrounds"
 
-struct _HdHomeViewContainerPrivate
-{
-  ClutterActor *views[MAX_HOME_VIEWS];
-  gboolean active_views [MAX_HOME_VIEWS];
+struct _HdHomeViewContainerPrivate {
+	ClutterActor *views[MAX_HOME_VIEWS];
+	gboolean active_views[MAX_HOME_VIEWS];
 
-  guint current_view;
-  guint previous_view;
-  guint next_view;
+	guint current_view;
+	guint previous_view;
+	guint next_view;
 
-  int offset;       // offset caused by used drag
-  int offset_anim;  // offset caused by animation
+	int offset;		// offset caused by used drag
+	int offset_anim;	// offset caused by animation
 
-  HdHome *home;
-  HdCompMgr *comp_mgr;
+	HdHome *home;
+	HdCompMgr *comp_mgr;
 
-  /* this is non-NULL if we have a global live background, common to all
-   * HdHomeViews */
-  MBWindowManagerClient *live_bg;
+	/* this is non-NULL if we have a global live background, common to all
+	 * HdHomeViews */
+	MBWindowManagerClient *live_bg;
 
-  /* animation */
-  ClutterTimeline *timeline;
-  int timeline_offset;
-  guint frames;
-  gboolean animation_overshoot;
+	/* animation */
+	ClutterTimeline *timeline;
+	int timeline_offset;
+	guint frames;
+	gboolean animation_overshoot;
 
-  gboolean in_move;
+	gboolean in_move;
 
-  /* GConf */
-  GConfClient *gconf_client;
+	/* GConf */
+	GConfClient *gconf_client;
 
-  GFileMonitor *backgrounds_dir_monitor;
-  GFile *backgrounds_dir_gfile;
+	GFileMonitor *backgrounds_dir_monitor;
+	GFile *backgrounds_dir_gfile;
 
-  guint views_active_notify;
+	guint views_active_notify;
 };
 
-enum
-{
-  PROP_0,
-  PROP_COMP_MGR,
-  PROP_HOME,
-  PROP_CURRENT_VIEW,
-  PROP_OFFSET
+enum {
+	PROP_0,
+	PROP_COMP_MGR,
+	PROP_HOME,
+	PROP_CURRENT_VIEW,
+	PROP_OFFSET
 };
 
-G_DEFINE_TYPE_WITH_CODE (HdHomeViewContainer,
-                         hd_home_view_container,
-                         CLUTTER_TYPE_GROUP,
-                         G_ADD_PRIVATE (HdHomeViewContainer));
+G_DEFINE_TYPE_WITH_CODE(HdHomeViewContainer,
+			hd_home_view_container, CLUTTER_TYPE_GROUP, G_ADD_PRIVATE(HdHomeViewContainer));
 
-static void
-hd_home_view_container_update_previous_and_next_view (HdHomeViewContainer *self)
+static void hd_home_view_container_update_previous_and_next_view(HdHomeViewContainer * self)
 {
-  HdHomeViewContainerPrivate *priv = self->priv;
-  guint previous_view, next_view;
+	HdHomeViewContainerPrivate *priv = self->priv;
+	guint previous_view, next_view;
 
-  previous_view = next_view = priv->current_view;
+	previous_view = next_view = priv->current_view;
 
-  do
-    previous_view = (previous_view + MAX_HOME_VIEWS - 1) % MAX_HOME_VIEWS;
-  while (previous_view != priv->current_view && !priv->active_views[previous_view]);
+	do
+		previous_view = (previous_view + MAX_HOME_VIEWS - 1) % MAX_HOME_VIEWS;
+	while (previous_view != priv->current_view && !priv->active_views[previous_view]);
 
-  do
-    next_view = (next_view + 1) % MAX_HOME_VIEWS;
-  while (next_view != priv->current_view && !priv->active_views[next_view]);
+	do
+		next_view = (next_view + 1) % MAX_HOME_VIEWS;
+	while (next_view != priv->current_view && !priv->active_views[next_view]);
 
-  priv->previous_view = previous_view;
-  priv->next_view = next_view;
+	priv->previous_view = previous_view;
+	priv->next_view = next_view;
 }
 
 static void
-backgrounds_dir_changed (GFileMonitor        *monitor,
-                         GFile               *file,
-                         GFile               *other_file,
-                         GFileMonitorEvent    event_type,
-                         HdHomeViewContainer *view_container)
+backgrounds_dir_changed(GFileMonitor * monitor,
+			GFile * file,
+			GFile * other_file, GFileMonitorEvent event_type, HdHomeViewContainer * view_container)
 {
-  HdHomeViewContainerPrivate *priv = view_container->priv;
+	HdHomeViewContainerPrivate *priv = view_container->priv;
 
-  if (event_type == G_FILE_MONITOR_EVENT_CREATED ||
-      event_type == G_FILE_MONITOR_EVENT_CHANGED)
-    {
-      gchar *basename = g_file_get_basename (file);
-      gchar *info_uri = g_file_get_uri (file);
+	if (event_type == G_FILE_MONITOR_EVENT_CREATED || event_type == G_FILE_MONITOR_EVENT_CHANGED) {
+		gchar *basename = g_file_get_basename(file);
+		gchar *info_uri = g_file_get_uri(file);
 
-      g_debug ("%s. %s %s.",
-               __FUNCTION__,
-               info_uri,
-               event_type == G_FILE_MONITOR_EVENT_CREATED ?
-                             "created" : "changed");
+		g_debug("%s. %s %s.",
+			__FUNCTION__, info_uri, event_type == G_FILE_MONITOR_EVENT_CREATED ? "created" : "changed");
 
-      if (g_str_has_prefix (basename, "background-") &&
-          (g_str_has_suffix (basename, ".pvr") ||
-           g_str_has_suffix (basename, ".png")))
-        {
-          guint id;
+		if (g_str_has_prefix(basename, "background-") &&
+		    (g_str_has_suffix(basename, ".pvr") || g_str_has_suffix(basename, ".png"))) {
+			guint id;
 
-          id = atoi (basename + 11) - 1; /* id is from 0..MAX_HOME_VIEWS - 1 */
+			id = atoi(basename + 11) - 1;	/* id is from 0..MAX_HOME_VIEWS - 1 */
 
-          if (id < MAX_HOME_VIEWS && priv->active_views[id])
-            {
-              g_debug ("%s. Reload background %s for view %u.", __FUNCTION__,
-                       info_uri, id + 1);
-              hd_home_view_load_background (HD_HOME_VIEW (priv->views[id]));
-            }
-        }
-      else if (g_str_has_prefix (basename, "background_portrait-") &&
-          (g_str_has_suffix (basename, ".pvr") ||
-           g_str_has_suffix (basename, ".png")))
-        {
-          guint id;
+			if (id < MAX_HOME_VIEWS && priv->active_views[id]) {
+				g_debug("%s. Reload background %s for view %u.", __FUNCTION__, info_uri, id + 1);
+				hd_home_view_load_background(HD_HOME_VIEW(priv->views[id]));
+			}
+		} else if (g_str_has_prefix(basename, "background_portrait-") &&
+			   (g_str_has_suffix(basename, ".pvr") || g_str_has_suffix(basename, ".png"))) {
+			guint id;
 
-          id = atoi (basename + 20) - 1; /* id is from 0..MAX_HOME_VIEWS - 1 */
+			id = atoi(basename + 20) - 1;	/* id is from 0..MAX_HOME_VIEWS - 1 */
 
-          if (id < MAX_HOME_VIEWS && priv->active_views[id])
-            {
-              g_debug ("%s. Reload background %s for view %u.", __FUNCTION__,
-                       info_uri, id + 1);
-              hd_home_view_load_background (HD_HOME_VIEW (priv->views[id]));
-            }
-        }
+			if (id < MAX_HOME_VIEWS && priv->active_views[id]) {
+				g_debug("%s. Reload background %s for view %u.", __FUNCTION__, info_uri, id + 1);
+				hd_home_view_load_background(HD_HOME_VIEW(priv->views[id]));
+			}
+		}
 
-      g_free (info_uri);
-      g_free (basename);
-    }
+		g_free(info_uri);
+		g_free(basename);
+	}
+}
+
+static void hd_home_view_container_update_active_views(HdHomeViewContainer * self, gboolean constructed)
+{
+	HdHomeViewContainerPrivate *priv = self->priv;
+	GSList *list;
+	guint active_views[MAX_HOME_VIEWS] = { 0, };
+	gboolean none_active = TRUE;
+	guint i;
+	guint current_view;
+	GError *error = NULL;
+
+	/* Read active views from GConf */
+	list = gconf_client_get_list(priv->gconf_client, HD_GCONF_KEY_VIEWS_ACTIVE, GCONF_VALUE_INT, &error);
+
+	if (!error) {
+		GSList *l;
+
+		for (l = list; l; l = l->next) {
+			gint id = GPOINTER_TO_INT(l->data);
+
+			/* Stored in GConf 1..MAX_HOME_VIEWS */
+
+			if (id > 0 && id <= MAX_HOME_VIEWS) {
+				active_views[id - 1] = TRUE;
+				none_active = FALSE;
+			}
+		}
+		g_slist_free(list);
+	} else {
+		/* Error */
+		g_warning("Error reading active views from GConf. %s", error->message);
+		error = (g_error_free(error), NULL);
+	}
+
+	/* Check if there is an view active */
+	if (none_active) {
+		g_warning("No active views. Make first view active");
+		active_views[0] = TRUE;
+	}
+
+	/* Read current view from GConf on construction */
+	if (constructed) {
+		current_view = (guint) gconf_client_get_int(priv->gconf_client, HD_GCONF_KEY_VIEWS_CURRENT, &error);
+		current_view--;
+		if (error) {
+			g_warning("Error reading current view from GConf. %s", error->message);
+			error = (g_error_free(error), NULL);
+			current_view = 0;
+		}
+
+		/* Clamp to valid values */
+		current_view = current_view > MAX_HOME_VIEWS ? 0 : current_view;
+	} else {
+		current_view = priv->current_view;
+	}
+
+	/* Set current view to an active view */
+	i = current_view;
+	while (!active_views[i % MAX_HOME_VIEWS] && i - current_view < MAX_HOME_VIEWS)
+		i++;
+	current_view = (i % MAX_HOME_VIEWS);
+
+	/* DEBUG */
+	g_debug("%s Active views:", __FUNCTION__);
+	for (i = 0; i < MAX_HOME_VIEWS; i++) {
+		g_debug("%s %u %s", __FUNCTION__, i, active_views[i] ? "active" : "not active");
+	}
+	g_debug("%s Current view: %u", __FUNCTION__, current_view);
+
+	if (constructed) {
+		memcpy(priv->active_views, active_views, sizeof(gboolean) * MAX_HOME_VIEWS);
+		for (i = 0; i < MAX_HOME_VIEWS; i++) {
+			priv->active_views[i] = active_views[i];
+			if (active_views[i])
+				clutter_actor_show(priv->views[i]);
+			else
+				clutter_actor_hide(priv->views[i]);
+		}
+
+		hd_home_view_container_set_current_view(self, current_view);
+
+		/* Load backgrounds for active views */
+		for (i = 0; i < MAX_HOME_VIEWS; i++)
+			hd_home_view_load_background(HD_HOME_VIEW(priv->views[i]));
+	} else {
+		for (i = 0; i < MAX_HOME_VIEWS; i++) {
+			if (active_views[i] && !priv->active_views[i]) {
+				hd_home_view_load_background(HD_HOME_VIEW(priv->views[i]));
+				priv->active_views[i] = active_views[i];
+				clutter_actor_show(priv->views[i]);
+				g_object_notify(G_OBJECT(priv->views[i]), "active");
+			}
+		}
+
+		for (i = 0; i < MAX_HOME_VIEWS; i++) {
+			if (!active_views[i] && priv->active_views[i]) {
+				priv->active_views[i] = active_views[i];
+				clutter_actor_hide(priv->views[i]);
+				hd_home_view_close_all_applets(HD_HOME_VIEW(priv->views[i]));
+				g_object_notify(G_OBJECT(priv->views[i]), "active");
+			}
+		}
+
+		/* FIXME scroll to new view and do not switch */
+		if (current_view != priv->current_view) {
+			hd_home_view_container_set_current_view(self, current_view);
+		} else {
+			hd_home_view_container_update_previous_and_next_view(self);
+		}
+	}
+}
+
+static void views_active_notify_func(GConfClient * client, guint cnxn_id, GConfEntry * entry, gpointer user_data)
+{
+	hd_home_view_container_update_active_views(HD_HOME_VIEW_CONTAINER(user_data), FALSE);
+}
+
+static void remove_global_live_bg(HdHomeViewContainer * container)
+{
+	HdHomeViewContainerPrivate *priv = container->priv;
+	ClutterActor *actor;
+	MBWMCompMgrClutterClient *cclient;
+
+	if (!priv->live_bg)
+		return;
+
+	cclient = MB_WM_COMP_MGR_CLUTTER_CLIENT(priv->live_bg->cm_client);
+	actor = mb_wm_comp_mgr_clutter_client_get_actor(cclient);
+
+	if (priv->live_bg->window->live_background == -1) {
+		clutter_container_remove_actor(CLUTTER_CONTAINER(container), actor);
+		clutter_actor_hide(actor);
+	} else if (priv->live_bg->window->live_background == -101) {
+		ClutterActor *hfront = hd_home_get_front(priv->home);
+		clutter_container_remove_actor(CLUTTER_CONTAINER(hfront), actor);
+		clutter_actor_hide(actor);
+	}
+}
+
+void hd_home_view_container_set_live_bg(HdHomeViewContainer * container, MBWindowManagerClient * client)
+{
+	int view;
+	HdHomeView *hhview;
+	HdHomeViewContainerPrivate *priv = container->priv;
+	ClutterActor *actor;
+	MBWMCompMgrClutterClient *cclient;
+
+	view = client->window->live_background;
+	if (view > 0 && view <= MAX_HOME_VIEWS) {
+		hhview = HD_HOME_VIEW(priv->views[view - 1]);
+		hd_home_view_set_live_bg(hhview, client, FALSE);
+	}
+	/* live-bg above applets */
+	else if (view > 100 && view <= 100 + MAX_HOME_VIEWS) {
+		hhview = HD_HOME_VIEW(priv->views[view - 1 - 100]);
+		hd_home_view_set_live_bg(hhview, client, TRUE);
+	} else if (view == 0) {
+		/* remove live background */
+		int i;
+		if (priv->live_bg == client) {
+			cclient = MB_WM_COMP_MGR_CLUTTER_CLIENT(client->cm_client);
+			actor = mb_wm_comp_mgr_clutter_client_get_actor(cclient);
+			clutter_container_remove_actor(CLUTTER_CONTAINER(container), actor);
+			clutter_actor_hide(actor);
+			priv->live_bg = NULL;
+
+			/* restore normal backgrounds */
+			for (i = 0; i < MAX_HOME_VIEWS; ++i) {
+				hhview = HD_HOME_VIEW(priv->views[i]);
+				hd_home_view_load_background(hhview);
+			}
+		} else
+			for (i = 0; i < MAX_HOME_VIEWS; ++i) {
+				MBWindowManagerClient *c;
+				hhview = HD_HOME_VIEW(priv->views[i]);
+				c = hd_home_view_get_live_bg(hhview);
+				if (c && c == client) {
+					hd_home_view_set_live_bg(hhview, NULL, FALSE);
+					/* restore normal background */
+					hd_home_view_load_background(hhview);
+				}
+			}
+	} else if (view == -1) {
+		/* use this live background on all desktops and without scrolling */
+		int i;
+		/* first remove all current live backgrounds */
+		for (i = 0; i < MAX_HOME_VIEWS; ++i) {
+			hhview = HD_HOME_VIEW(priv->views[i]);
+			if (hd_home_view_get_live_bg(hhview))
+				hd_home_view_set_live_bg(hhview, NULL, FALSE);
+		}
+
+		if (priv->live_bg)
+			remove_global_live_bg(container);
+
+		cclient = MB_WM_COMP_MGR_CLUTTER_CLIENT(client->cm_client);
+		actor = mb_wm_comp_mgr_clutter_client_get_actor(cclient);
+		/* the actor is already parented to something, so reparent */
+		clutter_actor_reparent(actor, CLUTTER_ACTOR(container));
+		priv->live_bg = client;
+	} else if (view == -101) {
+		/* use this live background above applets on all desktops and without
+		 * scrolling */
+		int i;
+		ClutterActor *hfront;
+
+		for (i = 0; i < MAX_HOME_VIEWS; ++i) {
+			hhview = HD_HOME_VIEW(priv->views[i]);
+			if (hd_home_view_get_live_bg(hhview))
+				hd_home_view_set_live_bg(hhview, NULL, FALSE);
+		}
+
+		if (priv->live_bg)
+			remove_global_live_bg(container);
+
+		hfront = hd_home_get_front(priv->home);
+		cclient = MB_WM_COMP_MGR_CLUTTER_CLIENT(client->cm_client);
+		actor = mb_wm_comp_mgr_clutter_client_get_actor(cclient);
+		/* the actor is already parented to something, so reparent */
+		clutter_actor_reparent(actor, CLUTTER_ACTOR(hfront));
+		priv->live_bg = client;
+
+		/* restore normal backgrounds, FIXME: could be smarter by checking
+		 * if the backgrounds are already there */
+		for (i = 0; i < MAX_HOME_VIEWS; ++i) {
+			hhview = HD_HOME_VIEW(priv->views[i]);
+			hd_home_view_load_background(hhview);
+		}
+	}
+}
+
+static void hd_home_view_container_constructed(GObject * self)
+{
+	HdHomeViewContainer *container = HD_HOME_VIEW_CONTAINER(self);
+	HdHomeViewContainerPrivate *priv = container->priv;
+	guint i;
+	MBWindowManager *wm;
+	long propvalue[1];
+	gchar *backgrounds_dir;
+	GError *error = NULL;
+
+	if (G_OBJECT_CLASS(hd_home_view_container_parent_class)->constructed)
+		G_OBJECT_CLASS(hd_home_view_container_parent_class)->constructed(self);
+
+	/* Create home views */
+	for (i = 0; i < MAX_HOME_VIEWS; i++) {
+		priv->views[i] = g_object_new(HD_TYPE_HOME_VIEW,
+					      "comp-mgr", priv->comp_mgr,
+					      "home", priv->home, "id", i, "view-container", container, NULL);
+		clutter_container_add_actor(CLUTTER_CONTAINER(self), priv->views[i]);
+	}
+
+	priv->gconf_client = gconf_client_get_default();
+
+	gconf_client_add_dir(priv->gconf_client, HD_GCONF_DIR_VIEWS, GCONF_CLIENT_PRELOAD_ONELEVEL, &error);
+	if (G_UNLIKELY(error)) {
+		g_warning("Could not watch GConf dir %s. %s", HD_GCONF_DIR_VIEWS, error->message);
+		error = (g_error_free(error), NULL);
+	}
+
+	priv->views_active_notify = gconf_client_notify_add(priv->gconf_client,
+							    HD_GCONF_KEY_VIEWS_ACTIVE,
+							    views_active_notify_func, self, NULL, &error);
+	if (G_UNLIKELY(error)) {
+		g_warning("Could not add notify to GConf key %s. %s", HD_GCONF_KEY_VIEWS_ACTIVE, error->message);
+		error = (g_error_free(error), NULL);
+	}
+
+	/* Set _NET_NUMBER_OF_DESKTOPS property */
+	wm = MB_WM_COMP_MGR(priv->comp_mgr)->wm;
+	propvalue[0] = MAX_HOME_VIEWS;
+
+	XChangeProperty(wm->xdpy, wm->root_win->xwindow,
+			wm->atoms[MBWM_ATOM_NET_NUMBER_OF_DESKTOPS],
+			XA_CARDINAL, 32, PropModeReplace, (unsigned char *)propvalue, 1);
+
+	/* Monitor ~/.backgrounds dir */
+	backgrounds_dir = g_build_filename(g_get_home_dir(), BACKGROUNDS_DIR, NULL);
+	if (g_mkdir_with_parents(backgrounds_dir, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)) {
+		g_warning("Could not make %s dir", backgrounds_dir);
+	}
+
+	priv->backgrounds_dir_gfile = g_file_new_for_path(backgrounds_dir);
+	priv->backgrounds_dir_monitor = g_file_monitor_directory(priv->backgrounds_dir_gfile,
+								 G_FILE_MONITOR_NONE, NULL, &error);
+
+	if (G_UNLIKELY(error)) {
+		g_warning("Cannot monitor directory ~/.backgrounds for changed background files. %s", error->message);
+		error = (g_error_free(error), NULL);
+	} else {
+		g_signal_connect(priv->backgrounds_dir_monitor, "changed", G_CALLBACK(backgrounds_dir_changed), self);
+		g_debug("%s. Started to monitor %s", __FUNCTION__, backgrounds_dir);
+	}
+
+	g_free(backgrounds_dir);
+
+	hd_home_view_container_update_active_views(container, TRUE);
+}
+
+static void hd_home_view_container_dispose(GObject * self)
+{
+	HdHomeViewContainerPrivate *priv = HD_HOME_VIEW_CONTAINER(self)->priv;
+
+	if (priv->home)
+		priv->home = (g_object_unref(priv->home), NULL);
+
+	if (priv->backgrounds_dir_monitor)
+		priv->backgrounds_dir_monitor = (g_object_unref(priv->backgrounds_dir_monitor), NULL);
+
+	if (priv->backgrounds_dir_gfile)
+		priv->backgrounds_dir_gfile = (g_object_unref(priv->backgrounds_dir_gfile), NULL);
+
+	G_OBJECT_CLASS(hd_home_view_container_parent_class)->dispose(self);
+}
+
+static void hd_home_view_container_set_property(GObject * self, guint prop_id, const GValue * value, GParamSpec * pspec)
+{
+	HdHomeViewContainerPrivate *priv = HD_HOME_VIEW_CONTAINER(self)->priv;
+
+	switch (prop_id) {
+	case PROP_COMP_MGR:
+		priv->comp_mgr = g_value_get_pointer(value);
+		break;
+	case PROP_HOME:
+		if (priv->home)
+			g_object_unref(priv->home);
+		priv->home = g_value_dup_object(value);
+		break;
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID(self, prop_id, pspec);
+		break;
+	}
+}
+
+static void hd_home_view_container_get_property(GObject * self, guint prop_id, GValue * value, GParamSpec * pspec)
+{
+	HdHomeViewContainerPrivate *priv = HD_HOME_VIEW_CONTAINER(self)->priv;
+
+	switch (prop_id) {
+	case PROP_COMP_MGR:
+		g_value_set_pointer(value, priv->comp_mgr);
+		break;
+	case PROP_HOME:
+		g_value_set_object(value, priv->home);
+		break;
+	case PROP_CURRENT_VIEW:
+		g_value_set_uint(value, priv->current_view);
+		break;
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID(self, prop_id, pspec);
+		break;
+	}
 }
 
 static void
-hd_home_view_container_update_active_views (HdHomeViewContainer *self,
-                                            gboolean             constructed)
+hd_home_view_container_allocate(ClutterActor * self, const ClutterActorBox * box, gboolean absolute_origin_changed)
 {
-  HdHomeViewContainerPrivate *priv = self->priv;
-  GSList *list;
-  guint active_views[MAX_HOME_VIEWS] = { 0, };
-  gboolean none_active = TRUE;
-  guint i;
-  guint current_view;
-  GError *error = NULL;
+	HdHomeViewContainer *container = HD_HOME_VIEW_CONTAINER(self);
+	HdHomeViewContainerPrivate *priv = container->priv;
+	ClutterUnit width, height;
+	guint i;
+	ClutterActorBox child_box = { 0, };
+	ClutterUnit offset = 0;
 
-  /* Read active views from GConf */
-  list = gconf_client_get_list (priv->gconf_client,
-                                HD_GCONF_KEY_VIEWS_ACTIVE,
-                                GCONF_VALUE_INT,
-                                &error);
+	/* Chain up */
+	CLUTTER_ACTOR_CLASS(hd_home_view_container_parent_class)->allocate(self, box, absolute_origin_changed);
 
-  if (!error)
-    {
-      GSList *l;
+	width = box->x2 - box->x1;
+	height = box->y2 - box->y1;
 
-      for (l = list; l; l = l->next)
-        {
-          gint id = GPOINTER_TO_INT (l->data);
+	if (priv->previous_view != priv->current_view && priv->next_view != priv->current_view)
+		offset = CLUTTER_UNITS_FROM_INT(priv->offset) + CLUTTER_UNITS_FROM_INT(priv->offset_anim);
 
-          /* Stored in GConf 1..MAX_HOME_VIEWS */
+	if (hd_comp_mgr_is_portrait()
+	    && hd_home_get_vertical_scrolling(priv->home)) {	/* Vertical scrolling for portrait mode */
+		for (i = 0; i < MAX_HOME_VIEWS; i++) {
+			if (!priv->active_views[i])
+				continue;
 
-          if (id > 0 && id <= MAX_HOME_VIEWS)
-            {
-              active_views[id - 1] = TRUE;
-              none_active = FALSE;
-            }
-        }
-      g_slist_free (list);
-    }
-  else
-    {
-      /* Error */
-      g_warning ("Error reading active views from GConf. %s", error->message);
-      error = (g_error_free (error), NULL);
-    }
+			child_box.y1 = width;
+			child_box.x1 = 0;
+			child_box.y2 = width + width;
+			child_box.x2 = height;
 
-  /* Check if there is an view active */
-  if (none_active)
-    {
-      g_warning ("No active views. Make first view active");
-      active_views[0] = TRUE;
-    }
+			if (i == priv->current_view) {
+				child_box.y1 = offset;
+				child_box.y2 = offset + width;
+			} else if (i == priv->previous_view && offset > 0) {
+				child_box.y1 = offset - width;
+				child_box.y2 = offset;
+			} else if (i == priv->next_view && offset < 0) {
+				child_box.y1 += offset;
+				child_box.y2 += offset;
+			}
 
-  /* Read current view from GConf on construction */
-  if (constructed)
-    {
-      current_view = (guint) gconf_client_get_int (priv->gconf_client,
-                                                   HD_GCONF_KEY_VIEWS_CURRENT,
-                                                   &error);
-      current_view--;
-      if (error)
-        {
-          g_warning ("Error reading current view from GConf. %s", error->message);
-          error = (g_error_free (error), NULL);
-          current_view = 0;
-        }
+			clutter_actor_allocate(priv->views[i], &child_box, absolute_origin_changed);
 
-      /* Clamp to valid values */
-      current_view = current_view > MAX_HOME_VIEWS ? 0 : current_view;
-    }
-  else
-    {
-      current_view = priv->current_view;
-    }
+			/* Make sure offscreen views are hidden. Views positioned offscreen
+			 * wouldn't be seen anyway, but they introduce extra overheads in
+			 * Clutter/GLES if they are CLUTTER_ACTOR_IS_VISIBLE. We use < rather
+			 * than <= here because given the positioning above, the clause would
+			 * always be true otherwise */
+			if ((child_box.y1 < width) && (child_box.y2 > 0)) {
+				if (!CLUTTER_ACTOR_IS_VISIBLE(priv->views[i]))
+					clutter_actor_show(priv->views[i]);
+			} else {
+				if (CLUTTER_ACTOR_IS_VISIBLE(priv->views[i]))
+					clutter_actor_hide(priv->views[i]);
+			}
+		}
+	} else {		/* Scrolling animation for landscape mode (horizontal in portrait mode) */
+		for (i = 0; i < MAX_HOME_VIEWS; i++) {
+			if (!priv->active_views[i])
+				continue;
 
-  /* Set current view to an active view*/
-  i = current_view;
-  while (!active_views[i % MAX_HOME_VIEWS] && i - current_view < MAX_HOME_VIEWS)
-    i++;
-  current_view = (i % MAX_HOME_VIEWS);
+			child_box.x1 = width;
+			child_box.y1 = 0;
+			child_box.x2 = width + width;
+			child_box.y2 = height;
 
-  /* DEBUG */
-  g_debug ("%s Active views:", __FUNCTION__);
-  for (i = 0; i < MAX_HOME_VIEWS; i++)
-    {
-      g_debug ("%s %u %s", __FUNCTION__, i, active_views[i] ? "active" : "not active");
-    }
-  g_debug ("%s Current view: %u", __FUNCTION__, current_view);
+			if (i == priv->current_view) {
+				child_box.x1 = offset;
+				child_box.x2 = offset + width;
+			} else if (i == priv->previous_view && offset > 0) {
+				child_box.x1 = offset - width;
+				child_box.x2 = offset;
+			} else if (i == priv->next_view && offset < 0) {
+				child_box.x1 += offset;
+				child_box.x2 += offset;
+			}
 
-  if (constructed)
-    {
-      memcpy (priv->active_views, active_views, sizeof (gboolean) * MAX_HOME_VIEWS);
-      for (i = 0; i < MAX_HOME_VIEWS; i++)
-        {
-          priv->active_views[i] = active_views[i];
-          if (active_views[i])
-            clutter_actor_show (priv->views[i]);
-          else
-            clutter_actor_hide (priv->views[i]);
-        }
+			clutter_actor_allocate(priv->views[i], &child_box, absolute_origin_changed);
 
-      hd_home_view_container_set_current_view (self, current_view);
-
-      /* Load backgrounds for active views */
-      for (i = 0; i < MAX_HOME_VIEWS; i++)
-        hd_home_view_load_background (HD_HOME_VIEW (priv->views[i]));
-    }
-  else
-    {
-      for (i = 0; i < MAX_HOME_VIEWS; i++)
-        {
-          if (active_views[i] && !priv->active_views[i])
-            {
-              hd_home_view_load_background (HD_HOME_VIEW (priv->views[i]));
-              priv->active_views[i] = active_views[i];
-              clutter_actor_show (priv->views[i]);
-              g_object_notify (G_OBJECT (priv->views[i]), "active");
-            }
-        }
-
-      for (i = 0; i < MAX_HOME_VIEWS; i++)
-        {
-          if (!active_views[i] && priv->active_views[i])
-            {
-              priv->active_views[i] = active_views[i];
-              clutter_actor_hide (priv->views[i]);
-              hd_home_view_close_all_applets (HD_HOME_VIEW (priv->views[i]));
-              g_object_notify (G_OBJECT (priv->views[i]), "active");
-            }
-        }
-
-      /* FIXME scroll to new view and do not switch */
-      if (current_view != priv->current_view)
-        {
-          hd_home_view_container_set_current_view (self, current_view);
-        }
-      else
-        {
-          hd_home_view_container_update_previous_and_next_view (self);
-        }
-    }
+			/* Make sure offscreen views are hidden. Views positioned offscreen
+			 * wouldn't be seen anyway, but they introduce extra overheads in
+			 * Clutter/GLES if they are CLUTTER_ACTOR_IS_VISIBLE. We use < rather
+			 * than <= here because given the positioning above, the clause would
+			 * always be true otherwise */
+			if ((child_box.x1 < width) && (child_box.x2 > 0)) {
+				if (!CLUTTER_ACTOR_IS_VISIBLE(priv->views[i]))
+					clutter_actor_show(priv->views[i]);
+			} else {
+				if (CLUTTER_ACTOR_IS_VISIBLE(priv->views[i]))
+					clutter_actor_hide(priv->views[i]);
+			}
+		}
+	}
 }
 
-static void
-views_active_notify_func (GConfClient *client,
-                          guint        cnxn_id,
-                          GConfEntry  *entry,
-                          gpointer     user_data)
+static void hd_home_view_container_class_init(HdHomeViewContainerClass * klass)
 {
-  hd_home_view_container_update_active_views (HD_HOME_VIEW_CONTAINER (user_data),
-                                              FALSE);
+	GObjectClass *object_class = G_OBJECT_CLASS(klass);
+	ClutterActorClass *actor_class = CLUTTER_ACTOR_CLASS(klass);
+
+	object_class->constructed = hd_home_view_container_constructed;
+	object_class->dispose = hd_home_view_container_dispose;
+	object_class->get_property = hd_home_view_container_get_property;
+	object_class->set_property = hd_home_view_container_set_property;
+
+	actor_class->allocate = hd_home_view_container_allocate;
+
+	g_object_class_install_property(object_class,
+					PROP_COMP_MGR,
+					g_param_spec_pointer("comp-mgr",
+							     "Composite Manager",
+							     "Hildon Desktop Clutter Composite Manager object",
+							     G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
+	g_object_class_install_property(object_class,
+					PROP_HOME,
+					g_param_spec_object("home",
+							    "Home",
+							    "Hildon Desktop Home actor",
+							    CLUTTER_TYPE_ACTOR, G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
+	g_object_class_install_property(object_class,
+					PROP_CURRENT_VIEW,
+					g_param_spec_uint("current-view",
+							  "Current view",
+							  "The current view",
+							  0, MAX_HOME_VIEWS - 1, 0, G_PARAM_READABLE));
 }
 
-static void
-remove_global_live_bg (HdHomeViewContainer *container)
+static void hd_home_view_container_init(HdHomeViewContainer * self)
 {
-  HdHomeViewContainerPrivate *priv = container->priv;
-  ClutterActor *actor;
-  MBWMCompMgrClutterClient *cclient;
-
-  if (!priv->live_bg) return;
-
-  cclient = MB_WM_COMP_MGR_CLUTTER_CLIENT (priv->live_bg->cm_client);
-  actor = mb_wm_comp_mgr_clutter_client_get_actor (cclient);
-
-  if (priv->live_bg->window->live_background == -1)
-    {
-      clutter_container_remove_actor (CLUTTER_CONTAINER (container), actor);
-      clutter_actor_hide (actor);
-    }
-  else if (priv->live_bg->window->live_background == -101)
-    {
-      ClutterActor *hfront = hd_home_get_front (priv->home);
-      clutter_container_remove_actor (CLUTTER_CONTAINER (hfront), actor);
-      clutter_actor_hide (actor);
-    }
+	/* Create priv member */
+	self->priv = hd_home_view_container_get_instance_private(self);
 }
 
-void 
-hd_home_view_container_set_live_bg (HdHomeViewContainer *container,
-                                    MBWindowManagerClient *client)
+ClutterActor *hd_home_view_container_new(HdCompMgr * comp_mgr, ClutterActor * home)
 {
-  int view;
-  HdHomeView *hhview;
-  HdHomeViewContainerPrivate *priv = container->priv;
-  ClutterActor *actor;
-  MBWMCompMgrClutterClient *cclient;
+	ClutterActor *actor;
 
-  view = client->window->live_background;
-  if (view > 0 && view <= MAX_HOME_VIEWS)
-    {
-      hhview = HD_HOME_VIEW (priv->views[view - 1]);
-      hd_home_view_set_live_bg (hhview, client, FALSE);
-    }
-  /* live-bg above applets */
-  else if (view > 100 && view <= 100 + MAX_HOME_VIEWS)
-    {
-      hhview = HD_HOME_VIEW (priv->views[view - 1 - 100]);
-      hd_home_view_set_live_bg (hhview, client, TRUE);
-    }
-  else if (view == 0)
-    {
-      /* remove live background */
-      int i;
-      if (priv->live_bg == client)
-        {
-          cclient = MB_WM_COMP_MGR_CLUTTER_CLIENT (client->cm_client);
-          actor = mb_wm_comp_mgr_clutter_client_get_actor (cclient);
-          clutter_container_remove_actor (CLUTTER_CONTAINER (container), actor);
-          clutter_actor_hide (actor);
-          priv->live_bg = NULL;
+	actor = g_object_new(HD_TYPE_HOME_VIEW_CONTAINER, "comp-mgr", comp_mgr, "home", home, NULL);
 
-          /* restore normal backgrounds */
-          for (i = 0; i < MAX_HOME_VIEWS; ++i)
-            {
-              hhview = HD_HOME_VIEW (priv->views[i]);
-              hd_home_view_load_background (hhview);
-            }
-        }
-      else
-        for (i = 0; i < MAX_HOME_VIEWS; ++i)
-          {
-            MBWindowManagerClient *c;
-            hhview = HD_HOME_VIEW (priv->views[i]);
-            c = hd_home_view_get_live_bg (hhview);
-            if (c && c == client)
-              {
-                hd_home_view_set_live_bg (hhview, NULL, FALSE);
-                /* restore normal background */
-                hd_home_view_load_background (hhview);
-              }
-          }
-    }
-  else if (view == -1)
-    {
-      /* use this live background on all desktops and without scrolling */
-      int i;
-      /* first remove all current live backgrounds */
-      for (i = 0; i < MAX_HOME_VIEWS; ++i)
-        {
-          hhview = HD_HOME_VIEW (priv->views[i]);
-          if (hd_home_view_get_live_bg (hhview))
-            hd_home_view_set_live_bg (hhview, NULL, FALSE);
-        }
-
-      if (priv->live_bg)
-        remove_global_live_bg (container);
-
-      cclient = MB_WM_COMP_MGR_CLUTTER_CLIENT (client->cm_client);
-      actor = mb_wm_comp_mgr_clutter_client_get_actor (cclient);
-      /* the actor is already parented to something, so reparent */
-      clutter_actor_reparent (actor, CLUTTER_ACTOR (container));
-      priv->live_bg = client;
-    }
-  else if (view == -101)
-    {
-      /* use this live background above applets on all desktops and without
-       * scrolling */
-      int i;
-      ClutterActor *hfront;
-
-      for (i = 0; i < MAX_HOME_VIEWS; ++i)
-        {
-          hhview = HD_HOME_VIEW (priv->views[i]);
-          if (hd_home_view_get_live_bg (hhview))
-            hd_home_view_set_live_bg (hhview, NULL, FALSE);
-        }
-
-      if (priv->live_bg)
-        remove_global_live_bg (container);
-
-      hfront = hd_home_get_front (priv->home);
-      cclient = MB_WM_COMP_MGR_CLUTTER_CLIENT (client->cm_client);
-      actor = mb_wm_comp_mgr_clutter_client_get_actor (cclient);
-      /* the actor is already parented to something, so reparent */
-      clutter_actor_reparent (actor, CLUTTER_ACTOR (hfront));
-      priv->live_bg = client;
-
-      /* restore normal backgrounds, FIXME: could be smarter by checking
-       * if the backgrounds are already there */
-      for (i = 0; i < MAX_HOME_VIEWS; ++i)
-        {
-          hhview = HD_HOME_VIEW (priv->views[i]);
-          hd_home_view_load_background (hhview);
-        }
-    }
+	return actor;
 }
 
-static void
-hd_home_view_container_constructed (GObject *self)
+guint hd_home_view_container_get_current_view(HdHomeViewContainer * container)
 {
-  HdHomeViewContainer *container = HD_HOME_VIEW_CONTAINER (self);
-  HdHomeViewContainerPrivate *priv = container->priv;
-  guint i;
-  MBWindowManager *wm;
-  long propvalue[1];
-  gchar *backgrounds_dir;
-  GError *error = NULL;
+	HdHomeViewContainerPrivate *priv;
 
-  if (G_OBJECT_CLASS (hd_home_view_container_parent_class)->constructed)
-    G_OBJECT_CLASS (hd_home_view_container_parent_class)->constructed (self);
+	g_return_val_if_fail(HD_IS_HOME_VIEW_CONTAINER(container), 0);
 
-  /* Create home views */
-  for (i = 0; i < MAX_HOME_VIEWS; i++)
-    {
-      priv->views[i] = g_object_new (HD_TYPE_HOME_VIEW,
-                                     "comp-mgr", priv->comp_mgr,
-                                     "home", priv->home,
-                                     "id", i,
-                                     "view-container", container,
-                                     NULL);
-      clutter_container_add_actor (CLUTTER_CONTAINER (self),
-                                   priv->views[i]);
-    }
+	priv = container->priv;
 
-  priv->gconf_client = gconf_client_get_default ();
-
-  gconf_client_add_dir (priv->gconf_client,
-                        HD_GCONF_DIR_VIEWS,
-                        GCONF_CLIENT_PRELOAD_ONELEVEL,
-                        &error);
-  if (G_UNLIKELY (error))
-    {
-      g_warning ("Could not watch GConf dir %s. %s", HD_GCONF_DIR_VIEWS, error->message);
-      error = (g_error_free (error), NULL);
-    }
-
-  priv->views_active_notify = gconf_client_notify_add (priv->gconf_client,
-                                                       HD_GCONF_KEY_VIEWS_ACTIVE,
-                                                       views_active_notify_func,
-                                                       self,
-                                                       NULL,
-                                                       &error);
-  if (G_UNLIKELY (error))
-    {
-      g_warning ("Could not add notify to GConf key %s. %s", HD_GCONF_KEY_VIEWS_ACTIVE, error->message);
-      error = (g_error_free (error), NULL);
-    }
-
-  /* Set _NET_NUMBER_OF_DESKTOPS property */
-  wm = MB_WM_COMP_MGR (priv->comp_mgr)->wm;
-  propvalue[0] = MAX_HOME_VIEWS;
-
-  XChangeProperty (wm->xdpy, wm->root_win->xwindow,
-		   wm->atoms[MBWM_ATOM_NET_NUMBER_OF_DESKTOPS],
-		   XA_CARDINAL, 32, PropModeReplace,
-		   (unsigned char *) propvalue,
-		   1);
-
-  /* Monitor ~/.backgrounds dir */
-  backgrounds_dir = g_build_filename (g_get_home_dir (),
-                                      BACKGROUNDS_DIR,
-                                      NULL);
-  if (g_mkdir_with_parents (backgrounds_dir,
-                            S_IRUSR | S_IWUSR | S_IXUSR |
-                            S_IRGRP | S_IXGRP |
-                            S_IROTH | S_IXOTH))
-    {
-      g_warning ("Could not make %s dir", backgrounds_dir);
-    }
-
-
-  priv->backgrounds_dir_gfile = g_file_new_for_path (backgrounds_dir);
-  priv->backgrounds_dir_monitor = g_file_monitor_directory (priv->backgrounds_dir_gfile,
-                                                            G_FILE_MONITOR_NONE,
-                                                            NULL,
-                                                            &error);
-
-  if (G_UNLIKELY (error))
-    {
-      g_warning ("Cannot monitor directory ~/.backgrounds for changed background files. %s",
-                 error->message);
-      error = (g_error_free (error), NULL);
-    }
-  else
-    {
-      g_signal_connect (priv->backgrounds_dir_monitor,
-                        "changed",
-                        G_CALLBACK(backgrounds_dir_changed),
-                        self);
-      g_debug ("%s. Started to monitor %s",
-               __FUNCTION__,
-               backgrounds_dir);
-    }
-
-  g_free (backgrounds_dir);
-
-  hd_home_view_container_update_active_views (container, TRUE);
+	return priv->current_view;
 }
 
-static void
-hd_home_view_container_dispose (GObject *self)
+MBWindowManagerClient *hd_home_view_container_get_live_bg(HdHomeViewContainer * container)
 {
-  HdHomeViewContainerPrivate *priv = HD_HOME_VIEW_CONTAINER (self)->priv;
-
-  if (priv->home)
-    priv->home = (g_object_unref (priv->home), NULL);
-
-  if (priv->backgrounds_dir_monitor)
-    priv->backgrounds_dir_monitor = (g_object_unref (priv->backgrounds_dir_monitor), NULL);
-
-  if (priv->backgrounds_dir_gfile)
-    priv->backgrounds_dir_gfile = (g_object_unref (priv->backgrounds_dir_gfile), NULL);
-
-  G_OBJECT_CLASS (hd_home_view_container_parent_class)->dispose (self);
+	return container->priv->live_bg;
 }
 
-static void
-hd_home_view_container_set_property (GObject      *self,
-                                     guint         prop_id,
-                                     const GValue *value,
-                                     GParamSpec   *pspec)
+void hd_home_view_container_set_current_view(HdHomeViewContainer * container, guint current_view)
 {
-  HdHomeViewContainerPrivate *priv = HD_HOME_VIEW_CONTAINER (self)->priv;
+	HdHomeViewContainerPrivate *priv;
+	MBWindowManager *wm;
+	long propvalue[1];
+	GError *error = NULL;
 
-  switch (prop_id)
-    {
-    case PROP_COMP_MGR:
-      priv->comp_mgr = g_value_get_pointer (value);
-      break;
-    case PROP_HOME:
-      if (priv->home)
-        g_object_unref (priv->home);
-      priv->home = g_value_dup_object (value);
-      break;
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (self, prop_id, pspec);
-      break;
-    }
+	g_return_if_fail(HD_IS_HOME_VIEW_CONTAINER(container));
+	g_return_if_fail(current_view >= 0 && current_view < MAX_HOME_VIEWS);
+
+	priv = container->priv;
+
+	/* Determine previous and next views */
+	priv->current_view = current_view;
+
+	hd_home_view_container_update_previous_and_next_view(container);
+
+	/* Store current view in GConf */
+	gconf_client_set_int(priv->gconf_client, HD_GCONF_KEY_VIEWS_CURRENT, current_view + 1, &error);
+
+	if (error) {
+		g_warning("Could not store current view to GConf (%s). %s", HD_GCONF_KEY_VIEWS_CURRENT, error->message);
+		g_clear_error(&error);
+	}
+
+	/* Sync GConf */
+	gconf_client_suggest_sync(priv->gconf_client, &error);
+
+	if (error) {
+		g_warning("Could not sync GConf. %s", error->message);
+		g_clear_error(&error);
+	}
+
+	/* Set _NET_DESKTOP porperty to root window */
+	wm = MB_WM_COMP_MGR(priv->comp_mgr)->wm;
+	propvalue[0] = current_view;
+
+	XChangeProperty(wm->xdpy, wm->root_win->xwindow,
+			wm->atoms[MBWM_ATOM_NET_CURRENT_DESKTOP],
+			XA_CARDINAL, 32, PropModeReplace, (unsigned char *)propvalue, 1);
+
+	clutter_actor_queue_relayout(CLUTTER_ACTOR(container));
 }
 
-static void
-hd_home_view_container_get_property (GObject    *self,
-                                     guint       prop_id,
-                                     GValue     *value,
-                                     GParamSpec *pspec)
+ClutterActor *hd_home_view_container_get_view(HdHomeViewContainer * container, guint view_id)
 {
-  HdHomeViewContainerPrivate *priv = HD_HOME_VIEW_CONTAINER (self)->priv;
+	HdHomeViewContainerPrivate *priv;
 
-  switch (prop_id)
-    {
-    case PROP_COMP_MGR:
-      g_value_set_pointer (value, priv->comp_mgr);
-      break;
-    case PROP_HOME:
-      g_value_set_object (value, priv->home);
-      break;
-    case PROP_CURRENT_VIEW:
-      g_value_set_uint (value, priv->current_view);
-      break;
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (self, prop_id, pspec);
-      break;
-    }
+	g_return_val_if_fail(HD_IS_HOME_VIEW_CONTAINER(container), NULL);
+	g_return_val_if_fail(view_id < MAX_HOME_VIEWS, NULL);
+
+	priv = container->priv;
+
+	return priv->views[view_id];
 }
 
-static void
-hd_home_view_container_allocate (ClutterActor          *self,
-                                 const ClutterActorBox *box,
-                                 gboolean               absolute_origin_changed)
+gboolean hd_home_view_container_get_active(HdHomeViewContainer * container, guint view_id)
 {
-  HdHomeViewContainer *container = HD_HOME_VIEW_CONTAINER (self);
-  HdHomeViewContainerPrivate *priv = container->priv;
-  ClutterUnit width, height;
-  guint i;
-  ClutterActorBox child_box = { 0, };
-  ClutterUnit offset = 0;
+	HdHomeViewContainerPrivate *priv;
 
-  /* Chain up */
-  CLUTTER_ACTOR_CLASS (hd_home_view_container_parent_class)->allocate (self,
-                                                                       box,
-                                                                       absolute_origin_changed);
+	g_return_val_if_fail(HD_IS_HOME_VIEW_CONTAINER(container), FALSE);
+	g_return_val_if_fail(view_id < MAX_HOME_VIEWS, FALSE);
 
-  width = box->x2 - box->x1;
-  height = box->y2 - box->y1;
+	priv = container->priv;
 
-  if (priv->previous_view != priv->current_view
-      && priv->next_view != priv->current_view)
-    offset = CLUTTER_UNITS_FROM_INT(priv->offset) +
-             CLUTTER_UNITS_FROM_INT(priv->offset_anim);
-
-  if( hd_comp_mgr_is_portrait()
-      && hd_home_get_vertical_scrolling(priv->home))
-  { /* Vertical scrolling for portrait mode */
-    for (i = 0; i < MAX_HOME_VIEWS; i++)
-      {
-        if (!priv->active_views[i])
-          continue;
-
-        child_box.y1 = width;
-        child_box.x1 = 0;
-        child_box.y2 = width + width;
-        child_box.x2 = height;
-
-        if (i == priv->current_view)
-          {
-            child_box.y1 = offset;
-            child_box.y2 = offset + width;
-          }
-        else if (i == priv->previous_view && offset > 0)
-          {
-            child_box.y1 = offset - width;
-            child_box.y2 = offset;
-          }
-        else if (i == priv->next_view && offset < 0)
-          {
-            child_box.y1 += offset;
-            child_box.y2 += offset;
-          }
-
-        clutter_actor_allocate (priv->views[i], &child_box, absolute_origin_changed);
-
-        /* Make sure offscreen views are hidden. Views positioned offscreen
-         * wouldn't be seen anyway, but they introduce extra overheads in
-         * Clutter/GLES if they are CLUTTER_ACTOR_IS_VISIBLE. We use < rather
-         * than <= here because given the positioning above, the clause would
-         * always be true otherwise */
-        if ((child_box.y1 < width) &&
-            (child_box.y2 > 0))
-          {
-            if (!CLUTTER_ACTOR_IS_VISIBLE(priv->views[i]))
-              clutter_actor_show(priv->views[i]);
-          }
-        else
-          {
-            if (CLUTTER_ACTOR_IS_VISIBLE(priv->views[i]))
-              clutter_actor_hide(priv->views[i]);
-          }
-      }
-  }
-  else
-  { /* Scrolling animation for landscape mode (horizontal in portrait mode)*/
-    for (i = 0; i < MAX_HOME_VIEWS; i++)
-      {
-        if (!priv->active_views[i])
-          continue;
-
-        child_box.x1 = width;
-        child_box.y1 = 0;
-        child_box.x2 = width + width;
-        child_box.y2 = height;
-
-        if (i == priv->current_view)
-          {
-            child_box.x1 = offset;
-            child_box.x2 = offset + width;
-          }
-        else if (i == priv->previous_view && offset > 0)
-          {
-            child_box.x1 = offset - width;
-            child_box.x2 = offset;
-          }
-        else if (i == priv->next_view && offset < 0)
-          {
-            child_box.x1 += offset;
-            child_box.x2 += offset;
-          }
-
-        clutter_actor_allocate (priv->views[i], &child_box, absolute_origin_changed);
-
-        /* Make sure offscreen views are hidden. Views positioned offscreen
-         * wouldn't be seen anyway, but they introduce extra overheads in
-         * Clutter/GLES if they are CLUTTER_ACTOR_IS_VISIBLE. We use < rather
-         * than <= here because given the positioning above, the clause would
-         * always be true otherwise */
-        if ((child_box.x1 < width) &&
-            (child_box.x2 > 0))
-          {
-            if (!CLUTTER_ACTOR_IS_VISIBLE(priv->views[i]))
-              clutter_actor_show(priv->views[i]);
-          }
-        else
-          {
-            if (CLUTTER_ACTOR_IS_VISIBLE(priv->views[i]))
-              clutter_actor_hide(priv->views[i]);
-          }
-      }
-  }
+	return priv->active_views[view_id];
 }
 
-static void
-hd_home_view_container_class_init (HdHomeViewContainerClass *klass)
+void hd_home_view_container_set_offset(HdHomeViewContainer * container, ClutterUnit offset)
 {
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
-  ClutterActorClass *actor_class = CLUTTER_ACTOR_CLASS (klass);
+	HdHomeViewContainerPrivate *priv;
 
-  object_class->constructed = hd_home_view_container_constructed;
-  object_class->dispose = hd_home_view_container_dispose;
-  object_class->get_property = hd_home_view_container_get_property;
-  object_class->set_property = hd_home_view_container_set_property;
+	g_return_if_fail(HD_IS_HOME_VIEW_CONTAINER(container));
 
-  actor_class->allocate = hd_home_view_container_allocate;
+	priv = container->priv;
 
-  g_object_class_install_property (object_class,
-                                   PROP_COMP_MGR,
-                                   g_param_spec_pointer ("comp-mgr",
-                                                         "Composite Manager",
-                                                         "Hildon Desktop Clutter Composite Manager object",
-                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
-  g_object_class_install_property (object_class,
-                                   PROP_HOME,
-                                   g_param_spec_object ("home",
-                                                        "Home",
-                                                        "Hildon Desktop Home actor",
-                                                        CLUTTER_TYPE_ACTOR,
-                                                        G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
-  g_object_class_install_property (object_class,
-                                   PROP_CURRENT_VIEW,
-                                   g_param_spec_uint ("current-view",
-                                                      "Current view",
-                                                      "The current view",
-                                                      0,
-                                                      MAX_HOME_VIEWS - 1,
-                                                      0,
-                                                      G_PARAM_READABLE));
+	priv->offset = CLUTTER_UNITS_TO_INT(offset);
+
+	clutter_actor_queue_relayout(CLUTTER_ACTOR(container));
 }
 
-static void
-hd_home_view_container_init (HdHomeViewContainer *self)
+static void scroll_back_new_frame_cb(ClutterTimeline * timeline, gint frame_num, HdHomeViewContainer * container)
 {
-  /* Create priv member */
-  self->priv = hd_home_view_container_get_instance_private (self);
+	HdHomeViewContainerPrivate *priv = container->priv;
+
+	float amt = frame_num / (float)priv->frames;
+	amt = hd_transition_ease_out(amt);
+	/* If we overshoot, go negative for the first part of the transition */
+	if (priv->animation_overshoot)
+		amt = amt * -cos(amt * 3.141592);
+
+	priv->offset_anim = (int)((1 - amt) * priv->timeline_offset);
+	/* prod the blur control so it notices that the background has changed */
+	hd_render_manager_blurred_changed();
+
+	clutter_actor_queue_relayout(CLUTTER_ACTOR(container));
 }
 
-ClutterActor *
-hd_home_view_container_new (HdCompMgr    *comp_mgr,
-                            ClutterActor *home)
+static void scroll_back_completed_cb(ClutterTimeline * timeline, HdHomeViewContainer * container)
 {
-  ClutterActor *actor;
+	HdHomeViewContainerPrivate *priv = container->priv;
+	HdCompMgr *hmgr = HD_COMP_MGR(priv->comp_mgr);
+	MBWindowManagerClient *desktop;
 
-  actor = g_object_new (HD_TYPE_HOME_VIEW_CONTAINER,
-                        "comp-mgr", comp_mgr,
-                        "home", home,
-                        NULL);
+	if (priv->timeline)
+		priv->timeline = (g_object_unref(priv->timeline), NULL);
 
-  return actor;
-}
+	desktop = hd_comp_mgr_get_desktop_client(hmgr);
 
-guint
-hd_home_view_container_get_current_view (HdHomeViewContainer *container)
-{
-  HdHomeViewContainerPrivate *priv;
+	if (desktop) {		/* Synchronize here, we may not come from clutter_x11_event_filter()
+				 * at all. */
+		mb_wm_client_stacking_mark_dirty(desktop);
+		mb_wm_sync(MB_WM_COMP_MGR(hmgr)->wm);
+	}
 
-  g_return_val_if_fail (HD_IS_HOME_VIEW_CONTAINER (container), 0);
-
-  priv = container->priv;
-
-  return priv->current_view;
-}
-
-MBWindowManagerClient *
-hd_home_view_container_get_live_bg (HdHomeViewContainer *container)
-{
-  return container->priv->live_bg;
-}
-
-void
-hd_home_view_container_set_current_view (HdHomeViewContainer *container,
-                                         guint                current_view)
-{
-  HdHomeViewContainerPrivate *priv;
-  MBWindowManager *wm;
-  long propvalue[1];
-  GError *error = NULL;
-
-  g_return_if_fail (HD_IS_HOME_VIEW_CONTAINER (container));
-  g_return_if_fail (current_view >= 0 && current_view < MAX_HOME_VIEWS);
-
-  priv = container->priv;
-
-  /* Determine previous and next views */
-  priv->current_view = current_view;
-
-  hd_home_view_container_update_previous_and_next_view (container);
-
-  /* Store current view in GConf */
-  gconf_client_set_int (priv->gconf_client,
-                        HD_GCONF_KEY_VIEWS_CURRENT,
-                        current_view + 1,
-                        &error);
-
-  if (error)
-    {
-      g_warning ("Could not store current view to GConf (%s). %s",
-                 HD_GCONF_KEY_VIEWS_CURRENT,
-                 error->message);
-      g_clear_error (&error);
-    }
-
-  /* Sync GConf */
-  gconf_client_suggest_sync (priv->gconf_client,
-                             &error);
-
-  if (error)
-    {
-      g_warning ("Could not sync GConf. %s",
-                 error->message);
-      g_clear_error (&error);
-    }
-
-  /* Set _NET_DESKTOP porperty to root window */
-  wm = MB_WM_COMP_MGR (priv->comp_mgr)->wm;
-  propvalue[0] = current_view;
-
-  XChangeProperty (wm->xdpy, wm->root_win->xwindow,
-		   wm->atoms[MBWM_ATOM_NET_CURRENT_DESKTOP],
-		   XA_CARDINAL, 32, PropModeReplace,
-		   (unsigned char *) propvalue,
-		   1);
-
-  clutter_actor_queue_relayout (CLUTTER_ACTOR (container));
-}
-
-ClutterActor *
-hd_home_view_container_get_view (HdHomeViewContainer *container,
-                                 guint                view_id)
-{
-  HdHomeViewContainerPrivate *priv;
-
-  g_return_val_if_fail (HD_IS_HOME_VIEW_CONTAINER (container), NULL);
-  g_return_val_if_fail (view_id < MAX_HOME_VIEWS, NULL);
-
-  priv = container->priv;
-
-  return priv->views[view_id];
-}
-
-gboolean
-hd_home_view_container_get_active (HdHomeViewContainer *container,
-                                   guint                view_id)
-{
-  HdHomeViewContainerPrivate *priv;
-
-  g_return_val_if_fail (HD_IS_HOME_VIEW_CONTAINER (container), FALSE);
-  g_return_val_if_fail (view_id < MAX_HOME_VIEWS, FALSE);
-
-  priv = container->priv;
-
-  return priv->active_views[view_id];
-}
-
-void
-hd_home_view_container_set_offset (HdHomeViewContainer *container,
-                                   ClutterUnit          offset)
-{
-  HdHomeViewContainerPrivate *priv;
-
-  g_return_if_fail (HD_IS_HOME_VIEW_CONTAINER (container));
-
-  priv = container->priv;
-
-  priv->offset = CLUTTER_UNITS_TO_INT(offset);
-
-  clutter_actor_queue_relayout (CLUTTER_ACTOR (container));
-}
-
-static void
-scroll_back_new_frame_cb (ClutterTimeline     *timeline,
-                          gint                 frame_num,
-                          HdHomeViewContainer *container)
-{
-  HdHomeViewContainerPrivate *priv = container->priv;
-
-  float amt = frame_num / (float)priv->frames;
-  amt = hd_transition_ease_out(amt);
-  /* If we overshoot, go negative for the first part of the transition */
-  if (priv->animation_overshoot)
-    amt = amt * -cos(amt*3.141592);
-
-  priv->offset_anim = (int)((1-amt) * priv->timeline_offset);
-  /* prod the blur control so it notices that the background has changed */
-  hd_render_manager_blurred_changed();
-
-  clutter_actor_queue_relayout (CLUTTER_ACTOR (container));
-}
-
-static void
-scroll_back_completed_cb (ClutterTimeline     *timeline,
-                          HdHomeViewContainer *container)
-{
-  HdHomeViewContainerPrivate *priv = container->priv;
-  HdCompMgr *hmgr = HD_COMP_MGR (priv->comp_mgr);
-  MBWindowManagerClient *desktop;
-
-  if (priv->timeline)
-    priv->timeline = (g_object_unref (priv->timeline), NULL);
-
-  desktop = hd_comp_mgr_get_desktop_client (hmgr);
-
-  if (desktop)
-    { /* Synchronize here, we may not come from clutter_x11_event_filter()
-       * at all. */
-      mb_wm_client_stacking_mark_dirty (desktop);
-      mb_wm_sync (MB_WM_COMP_MGR (hmgr)->wm);
-    }
-
-  priv->in_move = FALSE;
+	priv->in_move = FALSE;
 }
 
 /* Velocity is the speed in pixels/second, and we attempt to set the scroll
  * speed accordingly */
-void
-hd_home_view_container_scroll_back (HdHomeViewContainer *container, gint velocity)
+void hd_home_view_container_scroll_back(HdHomeViewContainer * container, gint velocity)
 {
-  HdHomeViewContainerPrivate *priv;
-  guint width;
-  gint offset;
+	HdHomeViewContainerPrivate *priv;
+	guint width;
+	gint offset;
 
-  g_return_if_fail (HD_IS_HOME_VIEW_CONTAINER (container));
+	g_return_if_fail(HD_IS_HOME_VIEW_CONTAINER(container));
 
-  priv = container->priv;
+	priv = container->priv;
 
-  if (priv->timeline) {
-    clutter_timeline_stop(priv->timeline);
-    /* This will unref the timeline and switch desktops to what everything
-     * else is expecting */
-    scroll_back_completed_cb(priv->timeline, container);
-  }
+	if (priv->timeline) {
+		clutter_timeline_stop(priv->timeline);
+		/* This will unref the timeline and switch desktops to what everything
+		 * else is expecting */
+		scroll_back_completed_cb(priv->timeline, container);
+	}
 
-  offset = priv->offset + priv->offset_anim;
+	offset = priv->offset + priv->offset_anim;
 
-  clutter_actor_get_size (CLUTTER_ACTOR (container), &width, NULL);
+	clutter_actor_get_size(CLUTTER_ACTOR(container), &width, NULL);
 
-  /* if no velocity, make something up */
-  if (velocity == 0)
-    {
-      priv->animation_overshoot = FALSE;
-      velocity = width*5;
-    }
-  else
-    {
-      /* Overshoot if we were going in one direction, but expect to
-       * go in the other */
-      priv->animation_overshoot = (velocity>0) == (offset>0);
-      /* make sure velocity is within a sensible range, we don't want this
-       * taking more than a second, or totally flicking past... */
-      velocity = ABS(velocity);
-      if (velocity > 10000) velocity = 10000;
-      if (velocity < width) velocity = width;
-    }
+	/* if no velocity, make something up */
+	if (velocity == 0) {
+		priv->animation_overshoot = FALSE;
+		velocity = width * 5;
+	} else {
+		/* Overshoot if we were going in one direction, but expect to
+		 * go in the other */
+		priv->animation_overshoot = (velocity > 0) == (offset > 0);
+		/* make sure velocity is within a sensible range, we don't want this
+		 * taking more than a second, or totally flicking past... */
+		velocity = ABS(velocity);
+		if (velocity > 10000)
+			velocity = 10000;
+		if (velocity < width)
+			velocity = width;
+	}
 
-  /* we use 1570, because it's roughly 1000 * PI/2 - this keeps the initial speed
-   * the same as the drag velocity given in the argument (because the ease_out
-   * function in scroll_back_new_frame_cb uses sin, and sin(x)==x near 0) */
-  priv->timeline = clutter_timeline_new_for_duration
-                        (ABS (offset) * 1570 / velocity);
+	/* we use 1570, because it's roughly 1000 * PI/2 - this keeps the initial speed
+	 * the same as the drag velocity given in the argument (because the ease_out
+	 * function in scroll_back_new_frame_cb uses sin, and sin(x)==x near 0) */
+	priv->timeline = clutter_timeline_new_for_duration(ABS(offset) * 1570 / velocity);
 
-  priv->frames = clutter_timeline_get_n_frames (priv->timeline);
-  priv->timeline_offset = offset;
-  /* We reset this and use a separate offset (offset_anim) for animation so
-   * the user can still pan while we're animating */
-  priv->offset = 0;
+	priv->frames = clutter_timeline_get_n_frames(priv->timeline);
+	priv->timeline_offset = offset;
+	/* We reset this and use a separate offset (offset_anim) for animation so
+	 * the user can still pan while we're animating */
+	priv->offset = 0;
 
-  g_debug ("frames: %u, offset: %d",
-           priv->frames, priv->timeline_offset);
+	g_debug("frames: %u, offset: %d", priv->frames, priv->timeline_offset);
 
-  g_signal_connect (priv->timeline, "new-frame",
-                    G_CALLBACK (scroll_back_new_frame_cb), container);
-  g_signal_connect (priv->timeline, "completed",
-                    G_CALLBACK (scroll_back_completed_cb), container);
-  /* Update first frame to stop flicker */
-  scroll_back_new_frame_cb(priv->timeline, 0, container);
+	g_signal_connect(priv->timeline, "new-frame", G_CALLBACK(scroll_back_new_frame_cb), container);
+	g_signal_connect(priv->timeline, "completed", G_CALLBACK(scroll_back_completed_cb), container);
+	/* Update first frame to stop flicker */
+	scroll_back_new_frame_cb(priv->timeline, 0, container);
 
-  priv->in_move = TRUE;
-  clutter_timeline_start (priv->timeline);
+	priv->in_move = TRUE;
+	clutter_timeline_start(priv->timeline);
 }
 
-void
-hd_home_view_container_scroll_to_previous (HdHomeViewContainer *container, gint velocity)
+void hd_home_view_container_scroll_to_previous(HdHomeViewContainer * container, gint velocity)
 {
-  HdHomeViewContainerPrivate *priv;
-  guint width;
+	HdHomeViewContainerPrivate *priv;
+	guint width;
 
-  g_return_if_fail (HD_IS_HOME_VIEW_CONTAINER (container));
+	g_return_if_fail(HD_IS_HOME_VIEW_CONTAINER(container));
 
-  priv = container->priv;
+	priv = container->priv;
 
-  clutter_actor_get_size (CLUTTER_ACTOR (container), &width, NULL);
+	clutter_actor_get_size(CLUTTER_ACTOR(container), &width, NULL);
 
-  priv->offset -= width;
-  hd_home_view_container_set_current_view (container,
-                                           priv->previous_view);
+	priv->offset -= width;
+	hd_home_view_container_set_current_view(container, priv->previous_view);
 
-  hd_home_view_container_scroll_back (container, velocity);
+	hd_home_view_container_scroll_back(container, velocity);
 }
 
-ClutterTimeline *
-hd_home_view_container_scroll_to_next (HdHomeViewContainer *container, gint velocity)
+ClutterTimeline *hd_home_view_container_scroll_to_next(HdHomeViewContainer * container, gint velocity)
 {
-  HdHomeViewContainerPrivate *priv;
-  guint width;
+	HdHomeViewContainerPrivate *priv;
+	guint width;
 
-  g_return_val_if_fail (HD_IS_HOME_VIEW_CONTAINER (container), NULL);
+	g_return_val_if_fail(HD_IS_HOME_VIEW_CONTAINER(container), NULL);
 
-  priv = container->priv;
+	priv = container->priv;
 
-  clutter_actor_get_size (CLUTTER_ACTOR (container), &width, NULL);
+	clutter_actor_get_size(CLUTTER_ACTOR(container), &width, NULL);
 
-  priv->offset += width;
-  hd_home_view_container_set_current_view (container,
-                                           priv->next_view);
+	priv->offset += width;
+	hd_home_view_container_set_current_view(container, priv->next_view);
 
-  hd_home_view_container_scroll_back (container, velocity);
+	hd_home_view_container_scroll_back(container, velocity);
 
-  return priv->timeline;
+	return priv->timeline;
 }
 
-void
-hd_home_view_container_set_reactive (HdHomeViewContainer *container,
-                                     gboolean             reactive)
+void hd_home_view_container_set_reactive(HdHomeViewContainer * container, gboolean reactive)
 {
-  HdHomeViewContainerPrivate *priv;
-  guint i;
+	HdHomeViewContainerPrivate *priv;
+	guint i;
 
-  g_return_if_fail (HD_IS_HOME_VIEW_CONTAINER (container));
+	g_return_if_fail(HD_IS_HOME_VIEW_CONTAINER(container));
 
-  priv = container->priv;
+	priv = container->priv;
 
-  for (i = 0; i < MAX_HOME_VIEWS; i++)
-    if (priv->active_views[i])
-      clutter_actor_set_reactive (priv->views[i], reactive);
+	for (i = 0; i < MAX_HOME_VIEWS; i++)
+		if (priv->active_views[i])
+			clutter_actor_set_reactive(priv->views[i], reactive);
 }
 
-ClutterActor *
-hd_home_view_container_get_previous_view (HdHomeViewContainer *container)
+ClutterActor *hd_home_view_container_get_previous_view(HdHomeViewContainer * container)
 {
-  HdHomeViewContainerPrivate *priv;
+	HdHomeViewContainerPrivate *priv;
 
-  g_return_val_if_fail (HD_IS_HOME_VIEW_CONTAINER (container), NULL);
+	g_return_val_if_fail(HD_IS_HOME_VIEW_CONTAINER(container), NULL);
 
-  priv = container->priv;
+	priv = container->priv;
 
-  if (priv->previous_view != priv->current_view)
-    return priv->views[priv->previous_view];
+	if (priv->previous_view != priv->current_view)
+		return priv->views[priv->previous_view];
 
-  return NULL;
+	return NULL;
 }
 
-ClutterActor *
-hd_home_view_container_get_next_view (HdHomeViewContainer *container)
+ClutterActor *hd_home_view_container_get_next_view(HdHomeViewContainer * container)
 {
-  HdHomeViewContainerPrivate *priv;
+	HdHomeViewContainerPrivate *priv;
 
-  g_return_val_if_fail (HD_IS_HOME_VIEW_CONTAINER (container), NULL);
+	g_return_val_if_fail(HD_IS_HOME_VIEW_CONTAINER(container), NULL);
 
-  priv = container->priv;
+	priv = container->priv;
 
-  if (priv->next_view != priv->current_view)
-    return priv->views[priv->next_view];
+	if (priv->next_view != priv->current_view)
+		return priv->views[priv->next_view];
 
-  return NULL;
+	return NULL;
 }
 
-gboolean
-hd_home_view_container_is_scrolling (HdHomeViewContainer *container)
+gboolean hd_home_view_container_is_scrolling(HdHomeViewContainer * container)
 {
-  HdHomeViewContainerPrivate *priv = container->priv;
+	HdHomeViewContainerPrivate *priv = container->priv;
 
-  return priv->in_move;
+	return priv->in_move;
 }

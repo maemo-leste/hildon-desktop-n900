@@ -28,7 +28,7 @@
 #include <matchbox/core/mb-wm.h>
 #include <matchbox/client-types/mb-wm-client-note.h>
 
-typedef struct HdStatusMenu      HdStatusMenu;
+typedef struct HdStatusMenu HdStatusMenu;
 typedef struct HdStatusMenuClass HdStatusMenuClass;
 
 #define HD_STATUS_MENU(c) ((HdStatusMenu*)(c))
@@ -36,21 +36,18 @@ typedef struct HdStatusMenuClass HdStatusMenuClass;
 #define HD_TYPE_STATUS_MENU (hd_status_menu_class_type ())
 #define HD_IS_STATUS_MENU(c) (MB_WM_OBJECT_TYPE(c) == HD_TYPE_STATUS_MENU)
 
-struct HdStatusMenu
-{
-  MBWMClientNote  parent;
+struct HdStatusMenu {
+	MBWMClientNote parent;
 
-  unsigned long   release_cb_id;
+	unsigned long release_cb_id;
 };
 
-struct HdStatusMenuClass
-{
-  MBWMClientNoteClass parent;
+struct HdStatusMenuClass {
+	MBWMClientNoteClass parent;
 };
 
-MBWindowManagerClient* hd_status_menu_new (MBWindowManager *wm,
-                                           MBWMClientWindow *win);
+MBWindowManagerClient *hd_status_menu_new(MBWindowManager * wm, MBWMClientWindow * win);
 
-int hd_status_menu_class_type (void);
+int hd_status_menu_class_type(void);
 
 #endif

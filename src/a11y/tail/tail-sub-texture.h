@@ -27,7 +27,6 @@
 #include                                        <cail/cail-actor.h>
 
 G_BEGIN_DECLS
-
 #define                                         TAIL_TYPE_SUB_TEXTURE \
                                                 (tail_sub_texture_get_type ())
 #define                                         TAIL_SUB_TEXTURE(obj) \
@@ -45,28 +44,20 @@ G_BEGIN_DECLS
 #define                                         TAIL_SUB_TEXTURE_GET_CLASS(obj) \
                                                 (G_TYPE_INSTANCE_GET_CLASS ((obj), \
                                                 TAIL_TYPE_SUB_TEXTURE, TailSubTextureClass))
+typedef struct _TailSubTexture TailSubTexture;
+typedef struct _TailSubTextureClass TailSubTextureClass;
 
-typedef struct                                  _TailSubTexture        TailSubTexture;
-typedef struct                                  _TailSubTextureClass   TailSubTextureClass;
-
-struct                                          _TailSubTexture
-{
-  CailActor parent;
+struct _TailSubTexture {
+	CailActor parent;
 };
 
-struct                                          _TailSubTextureClass
-{
-  CailActorClass parent_class;
+struct _TailSubTextureClass {
+	CailActorClass parent_class;
 };
 
+GType tail_sub_texture_get_type(void);
 
-GType
-tail_sub_texture_get_type                       (void);
-
-AtkObject*
-tail_sub_texture_new                            (ClutterActor *tile);
-
+AtkObject *tail_sub_texture_new(ClutterActor * tile);
 
 G_END_DECLS
-
 #endif

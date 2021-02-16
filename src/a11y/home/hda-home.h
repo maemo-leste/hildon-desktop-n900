@@ -27,7 +27,6 @@
 #include                                        "cail/cail-actor.h"
 
 G_BEGIN_DECLS
-
 #define                                         HDA_TYPE_HOME \
                                                 (hda_home_get_type ())
 #define                                         HDA_HOME(obj) \
@@ -45,28 +44,20 @@ G_BEGIN_DECLS
 #define                                         HDA_HOME_GET_CLASS(obj) \
                                                 (G_TYPE_INSTANCE_GET_CLASS ((obj), \
                                                 HDA_TYPE_HOME, HdaHomeClass))
+typedef struct _HdaHome HdaHome;
+typedef struct _HdaHomeClass HdaHomeClass;
 
-typedef struct                                  _HdaHome        HdaHome;
-typedef struct                                  _HdaHomeClass   HdaHomeClass;
-
-struct                                          _HdaHome
-{
-  CailActor parent;
+struct _HdaHome {
+	CailActor parent;
 };
 
-struct                                          _HdaHomeClass
-{
-  CailActorClass parent_class;
+struct _HdaHomeClass {
+	CailActorClass parent_class;
 };
 
+GType hda_home_get_type(void);
 
-GType
-hda_home_get_type                               (void);
-
-AtkObject*
-hda_home_new                                    (ClutterActor *home);
-
+AtkObject *hda_home_new(ClutterActor * home);
 
 G_END_DECLS
-
 #endif

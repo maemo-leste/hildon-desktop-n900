@@ -27,7 +27,7 @@
 #include <matchbox/core/mb-wm.h>
 #include <matchbox/client-types/mb-wm-client-app.h>
 
-typedef struct HdApp      HdApp;
+typedef struct HdApp HdApp;
 typedef struct HdAppClass HdAppClass;
 
 #define HD_APP(c)       ((HdApp*)(c))
@@ -35,38 +35,35 @@ typedef struct HdAppClass HdAppClass;
 #define HD_TYPE_APP     (hd_app_class_type ())
 #define HD_IS_APP(c)    (MB_WM_OBJECT_TYPE(c)==HD_TYPE_APP)
 
-struct HdApp
-{
-  MBWMClientApp    parent;
+struct HdApp {
+	MBWMClientApp parent;
 
-  GList       *followers;
-  HdApp       *leader;
-  int          stack_index;
+	GList *followers;
+	HdApp *leader;
+	int stack_index;
 
-  /* set to true if we have had a map effect before. Helps stop us doing a
-   * subview transition if we're merely remapping the same window */
-  Bool         map_effect_before;
+	/* set to true if we have had a map effect before. Helps stop us doing a
+	 * subview transition if we're merely remapping the same window */
+	Bool map_effect_before;
 
-  /* cache for the window property */
-  Bool         non_composited_read;
-  Bool         non_composited;
-  Bool         force_composited;
+	/* cache for the window property */
+	Bool non_composited_read;
+	Bool non_composited;
+	Bool force_composited;
 
-  Window       detransitised_from;  
+	Window detransitised_from;
 };
 
-struct HdAppClass
-{
-  MBWMClientAppClass parent;
+struct HdAppClass {
+	MBWMClientAppClass parent;
 };
 
-MBWindowManagerClient*
-hd_app_new (MBWindowManager *wm, MBWMClientWindow *win);
+MBWindowManagerClient *hd_app_new(MBWindowManager * wm, MBWMClientWindow * win);
 
-int hd_app_class_type (void);
+int hd_app_class_type(void);
 
-MBWindowManagerClient* hd_app_get_next_group_member (HdApp *app);
-MBWindowManagerClient* hd_app_get_prev_group_member (HdApp *app);
-MBWindowManagerClient* hd_app_close_followers (HdApp *app);
+MBWindowManagerClient *hd_app_get_next_group_member(HdApp * app);
+MBWindowManagerClient *hd_app_get_prev_group_member(HdApp * app);
+MBWindowManagerClient *hd_app_close_followers(HdApp * app);
 
 #endif

@@ -37,7 +37,6 @@
 #include "../tidy/tidy-cached-group.h"
 
 G_BEGIN_DECLS
-
 #define HD_TYPE_RENDER_MANAGER_STATE (hd_render_manager_state_get_type ())
 #define HD_TYPE_RENDER_MANAGER      (hd_render_manager_get_type ())
 #define HD_RENDER_MANAGER(obj)      (G_TYPE_CHECK_INSTANCE_CAST ((obj), HD_TYPE_RENDER_MANAGER, HdRenderManager))
@@ -45,51 +44,47 @@ G_BEGIN_DECLS
 #define HD_RENDER_MANAGER_CLASS(klass)    (G_TYPE_CHECK_CLASS_TYPE ((klass), HD_TYPE_RENDER_MANAGER, HdRenderManagerClass))
 #define HD_IS_RENDER_MANAGER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), HD_TYPE_RENDER_MANAGER))
 #define HD_RENDER_MANAGER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), HD_TYPE_RENDER_MANAGER, HdRenderManagerClass))
+typedef struct _HdRenderManager HdRenderManager;
+typedef struct _HdRenderManagerPrivate HdRenderManagerPrivate;
+typedef struct _HdRenderManagerClass HdRenderManagerClass;
 
-typedef struct _HdRenderManager         HdRenderManager;
-typedef struct _HdRenderManagerPrivate  HdRenderManagerPrivate;
-typedef struct _HdRenderManagerClass    HdRenderManagerClass;
+struct _HdRenderManager {
+	TidyCachedGroup parent_instance;
 
-struct _HdRenderManager
-{
-  TidyCachedGroup parent_instance;
-
-  HdRenderManagerPrivate *priv;
+	HdRenderManagerPrivate *priv;
 };
 
-struct _HdRenderManagerClass
-{
-  TidyCachedGroupClass parent_class;
+struct _HdRenderManagerClass {
+	TidyCachedGroupClass parent_class;
 };
 
 /* Various view states */
-typedef enum
-{
-  HDRM_STATE_UNDEFINED      = 0, /* just for startup - should never use this */
-  HDRM_STATE_HOME           = 1 << 0, /* home frontmost */
-  HDRM_STATE_HOME_EDIT      = 1 << 1, /* home frontmost, and edit mode */
-  HDRM_STATE_HOME_EDIT_DLG  = 1 << 2, /* home frontmost (and looks like edit
-                                         mode) - but when the dialogs close we
-                                         want to return to HOME_EDIT state. This
-                                         has no grab so dialogs work. */
-  HDRM_STATE_HOME_PORTRAIT  = 1 << 3,
-  HDRM_STATE_APP            = 1 << 4, /* app frontmost */
-  HDRM_STATE_APP_PORTRAIT   = 1 << 5,
-  HDRM_STATE_TASK_NAV       = 1 << 6,
-  HDRM_STATE_LAUNCHER       = 1 << 7,
-  HDRM_STATE_NON_COMPOSITED = 1 << 8, /* non-composited fullscreen mode */
-  HDRM_STATE_LOADING        = 1 << 9, /* Loading screen */
-  HDRM_STATE_LOADING_SUBWIN = 1 << 10, /* Loading screen, but displaying
-                                         background apps */
-  HDRM_STATE_NON_COMP_PORT  = 1 << 11, /* non-composited portrait mode */
-  HDRM_STATE_AFTER_TKLOCK   = 1 << 12, /* bogus mode used in state transition
-                                         after tklock */
-  HDRM_STATE_LAUNCHER_PORTRAIT = 1 << 13,
-  HDRM_STATE_TASK_NAV_PORTRAIT = 1 << 14,
-  HDRM_STATE_LOADING_PORTRAIT  = 1 << 15,
-  HDRM_STATE_LOADING_SUBWIN_PORTRAIT = 1 << 16,
-  HDRM_STATE_HOME_EDIT_PORTRAIT = 1 << 17,
-  HDRM_STATE_HOME_EDIT_DLG_PORTRAIT = 1 << 18
+typedef enum {
+	HDRM_STATE_UNDEFINED = 0,	/* just for startup - should never use this */
+	HDRM_STATE_HOME = 1 << 0,	/* home frontmost */
+	HDRM_STATE_HOME_EDIT = 1 << 1,	/* home frontmost, and edit mode */
+	HDRM_STATE_HOME_EDIT_DLG = 1 << 2,	/* home frontmost (and looks like edit
+						   mode) - but when the dialogs close we
+						   want to return to HOME_EDIT state. This
+						   has no grab so dialogs work. */
+	HDRM_STATE_HOME_PORTRAIT = 1 << 3,
+	HDRM_STATE_APP = 1 << 4,	/* app frontmost */
+	HDRM_STATE_APP_PORTRAIT = 1 << 5,
+	HDRM_STATE_TASK_NAV = 1 << 6,
+	HDRM_STATE_LAUNCHER = 1 << 7,
+	HDRM_STATE_NON_COMPOSITED = 1 << 8,	/* non-composited fullscreen mode */
+	HDRM_STATE_LOADING = 1 << 9,	/* Loading screen */
+	HDRM_STATE_LOADING_SUBWIN = 1 << 10,	/* Loading screen, but displaying
+						   background apps */
+	HDRM_STATE_NON_COMP_PORT = 1 << 11,	/* non-composited portrait mode */
+	HDRM_STATE_AFTER_TKLOCK = 1 << 12,	/* bogus mode used in state transition
+						   after tklock */
+	HDRM_STATE_LAUNCHER_PORTRAIT = 1 << 13,
+	HDRM_STATE_TASK_NAV_PORTRAIT = 1 << 14,
+	HDRM_STATE_LOADING_PORTRAIT = 1 << 15,
+	HDRM_STATE_LOADING_SUBWIN_PORTRAIT = 1 << 16,
+	HDRM_STATE_HOME_EDIT_PORTRAIT = 1 << 17,
+	HDRM_STATE_HOME_EDIT_DLG_PORTRAIT = 1 << 18
 } HDRMStateEnum;
 
 /* Does the desktop need to be above apps? */
@@ -175,7 +170,6 @@ typedef enum
 		      HDRM_STATE_LOADING | HDRM_STATE_LOADING_PORTRAIT | \
 		      HDRM_STATE_LOADING_SUBWIN | HDRM_STATE_LOADING_SUBWIN_PORTRAIT | \
               HDRM_STATE_HOME_EDIT | HDRM_STATE_HOME_EDIT_PORTRAIT))
-                      
 
 /* are we in a state where we want the toolbar buttons to be out the front?
  * We need this in task_nav (and launcher if the buttons ever come back)
@@ -219,19 +213,17 @@ typedef enum
 		 HDRM_STATE_TASK_NAV | HDRM_STATE_TASK_NAV_PORTRAIT )) \
 		 || (STATE_IS_LAUNCHER (s)))
 
-GType hd_render_manager_state_get_type (void) G_GNUC_CONST;
-GType hd_render_manager_get_type       (void) G_GNUC_CONST;
+GType hd_render_manager_state_get_type(void) G_GNUC_CONST;
+GType hd_render_manager_get_type(void) G_GNUC_CONST;
 
-HdRenderManager *hd_render_manager_create (HdCompMgr *hdcompmgr,
-		                           HdLauncher *launcher,
-					   HdHome *home,
-					   HdTaskNavigator *task_nav);
-HdRenderManager *hd_render_manager_get (void);
+HdRenderManager *hd_render_manager_create(HdCompMgr * hdcompmgr,
+					  HdLauncher * launcher, HdHome * home, HdTaskNavigator * task_nav);
+HdRenderManager *hd_render_manager_get(void);
 
-void hd_render_manager_set_status_area (ClutterActor *item);
-void hd_render_manager_set_status_menu (ClutterActor *item);
-void hd_render_manager_set_operator (ClutterActor *item);
-void hd_render_manager_set_loading  (ClutterActor *item);
+void hd_render_manager_set_status_area(ClutterActor * item);
+void hd_render_manager_set_status_menu(ClutterActor * item);
+void hd_render_manager_set_operator(ClutterActor * item);
+void hd_render_manager_set_loading(ClutterActor * item);
 /* ----------------------------------------------------------------- */
 ClutterActor *hd_render_manager_get_title_bar(void);
 ClutterActor *hd_render_manager_get_status_area(void);
@@ -239,23 +231,23 @@ MBWindowManagerClient *hd_render_manager_get_status_area_client(void);
 
 ClutterContainer *hd_render_manager_get_front_group(void);
 
-void hd_render_manager_add_to_front_group(ClutterActor *a);
+void hd_render_manager_add_to_front_group(ClutterActor * a);
 
-void hd_render_manager_set_state (HDRMStateEnum state);
+void hd_render_manager_set_state(HDRMStateEnum state);
 HDRMStateEnum hd_render_manager_get_state(void);
 HDRMStateEnum hd_render_manager_get_previous_state(void);
-void hd_render_manager_set_state_portrait (void);
-void hd_render_manager_set_state_unportrait (void);
-void hd_render_manager_switch_to_composited_state (void);
+void hd_render_manager_set_state_portrait(void);
+void hd_render_manager_set_state_unportrait(void);
+void hd_render_manager_switch_to_composited_state(void);
 gboolean hd_render_manager_is_changing_state(void);
 const char *hd_render_manager_get_state_str(void);
 gboolean hd_render_manager_in_transition(void);
-gboolean hd_render_manager_is_client_visible(MBWindowManagerClient *c);
+gboolean hd_render_manager_is_client_visible(MBWindowManagerClient * c);
 void hd_render_manager_set_launcher_subview(gboolean subview);
 
 void hd_render_manager_return_windows(void);
-void hd_render_manager_return_app (ClutterActor *actor);
-void hd_render_manager_return_dialog (ClutterActor *actor);
+void hd_render_manager_return_app(ClutterActor * actor);
+void hd_render_manager_return_dialog(ClutterActor * actor);
 
 void hd_render_manager_restack(void);
 void hd_render_manager_place_titlebar_elements(void);
@@ -274,7 +266,7 @@ void hd_render_manager_unzoom_background(void);
 void hd_render_manager_blurred_changed(void);
 
 /* Gets the current coordinates of the title. */
-void hd_render_manager_get_title_xy (int *x, int *y);
+void hd_render_manager_get_title_xy(int *x, int *y);
 
 /* Adds an input blocker which grabs the whole screen's input until either a
  * window appears or a timeout expires. We only use this because
@@ -299,21 +291,20 @@ void hd_render_manager_flip_input_viewport(void);
  * recent then most likely it was mapped before the dbus signal arrived. */
 gboolean hd_render_manager_allow_dbus_launch_transition(void);
 
-gboolean hd_render_manager_actor_is_visible(ClutterActor *actor);
+gboolean hd_render_manager_actor_is_visible(ClutterActor * actor);
 
 void hd_render_manager_set_visibilities(void);
 
 void hd_render_manager_update_blur_state(void);
 void hd_render_manager_pause_blur_animation(void);
 
-HdHome *hd_render_manager_get_home (void);
+HdHome *hd_render_manager_get_home(void);
 
-void hd_render_manager_press_effect (void);
+void hd_render_manager_press_effect(void);
 
-void hd_render_manager_update_applets_position (void);
-void hd_render_manager_update_wallpapers (void);
-gboolean hd_render_manager_is_portrait_wallpaper_enabled (void);
+void hd_render_manager_update_applets_position(void);
+void hd_render_manager_update_wallpapers(void);
+gboolean hd_render_manager_is_portrait_wallpaper_enabled(void);
 
 G_END_DECLS
-
-#endif /* __HD_RENDER_MANAGER_H__ */
+#endif				/* __HD_RENDER_MANAGER_H__ */

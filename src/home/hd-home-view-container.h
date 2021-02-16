@@ -27,69 +27,52 @@
 #include "hd-comp-mgr.h"
 
 G_BEGIN_DECLS
-
 #define HD_TYPE_HOME_VIEW_CONTAINER            (hd_home_view_container_get_type ())
 #define HD_HOME_VIEW_CONTAINER(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), HD_TYPE_HOME_VIEW_CONTAINER, HdHomeViewContainer))
 #define HD_HOME_VIEW_CONTAINER_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), HD_TYPE_HOME_VIEW_CONTAINER, HdHomeViewContainerClass))
 #define HD_IS_HOME_VIEW_CONTAINER(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HD_TYPE_HOME_VIEW_CONTAINER))
 #define HD_IS_HOME_VIEW_CONTAINER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), HD_TYPE_HOME_VIEW_CONTAINER))
 #define HD_HOME_VIEW_CONTAINER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), HD_TYPE_HOME_VIEW_CONTAINER, HdHomeViewContainerClass))
-
-typedef struct _HdHomeViewContainer        HdHomeViewContainer;
-typedef struct _HdHomeViewContainerClass   HdHomeViewContainerClass;
+typedef struct _HdHomeViewContainer HdHomeViewContainer;
+typedef struct _HdHomeViewContainerClass HdHomeViewContainerClass;
 typedef struct _HdHomeViewContainerPrivate HdHomeViewContainerPrivate;
 
-struct _HdHomeViewContainer
-{
-  ClutterGroup            parent;
+struct _HdHomeViewContainer {
+	ClutterGroup parent;
 
-  HdHomeViewContainerPrivate *priv;
+	HdHomeViewContainerPrivate *priv;
 };
 
-struct _HdHomeViewContainerClass
-{
-  ClutterGroupClass parent_class;
+struct _HdHomeViewContainerClass {
+	ClutterGroupClass parent_class;
 };
 
-GType            hd_home_view_container_get_type           (void);
+GType hd_home_view_container_get_type(void);
 
-ClutterActor    *hd_home_view_container_new                (HdCompMgr           *comp_mgr,
-                                                            ClutterActor        *home);
+ClutterActor *hd_home_view_container_new(HdCompMgr * comp_mgr, ClutterActor * home);
 
-guint            hd_home_view_container_get_current_view   (HdHomeViewContainer *container);
-void             hd_home_view_container_set_current_view   (HdHomeViewContainer *container,
-                                                            guint                current_view);
+guint hd_home_view_container_get_current_view(HdHomeViewContainer * container);
+void hd_home_view_container_set_current_view(HdHomeViewContainer * container, guint current_view);
 
-ClutterActor    *hd_home_view_container_get_view           (HdHomeViewContainer *container,
-                                                            guint                view_id);
-gboolean         hd_home_view_container_get_active         (HdHomeViewContainer *container,
-                                                            guint                view_id);
+ClutterActor *hd_home_view_container_get_view(HdHomeViewContainer * container, guint view_id);
+gboolean hd_home_view_container_get_active(HdHomeViewContainer * container, guint view_id);
 
-void             hd_home_view_container_set_offset         (HdHomeViewContainer *container,
-                                                            ClutterUnit          offset);
+void hd_home_view_container_set_offset(HdHomeViewContainer * container, ClutterUnit offset);
 
-ClutterActor    *hd_home_view_container_get_previous_view  (HdHomeViewContainer *container);
-ClutterActor    *hd_home_view_container_get_next_view      (HdHomeViewContainer *container);
+ClutterActor *hd_home_view_container_get_previous_view(HdHomeViewContainer * container);
+ClutterActor *hd_home_view_container_get_next_view(HdHomeViewContainer * container);
 
-void             hd_home_view_container_scroll_back        (HdHomeViewContainer *container,
-                                                            gint velocity);
-void             hd_home_view_container_scroll_to_previous (HdHomeViewContainer *container,
-                                                            gint velocity);
-ClutterTimeline *hd_home_view_container_scroll_to_next     (HdHomeViewContainer *container,
-                                                            gint velocity);
-void             hd_home_view_container_set_reactive       (HdHomeViewContainer *container,
-                                                            gboolean             reactive);
+void hd_home_view_container_scroll_back(HdHomeViewContainer * container, gint velocity);
+void hd_home_view_container_scroll_to_previous(HdHomeViewContainer * container, gint velocity);
+ClutterTimeline *hd_home_view_container_scroll_to_next(HdHomeViewContainer * container, gint velocity);
+void hd_home_view_container_set_reactive(HdHomeViewContainer * container, gboolean reactive);
 
-void 
-hd_home_view_container_set_live_bg (HdHomeViewContainer *container,
-                                    MBWindowManagerClient *client);
-MBWindowManagerClient *
-hd_home_view_container_get_live_bg (HdHomeViewContainer *container);
+void hd_home_view_container_set_live_bg(HdHomeViewContainer * container, MBWindowManagerClient * client);
+MBWindowManagerClient *hd_home_view_container_get_live_bg(HdHomeViewContainer * container);
 
-HdHomeViewContainer *hd_home_get_view_container(HdHome *home);
+HdHomeViewContainer *hd_home_get_view_container(HdHome * home);
 
-gboolean hd_home_view_container_is_scrolling (HdHomeViewContainer *container);
+gboolean hd_home_view_container_is_scrolling(HdHomeViewContainer * container);
 
 G_END_DECLS
-
 #endif

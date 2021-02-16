@@ -27,20 +27,17 @@
 #include <glib.h>
 #include <matchbox/core/mb-wm.h>
 
-G_BEGIN_DECLS
-
-typedef enum _HdWmClientType
-{
-  HdWmClientTypeHomeApplet  = MBWMClientTypeLast << 1,
-  HdWmClientTypeAppMenu     = MBWMClientTypeLast << 2,
-  HdWmClientTypeStatusArea  = MBWMClientTypeLast << 3,
-  HdWmClientTypeStatusMenu  = MBWMClientTypeLast << 4,
-  HdWmClientTypeAnimationActor = MBWMClientTypeLast << 5,
-  HdWmClientTypeRemoteTexture = MBWMClientTypeLast << 6,
+G_BEGIN_DECLS typedef enum _HdWmClientType {
+	HdWmClientTypeHomeApplet = MBWMClientTypeLast << 1,
+	HdWmClientTypeAppMenu = MBWMClientTypeLast << 2,
+	HdWmClientTypeStatusArea = MBWMClientTypeLast << 3,
+	HdWmClientTypeStatusMenu = MBWMClientTypeLast << 4,
+	HdWmClientTypeAnimationActor = MBWMClientTypeLast << 5,
+	HdWmClientTypeRemoteTexture = MBWMClientTypeLast << 6,
 } HdWmClientType;
 
-typedef struct HdWmClass   HdWmClass;
-typedef struct HdWm        HdWm;
+typedef struct HdWmClass HdWmClass;
+typedef struct HdWm HdWm;
 typedef struct HdWmPrivate HdWmPrivate;
 
 #define HD_WM(c)       ((HdWm*)(c))
@@ -51,29 +48,24 @@ typedef struct HdWmPrivate HdWmPrivate;
 #define HD_WM_CLIENT_CLIENT_TYPE(c) \
                        HD_WM_CLIENT_TYPE ((MB_WM_CLIENT_CLIENT_TYPE (c)))
 
-struct HdWm
-{
-    MBWindowManager             parent;
+struct HdWm {
+	MBWindowManager parent;
 
-    HdWmPrivate                *priv;
+	HdWmPrivate *priv;
 };
 
-struct HdWmClass
-{
-    MBWindowManagerClass parent;
+struct HdWmClass {
+	MBWindowManagerClass parent;
 };
 
-int hd_wm_class_type (void);
+int hd_wm_class_type(void);
 
-Window                  hd_wm_current_app_is (MBWindowManager *wm,
-                                              Window xid);
-Bool                    hd_wm_activate_zoomed_client (MBWindowManager *wm,
-                                                      MBWindowManagerClient *c);
-gboolean                hd_wm_has_modal_blockers (const MBWindowManager *wm);
-gboolean                hd_wm_close_modal_blockers (const MBWindowManager *wm);
-void                    hd_wm_delete_temporaries (MBWindowManager *wm);
-Window                  hd_wm_get_hung_client_dialog_xid (MBWindowManager *wm);
+Window hd_wm_current_app_is(MBWindowManager * wm, Window xid);
+Bool hd_wm_activate_zoomed_client(MBWindowManager * wm, MBWindowManagerClient * c);
+gboolean hd_wm_has_modal_blockers(const MBWindowManager * wm);
+gboolean hd_wm_close_modal_blockers(const MBWindowManager * wm);
+void hd_wm_delete_temporaries(MBWindowManager * wm);
+Window hd_wm_get_hung_client_dialog_xid(MBWindowManager * wm);
 
 G_END_DECLS
-
-#endif /* __HD_WM_H__ */
+#endif				/* __HD_WM_H__ */

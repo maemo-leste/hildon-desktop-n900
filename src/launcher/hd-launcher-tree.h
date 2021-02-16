@@ -34,46 +34,39 @@
 #include "hd-launcher-app.h"
 
 G_BEGIN_DECLS
-
 #define HD_TYPE_LAUNCHER_TREE                   (hd_launcher_tree_get_type ())
 #define HD_LAUNCHER_TREE(obj)                   (G_TYPE_CHECK_INSTANCE_CAST ((obj), HD_TYPE_LAUNCHER_TREE, HdLauncherTree))
 #define HD_IS_LAUNCHER_TREE(obj)                (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HD_TYPE_LAUNCHER_TREE))
 #define HD_LAUNCHER_TREE_CLASS(klass)           (G_TYPE_CHECK_CLASS_CAST ((klass), HD_TYPE_LAUNCHER_TREE, HdLauncherTreeClass))
 #define HD_IS_LAUNCHER_TREE_CLASS(klass)        (G_TYPE_CHECK_CLASS_TYPE ((klass), HD_TYPE_LAUNCHER_TREE))
 #define HD_LAUNCHER_TREE_GET_CLASS(obj)         (G_TYPE_INSTANCE_GET_CLASS ((obj), HD_TYPE_LAUNCHER_TREE, HdLauncherTreeClass))
+typedef struct _HdLauncherTree HdLauncherTree;
+typedef struct _HdLauncherTreePrivate HdLauncherTreePrivate;
+typedef struct _HdLauncherTreeClass HdLauncherTreeClass;
 
-typedef struct _HdLauncherTree          HdLauncherTree;
-typedef struct _HdLauncherTreePrivate   HdLauncherTreePrivate;
-typedef struct _HdLauncherTreeClass     HdLauncherTreeClass;
+struct _HdLauncherTree {
+	GObject parent_instance;
 
-struct _HdLauncherTree
-{
-  GObject parent_instance;
-
-  HdLauncherTreePrivate *priv;
+	HdLauncherTreePrivate *priv;
 };
 
-struct _HdLauncherTreeClass
-{
-  GObjectClass parent_class;
+struct _HdLauncherTreeClass {
+	GObjectClass parent_class;
 };
 
-GType           hd_launcher_tree_get_type (void) G_GNUC_CONST;
+GType hd_launcher_tree_get_type(void) G_GNUC_CONST;
 
-HdLauncherTree *hd_launcher_tree_new         (void);
+HdLauncherTree *hd_launcher_tree_new(void);
 
-void            hd_launcher_tree_populate    (HdLauncherTree *tree);
+void hd_launcher_tree_populate(HdLauncherTree * tree);
 
-GList *         hd_launcher_tree_get_items   (HdLauncherTree *tree);
-guint           hd_launcher_tree_get_size    (HdLauncherTree *tree);
-HdLauncherItem *hd_launcher_tree_find_item   (HdLauncherTree *tree,
-                                              const gchar *id);
-HdLauncherApp  *hd_launcher_tree_find_app_by_service (
-                                              HdLauncherTree *tree,
-                                              const gchar *service);
+GList *hd_launcher_tree_get_items(HdLauncherTree * tree);
+guint hd_launcher_tree_get_size(HdLauncherTree * tree);
+HdLauncherItem *hd_launcher_tree_find_item(HdLauncherTree * tree, const gchar * id);
+HdLauncherApp *hd_launcher_tree_find_app_by_service(HdLauncherTree * tree, const gchar * service);
 
 /* Utility functions. */
-void hd_launcher_tree_ensure_user_menu (void);
+void hd_launcher_tree_ensure_user_menu(void);
 
 /* Launcher menu templates. */
 #define HD_LAUNCHER_MENU_FILE  "hildon.menu"
@@ -90,5 +83,4 @@ void hd_launcher_tree_ensure_user_menu (void);
   "</Menu>\n"
 
 G_END_DECLS
-
-#endif /* __HD_LAUNCHER_TREE_H__ */
+#endif				/* __HD_LAUNCHER_TREE_H__ */

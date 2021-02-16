@@ -30,62 +30,46 @@
 #include <cogl/cogl.h>
 
 G_BEGIN_DECLS
-
 #define TIDY_TYPE_MEM_TEXTURE (tidy_mem_texture_get_type ())
-
 #define TIDY_MEM_TEXTURE(obj) \
   (G_TYPE_CHECK_INSTANCE_CAST ((obj), \
   TIDY_TYPE_MEM_TEXTURE, TidyMemTexture))
-
 #define TIDY_MEM_TEXTURE_CLASS(klass) \
   (G_TYPE_CHECK_CLASS_CAST ((klass), \
   TIDY_TYPE_MEM_TEXTURE, TidyMemTextureClass))
-
 #define TIDY_IS_MEM_TEXTURE(obj) \
   (G_TYPE_CHECK_INSTANCE_TYPE ((obj), \
   TIDY_TYPE_MEM_TEXTURE))
-
 #define TIDY_IS_MEM_TEXTURE_CLASS(klass) \
   (G_TYPE_CHECK_CLASS_TYPE ((klass), \
   TIDY_TYPE_MEM_TEXTURE))
-
 #define TIDY_MEM_TEXTURE_GET_CLASS(obj) \
   (G_TYPE_INSTANCE_GET_CLASS ((obj), \
   TIDY_TYPE_MEM_TEXTURE, TidyMemTextureClass))
-
-typedef struct _TidyMemTexture        TidyMemTexture;
+typedef struct _TidyMemTexture TidyMemTexture;
 typedef struct _TidyMemTexturePrivate TidyMemTexturePrivate;
-typedef struct _TidyMemTextureClass   TidyMemTextureClass;
+typedef struct _TidyMemTextureClass TidyMemTextureClass;
 
-struct _TidyMemTexture
-{
-  ClutterActor                 parent;
+struct _TidyMemTexture {
+	ClutterActor parent;
 
-  /*< priv >*/
-  TidyMemTexturePrivate    *priv;
+	/*< priv > */
+	TidyMemTexturePrivate *priv;
 };
 
-struct _TidyMemTextureClass
-{
-  ClutterActorClass parent_class;
+struct _TidyMemTextureClass {
+	ClutterActorClass parent_class;
 };
 
-GType           tidy_mem_texture_get_type           (void) G_GNUC_CONST;
+GType tidy_mem_texture_get_type(void) G_GNUC_CONST;
 
 TidyMemTexture *tidy_mem_texture_new(void);
 
-void tidy_mem_texture_set_data(TidyMemTexture *texture,
-                               const guchar *data,
-                               gint width, gint height,
-                               gint bytes_per_pixel);
-void tidy_mem_texture_damage(TidyMemTexture *texture,
-                             gint x, gint y,
-                             gint width, gint height);
-void tidy_mem_texture_set_offset(TidyMemTexture *texture,
-                                 ClutterFixed x, ClutterFixed y);
-void tidy_mem_texture_set_scale(TidyMemTexture *texture,
-                                ClutterFixed scale_x, ClutterFixed scale_Y);
+void tidy_mem_texture_set_data(TidyMemTexture * texture,
+			       const guchar * data, gint width, gint height, gint bytes_per_pixel);
+void tidy_mem_texture_damage(TidyMemTexture * texture, gint x, gint y, gint width, gint height);
+void tidy_mem_texture_set_offset(TidyMemTexture * texture, ClutterFixed x, ClutterFixed y);
+void tidy_mem_texture_set_scale(TidyMemTexture * texture, ClutterFixed scale_x, ClutterFixed scale_Y);
 
 G_END_DECLS
-
 #endif

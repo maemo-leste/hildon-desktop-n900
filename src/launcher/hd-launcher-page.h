@@ -32,61 +32,54 @@
 #include "hd-launcher-tile.h"
 
 G_BEGIN_DECLS
-
 #define HD_TYPE_LAUNCHER_PAGE            (hd_launcher_page_get_type ())
 #define HD_LAUNCHER_PAGE(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), HD_TYPE_LAUNCHER_PAGE, HdLauncherPage))
 #define HD_IS_LAUNCHER_PAGE(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HD_TYPE_LAUNCHER_PAGE))
 #define HD_LAUNCHER_PAGE_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), HD_TYPE_LAUNCHER_PAGE, HdLauncherPageClass))
 #define HD_IS_LAUNCHER_PAGE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), HD_TYPE_LAUNCHER_PAGE))
 #define HD_LAUNCHER_PAGE_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), HD_TYPE_LAUNCHER_PAGE, HdLauncherPageClass))
+typedef struct _HdLauncherPage HdLauncherPage;
+typedef struct _HdLauncherPagePrivate HdLauncherPagePrivate;
+typedef struct _HdLauncherPageClass HdLauncherPageClass;
 
-typedef struct _HdLauncherPage         HdLauncherPage;
-typedef struct _HdLauncherPagePrivate  HdLauncherPagePrivate;
-typedef struct _HdLauncherPageClass    HdLauncherPageClass;
+struct _HdLauncherPage {
+	ClutterGroup parent_instance;
 
-struct _HdLauncherPage
-{
-  ClutterGroup parent_instance;
-
-  HdLauncherPagePrivate *priv;
+	HdLauncherPagePrivate *priv;
 };
 
-struct _HdLauncherPageClass
-{
-  ClutterGroupClass parent_class;
+struct _HdLauncherPageClass {
+	ClutterGroupClass parent_class;
 };
 
-typedef enum
-{
-  HD_LAUNCHER_PAGE_TRANSITION_IN = 0, /* in for main view */
-  HD_LAUNCHER_PAGE_TRANSITION_OUT, /* out for main view */
-  HD_LAUNCHER_PAGE_TRANSITION_OUT_BACK, /* out for main view when the subview is over it */
-  HD_LAUNCHER_PAGE_TRANSITION_LAUNCH, /* launching an application */
-  HD_LAUNCHER_PAGE_TRANSITION_IN_SUB, /* in for sub-menu */
-  HD_LAUNCHER_PAGE_TRANSITION_OUT_SUB, /* out for sub-menu */
-  HD_LAUNCHER_PAGE_TRANSITION_BACK, /* back out the main view as a subview appears */
-  HD_LAUNCHER_PAGE_TRANSITION_FORWARD, /* main view forwards after a subview is removed */
+typedef enum {
+	HD_LAUNCHER_PAGE_TRANSITION_IN = 0,	/* in for main view */
+	HD_LAUNCHER_PAGE_TRANSITION_OUT,	/* out for main view */
+	HD_LAUNCHER_PAGE_TRANSITION_OUT_BACK,	/* out for main view when the subview is over it */
+	HD_LAUNCHER_PAGE_TRANSITION_LAUNCH,	/* launching an application */
+	HD_LAUNCHER_PAGE_TRANSITION_IN_SUB,	/* in for sub-menu */
+	HD_LAUNCHER_PAGE_TRANSITION_OUT_SUB,	/* out for sub-menu */
+	HD_LAUNCHER_PAGE_TRANSITION_BACK,	/* back out the main view as a subview appears */
+	HD_LAUNCHER_PAGE_TRANSITION_FORWARD,	/* main view forwards after a subview is removed */
 } HdLauncherPageTransition;
 
-GType            hd_launcher_page_get_type (void) G_GNUC_CONST;
-ClutterActor    *hd_launcher_page_new      (void);
-ClutterActor    *hd_launcher_page_get_grid      (HdLauncherPage *page);
+GType hd_launcher_page_get_type(void) G_GNUC_CONST;
+ClutterActor *hd_launcher_page_new(void);
+ClutterActor *hd_launcher_page_get_grid(HdLauncherPage * page);
 
-void hd_launcher_page_add_tile (HdLauncherPage *page, HdLauncherTile* tile);
-void hd_launcher_page_transition(HdLauncherPage *page,
-                                 HdLauncherPageTransition trans_type);
-void hd_launcher_page_transition_stop(HdLauncherPage *page);
-ClutterFixed hd_launcher_page_get_scroll_y(HdLauncherPage *page);
-ClutterActor *hd_launcher_page_get_scroller(HdLauncherPage *page);
-void hd_launcher_page_set_drag_distance(HdLauncherPage *page, float d);
-float hd_launcher_page_get_drag_distance(HdLauncherPage *page);
+void hd_launcher_page_add_tile(HdLauncherPage * page, HdLauncherTile * tile);
+void hd_launcher_page_transition(HdLauncherPage * page, HdLauncherPageTransition trans_type);
+void hd_launcher_page_transition_stop(HdLauncherPage * page);
+ClutterFixed hd_launcher_page_get_scroll_y(HdLauncherPage * page);
+ClutterActor *hd_launcher_page_get_scroller(HdLauncherPage * page);
+void hd_launcher_page_set_drag_distance(HdLauncherPage * page, float d);
+float hd_launcher_page_get_drag_distance(HdLauncherPage * page);
 
-const char *hd_launcher_page_get_transition_string(
-                                         HdLauncherPageTransition trans_type);
+const char *hd_launcher_page_get_transition_string(HdLauncherPageTransition trans_type);
 
-void hd_launcher_page_activate(ClutterActor *actor, int p);
-void hd_launcher_page_stop_scrolling(HdLauncherPage *page);
-void hd_launcher_page_update_emptylabel (HdLauncherPage *page, gboolean is_portrait);
+void hd_launcher_page_activate(ClutterActor * actor, int p);
+void hd_launcher_page_stop_scrolling(HdLauncherPage * page);
+void hd_launcher_page_update_emptylabel(HdLauncherPage * page, gboolean is_portrait);
 
 /* Fixed sizes.
  * FIXME: These should come from getting the screen size
@@ -97,5 +90,4 @@ void hd_launcher_page_update_emptylabel (HdLauncherPage *page, gboolean is_portr
 #define HD_LAUNCHER_PAGE_XMARGIN (72)
 
 G_END_DECLS
-
-#endif /* __HD_LAUNCHER_PAGE_H__ */
+#endif				/* __HD_LAUNCHER_PAGE_H__ */

@@ -31,11 +31,8 @@
 #include "tail.h"
 
 /* factories initialization*/
-HDA_ACCESSIBLE_FACTORY (TAIL_TYPE_SUB_TEXTURE, tail_sub_texture, tail_sub_texture_new)
-
-void
-tail_accessibility_init (void)
+HDA_ACCESSIBLE_FACTORY(TAIL_TYPE_SUB_TEXTURE, tail_sub_texture, tail_sub_texture_new)
+void tail_accessibility_init(void)
 {
-  HDA_ACTOR_SET_FACTORY (TIDY_TYPE_SUB_TEXTURE, tail_sub_texture);
+	HDA_ACTOR_SET_FACTORY(TIDY_TYPE_SUB_TEXTURE, tail_sub_texture);
 }
-

@@ -30,57 +30,44 @@
 #include <clutter/clutter-texture.h>
 
 G_BEGIN_DECLS
-
 #define TIDY_TYPE_SUB_TEXTURE (tidy_sub_texture_get_type ())
-
 #define TIDY_SUB_TEXTURE(obj) \
   (G_TYPE_CHECK_INSTANCE_CAST ((obj), \
   TIDY_TYPE_SUB_TEXTURE, TidySubTexture))
-
 #define TIDY_SUB_TEXTURE_CLASS(klass) \
   (G_TYPE_CHECK_CLASS_CAST ((klass), \
   TIDY_TYPE_SUB_TEXTURE, TidySubTextureClass))
-
 #define TIDY_IS_SUB_TEXTURE(obj) \
   (G_TYPE_CHECK_INSTANCE_TYPE ((obj), \
   TIDY_TYPE_SUB_TEXTURE))
-
 #define TIDY_IS_SUB_TEXTURE_CLASS(klass) \
   (G_TYPE_CHECK_CLASS_TYPE ((klass), \
   TIDY_TYPE_SUB_TEXTURE))
-
 #define TIDY_SUB_TEXTURE_GET_CLASS(obj) \
   (G_TYPE_INSTANCE_GET_CLASS ((obj), \
   TIDY_TYPE_SUB_TEXTURE, TidySubTextureClass))
-
-typedef struct _TidySubTexture        TidySubTexture;
+typedef struct _TidySubTexture TidySubTexture;
 typedef struct _TidySubTexturePrivate TidySubTexturePrivate;
-typedef struct _TidySubTextureClass   TidySubTextureClass;
+typedef struct _TidySubTextureClass TidySubTextureClass;
 
-struct _TidySubTexture
-{
-  ClutterActor                 parent;
+struct _TidySubTexture {
+	ClutterActor parent;
 
-  /*< priv >*/
-  TidySubTexturePrivate    *priv;
+	/*< priv > */
+	TidySubTexturePrivate *priv;
 };
 
-struct _TidySubTextureClass
-{
-  ClutterActorClass parent_class;
+struct _TidySubTextureClass {
+	ClutterActorClass parent_class;
 };
 
-GType           tidy_sub_texture_get_type           (void) G_GNUC_CONST;
+GType tidy_sub_texture_get_type(void) G_GNUC_CONST;
 
-TidySubTexture *tidy_sub_texture_new                (ClutterTexture      *texture);
-ClutterTexture *tidy_sub_texture_get_parent_texture (TidySubTexture *sub);
-void            tidy_sub_texture_set_parent_texture (TidySubTexture *sub,
-                                                     ClutterTexture      *texture);
-void            tidy_sub_texture_set_region (TidySubTexture *sub,
-                                             ClutterGeometry *region);
-void            tidy_sub_texture_set_tiled (TidySubTexture *sub,
-                                            gboolean tile);
+TidySubTexture *tidy_sub_texture_new(ClutterTexture * texture);
+ClutterTexture *tidy_sub_texture_get_parent_texture(TidySubTexture * sub);
+void tidy_sub_texture_set_parent_texture(TidySubTexture * sub, ClutterTexture * texture);
+void tidy_sub_texture_set_region(TidySubTexture * sub, ClutterGeometry * region);
+void tidy_sub_texture_set_tiled(TidySubTexture * sub, gboolean tile);
 
 G_END_DECLS
-
 #endif

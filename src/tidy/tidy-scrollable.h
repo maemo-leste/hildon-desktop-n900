@@ -27,37 +27,28 @@
 #include <tidy/tidy-adjustment.h>
 
 G_BEGIN_DECLS
-
 #define TIDY_TYPE_SCROLLABLE                (tidy_scrollable_get_type ())
 #define TIDY_SCROLLABLE(obj)                (G_TYPE_CHECK_INSTANCE_CAST ((obj), TIDY_TYPE_SCROLLABLE, TidyScrollable))
 #define TIDY_IS_SCROLLABLE(obj)             (G_TYPE_CHECK_INSTANCE_TYPE ((obj), TIDY_TYPE_SCROLLABLE))
 #define TIDY_SCROLLABLE_GET_INTERFACE(inst) (G_TYPE_INSTANCE_GET_INTERFACE ((inst), TIDY_TYPE_SCROLLABLE, TidyScrollableInterface))
-
-typedef struct _TidyScrollable TidyScrollable; /* Dummy object */
+typedef struct _TidyScrollable TidyScrollable;	/* Dummy object */
 typedef struct _TidyScrollableInterface TidyScrollableInterface;
 
-struct _TidyScrollableInterface
-{
-  GTypeInterface parent;
-  
-  void (* set_adjustments) (TidyScrollable  *scrollable,
-                            TidyAdjustment  *hadjustment,
-                            TidyAdjustment  *vadjustment);
-  void (* get_adjustments) (TidyScrollable  *scrollable,
-                            TidyAdjustment **hadjustment,
-                            TidyAdjustment **vadjustment);
+struct _TidyScrollableInterface {
+	GTypeInterface parent;
+
+	void (*set_adjustments)(TidyScrollable * scrollable,
+				TidyAdjustment * hadjustment, TidyAdjustment * vadjustment);
+	void (*get_adjustments)(TidyScrollable * scrollable,
+				TidyAdjustment ** hadjustment, TidyAdjustment ** vadjustment);
 };
 
-GType tidy_scrollable_get_type (void) G_GNUC_CONST;
+GType tidy_scrollable_get_type(void) G_GNUC_CONST;
 
-void tidy_scrollable_set_adjustments (TidyScrollable  *scrollable,
-                                      TidyAdjustment  *hadjustment,
-                                      TidyAdjustment  *vadjustment);
-void tidy_scrollable_get_adjustments (TidyScrollable  *scrollable,
-                                      TidyAdjustment **hadjustment,
-                                      TidyAdjustment **vadjustment);
+void tidy_scrollable_set_adjustments(TidyScrollable * scrollable,
+				     TidyAdjustment * hadjustment, TidyAdjustment * vadjustment);
+void tidy_scrollable_get_adjustments(TidyScrollable * scrollable,
+				     TidyAdjustment ** hadjustment, TidyAdjustment ** vadjustment);
 
 G_END_DECLS
-
-#endif /* __TIDY_SCROLLABLE_H__ */
-
+#endif				/* __TIDY_SCROLLABLE_H__ */

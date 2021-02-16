@@ -35,104 +35,87 @@
 #include "hda-launcher-tile.h"
 
 /* GObject */
-static void
-hda_launcher_tile_class_init                    (HdaLauncherTileClass *klass);
+static void hda_launcher_tile_class_init(HdaLauncherTileClass * klass);
 
-static void
-hda_launcher_tile_init                          (HdaLauncherTile *root);
+static void hda_launcher_tile_init(HdaLauncherTile * root);
 
 /* AtkObject.h */
 
-static void
-hda_launcher_tile_initialize                    (AtkObject *obj,
-                                                 gpointer data);
+static void hda_launcher_tile_initialize(AtkObject * obj, gpointer data);
 
-static const gchar *
-hda_launcher_tile_get_name                      (AtkObject *obj);
+static const gchar *hda_launcher_tile_get_name(AtkObject * obj);
 
-static const gchar *
-hda_launcher_tile_get_description               (AtkObject *obj);
+static const gchar *hda_launcher_tile_get_description(AtkObject * obj);
 
-G_DEFINE_TYPE (HdaLauncherTile, hda_launcher_tile,  CAIL_TYPE_ACTOR)
-
-static void
-hda_launcher_tile_class_init                            (HdaLauncherTileClass *klass)
+G_DEFINE_TYPE(HdaLauncherTile, hda_launcher_tile, CAIL_TYPE_ACTOR)
+static void hda_launcher_tile_class_init(HdaLauncherTileClass * klass)
 {
 /*   GObjectClass *gobject_class = G_OBJECT_CLASS (klass); */
-  AtkObjectClass *class = ATK_OBJECT_CLASS (klass);
+	AtkObjectClass *class = ATK_OBJECT_CLASS(klass);
 
-  /* AtkObject */
-  class->initialize = hda_launcher_tile_initialize;
-  class->get_name = hda_launcher_tile_get_name;
-  class->get_description = hda_launcher_tile_get_description;
+	/* AtkObject */
+	class->initialize = hda_launcher_tile_initialize;
+	class->get_name = hda_launcher_tile_get_name;
+	class->get_description = hda_launcher_tile_get_description;
 }
 
-static void
-hda_launcher_tile_init                          (HdaLauncherTile *tile)
+static void hda_launcher_tile_init(HdaLauncherTile * tile)
 {
-  /* nothing required */
+	/* nothing required */
 }
 
-
-AtkObject*
-hda_launcher_tile_new                           (ClutterActor *tile)
+AtkObject *hda_launcher_tile_new(ClutterActor * tile)
 {
-  GObject *object = NULL;
-  AtkObject *accessible = NULL;
+	GObject *object = NULL;
+	AtkObject *accessible = NULL;
 
-  object = g_object_new (HDA_TYPE_LAUNCHER_TILE, NULL);
+	object = g_object_new(HDA_TYPE_LAUNCHER_TILE, NULL);
 
-  accessible = ATK_OBJECT (object);
-  atk_object_initialize (accessible, tile);
+	accessible = ATK_OBJECT(object);
+	atk_object_initialize(accessible, tile);
 
-  return accessible;
+	return accessible;
 }
 
 /* AtkObject */
 
-static void
-hda_launcher_tile_initialize                    (AtkObject   *obj,
-                                                 gpointer    data)
+static void hda_launcher_tile_initialize(AtkObject * obj, gpointer data)
 {
-  ATK_OBJECT_CLASS (hda_launcher_tile_parent_class)->initialize (obj, data);
+	ATK_OBJECT_CLASS(hda_launcher_tile_parent_class)->initialize(obj, data);
 
-  obj->role = ATK_ROLE_PUSH_BUTTON;
+	obj->role = ATK_ROLE_PUSH_BUTTON;
 }
 
-static const gchar *
-hda_launcher_tile_get_name                      (AtkObject *obj)
+static const gchar *hda_launcher_tile_get_name(AtkObject * obj)
 {
-  const gchar *name = NULL;
+	const gchar *name = NULL;
 
-  g_return_val_if_fail (HDA_IS_LAUNCHER_TILE (obj), NULL);
+	g_return_val_if_fail(HDA_IS_LAUNCHER_TILE(obj), NULL);
 
-  name = ATK_OBJECT_CLASS (hda_launcher_tile_parent_class)->get_name (obj);
-  if (name == NULL)
-    {
-      ClutterActor *actor = NULL;
+	name = ATK_OBJECT_CLASS(hda_launcher_tile_parent_class)->get_name(obj);
+	if (name == NULL) {
+		ClutterActor *actor = NULL;
 
-      actor = CLUTTER_ACTOR (atk_gobject_accessible_get_object (ATK_GOBJECT_ACCESSIBLE (obj)));
-      name = hd_launcher_tile_get_icon_name (HD_LAUNCHER_TILE (actor));
-    }
+		actor = CLUTTER_ACTOR(atk_gobject_accessible_get_object(ATK_GOBJECT_ACCESSIBLE(obj)));
+		name = hd_launcher_tile_get_icon_name(HD_LAUNCHER_TILE(actor));
+	}
 
-  return name;
+	return name;
 }
 
-static const gchar *
-hda_launcher_tile_get_description               (AtkObject *obj)
+static const gchar *hda_launcher_tile_get_description(AtkObject * obj)
 {
-  const gchar *description = NULL;
+	const gchar *description = NULL;
 
-  g_return_val_if_fail (HDA_IS_LAUNCHER_TILE (obj), NULL);
+	g_return_val_if_fail(HDA_IS_LAUNCHER_TILE(obj), NULL);
 
-  description = ATK_OBJECT_CLASS (hda_launcher_tile_parent_class)->get_description (obj);
-  if (description == NULL)
-    {
-      ClutterActor *actor = NULL;
+	description = ATK_OBJECT_CLASS(hda_launcher_tile_parent_class)->get_description(obj);
+	if (description == NULL) {
+		ClutterActor *actor = NULL;
 
-      actor = CLUTTER_ACTOR (atk_gobject_accessible_get_object (ATK_GOBJECT_ACCESSIBLE (obj)));
-      description = hd_launcher_tile_get_text (HD_LAUNCHER_TILE (actor));
-    }
+		actor = CLUTTER_ACTOR(atk_gobject_accessible_get_object(ATK_GOBJECT_ACCESSIBLE(obj)));
+		description = hd_launcher_tile_get_text(HD_LAUNCHER_TILE(actor));
+	}
 
-  return description;
+	return description;
 }

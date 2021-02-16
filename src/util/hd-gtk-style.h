@@ -32,11 +32,10 @@
  * number of common GtkWidget singletons for the sake of their
  * GtkStyles. These enums let you choose which widgets style you
  * are interested in referencing. */
-typedef enum
-{
-    HD_GTK_BUTTON_SINGLETON,
+typedef enum {
+	HD_GTK_BUTTON_SINGLETON,
 
-    HD_GTK_WIDGET_SINGLETON_COUNT
+	HD_GTK_WIDGET_SINGLETON_COUNT
 } HDGtkWidgetSingleton;
 
 /**
@@ -45,44 +44,26 @@ typedef enum
  * Initialises the internal widget singletons that are needed
  * for their GtkStyles.
  */
-void hd_gtk_style_init (void);
+void hd_gtk_style_init(void);
 
-void hd_gtk_style_get_fg_color (HDGtkWidgetSingleton  widget_id,
-				GtkStateType          state,
-				ClutterColor         *color);
+void hd_gtk_style_get_fg_color(HDGtkWidgetSingleton widget_id, GtkStateType state, ClutterColor * color);
 
-void hd_gtk_style_get_bg_color (HDGtkWidgetSingleton   widget_id,
-				GtkStateType	       state,
-				ClutterColor	      *color);
+void hd_gtk_style_get_bg_color(HDGtkWidgetSingleton widget_id, GtkStateType state, ClutterColor * color);
 
-void hd_gtk_style_get_light_color (HDGtkWidgetSingleton  widget_id,
-				   GtkStateType		 state,
-				   ClutterColor		*color);
+void hd_gtk_style_get_light_color(HDGtkWidgetSingleton widget_id, GtkStateType state, ClutterColor * color);
 
-void hd_gtk_style_get_dark_color (HDGtkWidgetSingleton	 widget_id,
-				  GtkStateType		 state,
-				  ClutterColor		*color);
+void hd_gtk_style_get_dark_color(HDGtkWidgetSingleton widget_id, GtkStateType state, ClutterColor * color);
 
-void hd_gtk_style_get_mid_color (HDGtkWidgetSingleton  widget_id,
-				 GtkStateType	       state,
-				 ClutterColor	      *color);
+void hd_gtk_style_get_mid_color(HDGtkWidgetSingleton widget_id, GtkStateType state, ClutterColor * color);
 
-void hd_gtk_style_get_text_color (HDGtkWidgetSingleton   widget_id,
-				  GtkStateType		 state,
-				  ClutterColor		*color);
+void hd_gtk_style_get_text_color(HDGtkWidgetSingleton widget_id, GtkStateType state, ClutterColor * color);
 
-void hd_gtk_style_get_base_color (HDGtkWidgetSingleton	 widget,
-				  GtkStateType		 state,
-				  ClutterColor		*color);
+void hd_gtk_style_get_base_color(HDGtkWidgetSingleton widget, GtkStateType state, ClutterColor * color);
 
-char *hd_gtk_style_get_font_string (HDGtkWidgetSingleton  widget_id);
+char *hd_gtk_style_get_font_string(HDGtkWidgetSingleton widget_id);
 
-void
-hd_gtk_style_resolve_logical_color (ClutterColor * color,
-                                    const gchar * logical_name);
+void hd_gtk_style_resolve_logical_color(ClutterColor * color, const gchar * logical_name);
 
-gchar *
-hd_gtk_style_resolve_logical_font (const gchar * logical_name);
+gchar *hd_gtk_style_resolve_logical_font(const gchar * logical_name);
 
-#endif /* _HD_GTK_STYLE_H_ */
-
+#endif				/* _HD_GTK_STYLE_H_ */

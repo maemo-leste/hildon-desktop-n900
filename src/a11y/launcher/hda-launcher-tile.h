@@ -27,7 +27,6 @@
 #include                                        "cail/cail-actor.h"
 
 G_BEGIN_DECLS
-
 #define                                         HDA_TYPE_LAUNCHER_TILE \
                                                 (hda_launcher_tile_get_type ())
 #define                                         HDA_LAUNCHER_TILE(obj) \
@@ -45,28 +44,20 @@ G_BEGIN_DECLS
 #define                                         HDA_LAUNCHER_TILE_GET_CLASS(obj) \
                                                 (G_TYPE_INSTANCE_GET_CLASS ((obj), \
                                                 HDA_TYPE_LAUNCHER_TILE, HdaLauncherTileClass))
+typedef struct _HdaLauncherTile HdaLauncherTile;
+typedef struct _HdaLauncherTileClass HdaLauncherTileClass;
 
-typedef struct                                  _HdaLauncherTile        HdaLauncherTile;
-typedef struct                                  _HdaLauncherTileClass   HdaLauncherTileClass;
-
-struct                                          _HdaLauncherTile
-{
-  CailActor parent;
+struct _HdaLauncherTile {
+	CailActor parent;
 };
 
-struct                                          _HdaLauncherTileClass
-{
-  CailActorClass parent_class;
+struct _HdaLauncherTileClass {
+	CailActorClass parent_class;
 };
 
+GType hda_launcher_tile_get_type(void);
 
-GType
-hda_launcher_tile_get_type                      (void);
-
-AtkObject*
-hda_launcher_tile_new                           (ClutterActor *tile);
-
+AtkObject *hda_launcher_tile_new(ClutterActor * tile);
 
 G_END_DECLS
-
 #endif

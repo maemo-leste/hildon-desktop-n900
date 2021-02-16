@@ -29,189 +29,162 @@
 
 #include <stdio.h>
 
-static void
-hd_desktop_realize (MBWindowManagerClient *client);
+static void hd_desktop_realize(MBWindowManagerClient * client);
 
 static Bool
-hd_desktop_request_geometry (MBWindowManagerClient *client,
-			     MBGeometry            *new_geometry,
-			     MBWMClientReqGeomType  flags);
+hd_desktop_request_geometry(MBWindowManagerClient * client, MBGeometry * new_geometry, MBWMClientReqGeomType flags);
 
-static MBWMStackLayerType
-hd_desktop_stacking_layer (MBWindowManagerClient *client);
+static MBWMStackLayerType hd_desktop_stacking_layer(MBWindowManagerClient * client);
 
-static void
-hd_desktop_stack (MBWindowManagerClient *client, int flags);
+static void hd_desktop_stack(MBWindowManagerClient * client, int flags);
 
-static void
-hd_desktop_class_init (MBWMObjectClass *klass)
+static void hd_desktop_class_init(MBWMObjectClass * klass)
 {
-  MBWindowManagerClientClass *client;
+	MBWindowManagerClientClass *client;
 
-  MBWM_MARK();
+	MBWM_MARK();
 
-  client     = (MBWindowManagerClientClass *)klass;
+	client = (MBWindowManagerClientClass *) klass;
 
-  client->client_type    = MBWMClientTypeDesktop;
-  client->geometry       = hd_desktop_request_geometry;
-  client->stacking_layer = hd_desktop_stacking_layer;
-  client->stack          = hd_desktop_stack;
-  client->realize        = hd_desktop_realize;
+	client->client_type = MBWMClientTypeDesktop;
+	client->geometry = hd_desktop_request_geometry;
+	client->stacking_layer = hd_desktop_stacking_layer;
+	client->stack = hd_desktop_stack;
+	client->realize = hd_desktop_realize;
 
 #if MBWM_WANT_DEBUG
-  klass->klass_name = "HdDesktop";
+	klass->klass_name = "HdDesktop";
 #endif
 }
 
-static void
-hd_desktop_destroy (MBWMObject *this)
+static void hd_desktop_destroy(MBWMObject * this)
 {
 }
 
-static int
-hd_desktop_init (MBWMObject *this, va_list vap)
+static int hd_desktop_init(MBWMObject * this, va_list vap)
 {
-  MBWindowManagerClient    *client = MB_WM_CLIENT (this);
-  MBWindowManager          *wm = NULL;
-  MBGeometry                geom;
+	MBWindowManagerClient *client = MB_WM_CLIENT(this);
+	MBWindowManager *wm = NULL;
+	MBGeometry geom;
 
-  wm = client->wmref;
+	wm = client->wmref;
 
-  if (!wm)
-    return 0;
+	if (!wm)
+		return 0;
 
-  client->stacking_layer = MBWMStackLayerBottom;
+	client->stacking_layer = MBWMStackLayerBottom;
 
-  mb_wm_client_set_layout_hints (client,
-				 LayoutPrefFullscreen|LayoutPrefVisible);
+	mb_wm_client_set_layout_hints(client, LayoutPrefFullscreen | LayoutPrefVisible);
 
-  /*
-   * Initialize window geometry, so that the frame size is correct
-   */
-  geom.x      = 0;
-  geom.y      = 0;
-  geom.width  = HD_COMP_MGR_LANDSCAPE_WIDTH;
-  geom.height = HD_COMP_MGR_LANDSCAPE_WIDTH;
+	/*
+	 * Initialize window geometry, so that the frame size is correct
+	 */
+	geom.x = 0;
+	geom.y = 0;
+	geom.width = HD_COMP_MGR_LANDSCAPE_WIDTH;
+	geom.height = HD_COMP_MGR_LANDSCAPE_WIDTH;
 
-  hd_desktop_request_geometry (client, &geom, MBWMClientReqGeomForced);
+	hd_desktop_request_geometry(client, &geom, MBWMClientReqGeomForced);
 
-  return 1;
+	return 1;
 }
 
-int
-hd_desktop_class_type ()
+int hd_desktop_class_type()
 {
-  static int type = 0;
+	static int type = 0;
 
-  if (UNLIKELY(type == 0))
-    {
-      static MBWMObjectClassInfo info = {
-	sizeof (HdDesktopClass),
-	sizeof (HdDesktop),
-	hd_desktop_init,
-	hd_desktop_destroy,
-	hd_desktop_class_init
-      };
-      type = mb_wm_object_register_class (&info, MB_WM_TYPE_CLIENT_BASE, 0);
-    }
+	if (UNLIKELY(type == 0)) {
+		static MBWMObjectClassInfo info = {
+			sizeof(HdDesktopClass),
+			sizeof(HdDesktop),
+			hd_desktop_init,
+			hd_desktop_destroy,
+			hd_desktop_class_init
+		};
+		type = mb_wm_object_register_class(&info, MB_WM_TYPE_CLIENT_BASE, 0);
+	}
 
-  return type;
+	return type;
 }
 
 static Bool
-hd_desktop_request_geometry (MBWindowManagerClient *client,
-			     MBGeometry            *new_geometry,
-			     MBWMClientReqGeomType  flags)
+hd_desktop_request_geometry(MBWindowManagerClient * client, MBGeometry * new_geometry, MBWMClientReqGeomType flags)
 {
-  if (flags & (MBWMClientReqGeomIsViaLayoutManager|MBWMClientReqGeomForced))
-    {
-      client->frame_geometry.x      = new_geometry->x;
-      client->frame_geometry.y      = new_geometry->y;
-      client->frame_geometry.width  = new_geometry->width;
-      client->frame_geometry.height = new_geometry->height;
+	if (flags & (MBWMClientReqGeomIsViaLayoutManager | MBWMClientReqGeomForced)) {
+		client->frame_geometry.x = new_geometry->x;
+		client->frame_geometry.y = new_geometry->y;
+		client->frame_geometry.width = new_geometry->width;
+		client->frame_geometry.height = new_geometry->height;
 
-      mb_wm_client_geometry_mark_dirty (client);
+		mb_wm_client_geometry_mark_dirty(client);
 
-      return True; /* Geometry accepted */
-    }
-  return False;
+		return True;	/* Geometry accepted */
+	}
+	return False;
 }
 
-static MBWMStackLayerType
-hd_desktop_stacking_layer (MBWindowManagerClient *client)
+static MBWMStackLayerType hd_desktop_stacking_layer(MBWindowManagerClient * client)
 {
-  if (STATE_NEED_DESKTOP(hd_render_manager_get_state()))
-    {
-      client->wmref->flags |= MBWindowManagerFlagDesktop;
-      return MBWMStackLayerMid;
-    }
-  else
-    {
-      client->wmref->flags &= ~MBWindowManagerFlagDesktop;
-      return MBWMStackLayerBottom;
-    }
+	if (STATE_NEED_DESKTOP(hd_render_manager_get_state())) {
+		client->wmref->flags |= MBWindowManagerFlagDesktop;
+		return MBWMStackLayerMid;
+	} else {
+		client->wmref->flags &= ~MBWindowManagerFlagDesktop;
+		return MBWMStackLayerBottom;
+	}
 }
 
-static void
-hd_desktop_realize (MBWindowManagerClient *client)
+static void hd_desktop_realize(MBWindowManagerClient * client)
 {
-#if 0  /* we don't seem to need this? */
-  /*
-   * Must reparent the window to our root, otherwise we restacking of
-   * pre-existing windows might fail.
-   */
-  printf ("#### realizing desktop\n ####");
+#if 0				/* we don't seem to need this? */
+	/*
+	 * Must reparent the window to our root, otherwise we restacking of
+	 * pre-existing windows might fail.
+	 */
+	printf("#### realizing desktop\n ####");
 
-  XReparentWindow(client->wmref->xdpy, MB_WM_CLIENT_XWIN(client),
-		  client->wmref->root_win->xwindow, 0, 0);
+	XReparentWindow(client->wmref->xdpy, MB_WM_CLIENT_XWIN(client), client->wmref->root_win->xwindow, 0, 0);
 
 #endif
 }
 
-static void
-hd_desktop_stack (MBWindowManagerClient *client,
-		  int                    flags)
+static void hd_desktop_stack(MBWindowManagerClient * client, int flags)
 {
-  /* Stack to highest/lowest possible position in stack */
-  HdCompMgr *hmgr = HD_COMP_MGR (client->wmref->comp_mgr);
-  GSList    *applets = NULL, *a;
-  MBWMList  *l_start, *l;
+	/* Stack to highest/lowest possible position in stack */
+	HdCompMgr *hmgr = HD_COMP_MGR(client->wmref->comp_mgr);
+	GSList *applets = NULL, *a;
+	MBWMList *l_start, *l;
 
-  mb_wm_stack_move_top (client);
+	mb_wm_stack_move_top(client);
 
-  /* This is pathetic. */
-  applets = hd_home_view_get_all_applets (HD_HOME_VIEW (hd_home_get_current_view (HD_HOME (hd_comp_mgr_get_home (hmgr)))));
+	/* This is pathetic. */
+	applets =
+	    hd_home_view_get_all_applets(HD_HOME_VIEW(hd_home_get_current_view(HD_HOME(hd_comp_mgr_get_home(hmgr)))));
 
-  /* Now stack all applets */
-  for (a = applets; a; a = a->next)
-    {
-      MBWindowManagerClient *wm_client = MB_WM_COMP_MGR_CLIENT (a->data)->wm_client;
-      mb_wm_client_stack (wm_client, flags);
-    }
-  g_slist_free (applets);
+	/* Now stack all applets */
+	for (a = applets; a; a = a->next) {
+		MBWindowManagerClient *wm_client = MB_WM_COMP_MGR_CLIENT(a->data)->wm_client;
+		mb_wm_client_stack(wm_client, flags);
+	}
+	g_slist_free(applets);
 
-  hd_comp_mgr_update_applets_on_current_desktop_property (hmgr);
+	hd_comp_mgr_update_applets_on_current_desktop_property(hmgr);
 
-  /* Now we stack any other clients. */
-  l_start = mb_wm_client_get_transients (client);
-  for (l = l_start; l ; l = l->next)
-    {
-      g_assert (!HD_IS_HOME_APPLET (l->data));
-      mb_wm_client_stack (l->data, flags);
-    }
-  mb_wm_util_list_free (l_start);
+	/* Now we stack any other clients. */
+	l_start = mb_wm_client_get_transients(client);
+	for (l = l_start; l; l = l->next) {
+		g_assert(!HD_IS_HOME_APPLET(l->data));
+		mb_wm_client_stack(l->data, flags);
+	}
+	mb_wm_util_list_free(l_start);
 }
 
-MBWindowManagerClient*
-hd_desktop_new (MBWindowManager *wm, MBWMClientWindow *win)
+MBWindowManagerClient *hd_desktop_new(MBWindowManager * wm, MBWMClientWindow * win)
 {
-  MBWindowManagerClient *client;
+	MBWindowManagerClient *client;
 
-  client = MB_WM_CLIENT(mb_wm_object_new (HD_TYPE_DESKTOP,
-					  MBWMObjectPropWm,           wm,
-					  MBWMObjectPropClientWindow, win,
-					  NULL));
+	client = MB_WM_CLIENT(mb_wm_object_new(HD_TYPE_DESKTOP,
+					       MBWMObjectPropWm, wm, MBWMObjectPropClientWindow, win, NULL));
 
-  return client;
+	return client;
 }
-

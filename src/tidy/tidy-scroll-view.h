@@ -27,39 +27,34 @@
 #include <tidy/tidy-actor.h>
 
 G_BEGIN_DECLS
-
 #define TIDY_TYPE_SCROLL_VIEW            (tidy_scroll_view_get_type())
 #define TIDY_SCROLL_VIEW(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), TIDY_TYPE_SCROLL_VIEW, TidyScrollView))
 #define TIDY_IS_SCROLL_VIEW(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), TIDY_TYPE_SCROLL_VIEW))
 #define TIDY_SCROLL_VIEW_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), TIDY_TYPE_SCROLL_VIEW, TidyScrollViewClass))
 #define TIDY_IS_SCROLL_VIEW_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), TIDY_TYPE_SCROLL_VIEW))
 #define TIDY_SCROLL_VIEW_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), TIDY_TYPE_SCROLL_VIEW, TidyScrollViewClass))
+typedef struct _TidyScrollView TidyScrollView;
+typedef struct _TidyScrollViewPrivate TidyScrollViewPrivate;
+typedef struct _TidyScrollViewClass TidyScrollViewClass;
 
-typedef struct _TidyScrollView          TidyScrollView;
-typedef struct _TidyScrollViewPrivate   TidyScrollViewPrivate;
-typedef struct _TidyScrollViewClass     TidyScrollViewClass;
+struct _TidyScrollView {
+	/*< private > */
+	TidyActor parent;
 
-struct _TidyScrollView
-{
-  /*< private >*/
-  TidyActor parent;
-  
-  TidyScrollViewPrivate *priv;
+	TidyScrollViewPrivate *priv;
 };
 
-struct _TidyScrollViewClass
-{
-  TidyActorClass parent_class;
+struct _TidyScrollViewClass {
+	TidyActorClass parent_class;
 };
 
-GType tidy_scroll_view_get_type (void) G_GNUC_CONST;
+GType tidy_scroll_view_get_type(void) G_GNUC_CONST;
 
-ClutterActor *tidy_scroll_view_new             (void);
+ClutterActor *tidy_scroll_view_new(void);
 
-ClutterActor *tidy_scroll_view_get_hscroll_bar (TidyScrollView *scroll);
-ClutterActor *tidy_scroll_view_get_vscroll_bar (TidyScrollView *scroll);
-ClutterActor *tidy_scroll_view_get_child       (TidyScrollView *scroll);
+ClutterActor *tidy_scroll_view_get_hscroll_bar(TidyScrollView * scroll);
+ClutterActor *tidy_scroll_view_get_vscroll_bar(TidyScrollView * scroll);
+ClutterActor *tidy_scroll_view_get_child(TidyScrollView * scroll);
 
 G_END_DECLS
-
-#endif /* __TIDY_SCROLL_VIEW_H__ */
+#endif				/* __TIDY_SCROLL_VIEW_H__ */

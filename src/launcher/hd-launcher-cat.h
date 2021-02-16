@@ -33,29 +33,24 @@
 #include "hd-launcher-item.h"
 
 G_BEGIN_DECLS
-
 #define HD_TYPE_LAUNCHER_CAT              (hd_launcher_cat_get_type ())
 #define HD_LAUNCHER_CAT(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), HD_TYPE_LAUNCHER_CAT, HdLauncherCat))
 #define HD_IS_LAUNCHER_CAT(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HD_TYPE_LAUNCHER_CAT))
 #define HD_LAUNCHER_CAT_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), HD_TYPE_LAUNCHER_CAT, HdLauncherCatClass))
 #define HD_IS_LAUNCHER_CAT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), HD_TYPE_LAUNCHER_CAT))
 #define HD_LAUNCHER_CAT_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), HD_TYPE_LAUNCHER_CAT, HdLauncherCatClass))
+typedef struct _HdLauncherCat HdLauncherCat;
+typedef struct _HdLauncherCatClass HdLauncherCatClass;
 
-typedef struct _HdLauncherCat         HdLauncherCat;
-typedef struct _HdLauncherCatClass    HdLauncherCatClass;
-
-struct _HdLauncherCat
-{
-  HdLauncherItem parent_instance;
+struct _HdLauncherCat {
+	HdLauncherItem parent_instance;
 };
 
-struct _HdLauncherCatClass
-{
-  HdLauncherItemClass parent_class;
+struct _HdLauncherCatClass {
+	HdLauncherItemClass parent_class;
 };
 
-GType           hd_launcher_cat_get_type (void) G_GNUC_CONST;
+GType hd_launcher_cat_get_type(void) G_GNUC_CONST;
 
 G_END_DECLS
-
-#endif /* __HD_LAUNCHER_CAT_H__ */
+#endif				/* __HD_LAUNCHER_CAT_H__ */
