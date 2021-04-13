@@ -1,3 +1,10 @@
+hildon-desktop (1:2.2.179) unstable; urgency=medium
+
+  * Allow for flexible shortcuts, see
+    https://github.com/maemo-leste/leste-config/commits/e4d5dac6a7a6b385190ac33ab88d7300aa75b0ec
+
+ -- Merlijn Wajer <merlijn@wizzup.org>  Tue, 13 Apr 2021 12:11:10 +0200
+
 hildon-desktop (1:2.2.178) unstable; urgency=medium
 
   * Make sure libtool does not interfere with maemo-launcher linker flags
