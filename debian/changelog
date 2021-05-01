@@ -1,3 +1,9 @@
+hildon-desktop (1:2.2.180) unstable; urgency=medium
+
+  * hd-shortcuts: ues GUINT_TO_POINTER
+
+ -- Ivan J. <parazyd@dyne.org>  Sat, 01 May 2021 21:46:05 +0200
+
 hildon-desktop (1:2.2.179) unstable; urgency=medium
 
   * Allow for flexible shortcuts, see
