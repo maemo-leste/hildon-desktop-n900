@@ -1,3 +1,9 @@
+hildon-desktop (1:2.2.181) unstable; urgency=medium
+
+  * Bump version for newer libmatchbox2
+
+ -- Ivan J. <parazyd@dyne.org>  Wed, 16 Jun 2021 13:26:27 +0200
+
 hildon-desktop (1:2.2.180) unstable; urgency=medium
 
   * hd-shortcuts: ues GUINT_TO_POINTER
